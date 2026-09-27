@@ -1,0 +1,325 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PropertyKind {
+  FLAT
+  HOUSE
+  PENTHOUSE
+  TOWNHOUSE
+  COMMERCIAL
+}
+
+enum DealType {
+  SALE
+  RENT
+}
+
+enum LeadKind {
+  MORTGAGE
+  SERVICE
+  AGENCY
+  LISTING_CONTACT
+}
+
+enum LeadStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+}
+
+enum ServiceScope {
+  HOME
+  FULL
+}
+
+/// Формат XML-выгрузки CRM агентства.
+enum FeedFormat {
+  INMOVILLA
+  WITEI
+  MOBILIA
+  KYERO
+  RESALES
+  CASAYA
+}
+
+enum FeedStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ERROR
+}
+
+enum FeedRunStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum ListingSource {
+  MANUAL
+  FEED
+}
+
+enum ListingStatus {
+  DRAFT
+  MODERATION
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Агентство-партнёр, поставляет инвентарь через XML-фид CRM.
+model Agency {
+  id         String    @id @default(cuid())
+  name       String    @unique
+  initials   String
+  brandColor String
+  crm        String?
+  feedUrl    String?
+  verified   Boolean   @default(true)
+  replyTime  Int       @default(12)
+  planKey    String?
+  plan       Plan?     @relation(fields: [planKey], references: [key])
+  listings   Listing[]
+  feeds      AgencyFeed[]
+  members    AgencyMember[]
+  contactEmail String?
+  contactPhone String?
+  freeUntil  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+/// Подключённая XML-выгрузка CRM. Один фид = один источник инвентаря.
+model AgencyFeed {
+  id           String     @id @default(cuid())
+  agencyId     String
+  agency       Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  url          String
+  format       FeedFormat @default(CASAYA)
+  status       FeedStatus @default(PENDING)
+  /// Как часто опрашивать источник, минут.
+  intervalMin  Int        @default(60)
+  lastRunAt    DateTime?
+  lastOkAt     DateTime?
+  lastError    String?
+  listingCount Int        @default(0)
+  runs         FeedRun[]
+  listings     Listing[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([agencyId, url])
+  @@index([status, lastRunAt])
+}
+
+/// Журнал одной синхронизации фида.
+model FeedRun {
+  id         String        @id @default(cuid())
+  feedId     String
+  feed       AgencyFeed    @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  status     FeedRunStatus @default(RUNNING)
+  parsed     Int           @default(0)
+  created    Int           @default(0)
+  updated    Int           @default(0)
+  archived   Int           @default(0)
+  skipped    Int           @default(0)
+  error      String?
+  startedAt  DateTime      @default(now())
+  finishedAt DateTime?
+
+  @@index([feedId, startedAt])
+}
+
+/// Сотрудник агентства в кабинете Casaya Pro.
+model AgencyMember {
+  id        String   @id @default(cuid())
+  agencyId  String
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("manager")
+  createdAt DateTime @default(now())
+
+  @@unique([agencyId, userId])
+}
+
+model Listing {
+  id            String       @id
+  slug          String       @unique
+  title         String
+  address       String
+  city          String       @default("Аликанте")
+  kind          PropertyKind
+  deal          DealType     @default(SALE)
+  price         Int
+  area          Int
+  bedrooms      Int
+  bathrooms     Int
+  seaView       Boolean      @default(false)
+  seaDistance   String?
+  yearBuilt     Int?
+  verified      Boolean      @default(true)
+  verifiedAt    DateTime?
+  badge         String?
+  description   String       @db.Text
+  features      String[]
+  coverImage    String
+  gallery       String[]
+  mapX          String
+  mapY          String
+  videoTour     Boolean      @default(true)
+  source        ListingSource @default(MANUAL)
+  status        ListingStatus @default(PUBLISHED)
+  /// Идентификатор объекта в CRM агентства — ключ дедупликации при импорте.
+  externalId    String?
+  /// Отпечаток payload из фида: если не изменился, объект не переписываем.
+  externalHash  String?
+  lastSeenAt    DateTime?
+  feedId        String?
+  feed          AgencyFeed?  @relation(fields: [feedId], references: [id], onDelete: SetNull)
+  agencyId      String
+  agency        Agency       @relation(fields: [agencyId], references: [id])
+  projectId     String?
+  project       Project?     @relation(fields: [projectId], references: [id])
+  favorites     Favorite[]
+  leads         Lead[]
+  publishedAt   DateTime     @default(now())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([agencyId, externalId])
+  @@index([kind, deal, price])
+  @@index([seaView])
+  @@index([status, publishedAt])
+}
+
+/// Новостройка (obra nueva).
+model Project {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  address      String
+  priceFrom    Int
+  deliveryLabel String
+  deliveryYear String
+  developer    String
+  units        String
+  image        String
+  specs        Json
+  listings     Listing[]
+  createdAt    DateTime  @default(now())
+}
+
+model City {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  listingsCount Int
+  pricePerM2  Int
+  image       String
+  sort        Int    @default(0)
+}
+
+/// Банк-партнёр Casaya Hipotecas.
+model Bank {
+  id           String @id @default(cuid())
+  name         String @unique
+  initial      String
+  brandColor   String
+  rate         String
+  ltv          String
+  term         String
+  decisionTime String
+  sort         Int    @default(0)
+}
+
+/// Тариф Casaya Pro.
+model Plan {
+  key       String   @id
+  name      String
+  price     String
+  per       String
+  tag       String?
+  items     String[]
+  cta       String
+  sort      Int      @default(0)
+  agencies  Agency[]
+}
+
+/// Сервисный слой сделки (Legal, Escrow, Hipotecas, Move...).
+model ServiceOffer {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  brand       String
+  title       String
+  description String
+  price       String?
+  bg          String
+  fg          String
+  icon        String       @db.Text
+  scope       ServiceScope @default(FULL)
+  sort        Int          @default(0)
+}
+
+model User {
+  id        String     @id @default(cuid())
+  phone     String?    @unique
+  email     String?    @unique
+  name      String?
+  locale    String     @default("ru")
+  favorites Favorite[]
+  leads     Lead[]
+  agencies  AgencyMember[]
+  createdAt DateTime   @default(now())
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
+
+model Lead {
+  id        String     @id @default(cuid())
+  kind      LeadKind
+  status    LeadStatus @default(NEW)
+  name      String?
+  email     String?
+  phone     String?
+  country   String?
+  message   String?
+  payload   Json?
+  listingId String?
+  listing   Listing?   @relation(fields: [listingId], references: [id])
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id])
+  createdAt DateTime   @default(now())
+
+  @@index([kind, status])
+}
+
+/// Сохранённый расчёт автоматической оценки.
+model Valuation {
+  id        String       @id @default(cuid())
+  address   String
+  kind      PropertyKind
+  area      Int
+  bedrooms  Int
+  estimate  Int
+  low       Int
+  high      Int
+  pricePerM2 Int
+  rent      Int
+  createdAt DateTime     @default(now())
+}

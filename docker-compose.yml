@@ -1,0 +1,56 @@
+# Локальный стенд Casaya. Всё изолировано от других проектов:
+# свой контейнер, свой volume, порт 5433 вместо стандартного 5432.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: casaya-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: casaya
+      POSTGRES_PASSWORD: casaya
+      POSTGRES_DB: casaya
+    ports:
+      - "5433:5432"
+    volumes:
+      - casaya-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casaya"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Полный стенд: docker compose --profile full up -d
+  api:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: casaya-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://casaya:casaya@db:5432/casaya?schema=public
+      PORT: 4100
+      WEB_ORIGIN: http://localhost:3000
+    ports:
+      - "4100:4100"
+
+  web:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: casaya-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_URL: http://api:4100/api
+      NEXT_PUBLIC_API_URL: http://localhost:4100/api
+    ports:
+      - "3000:3000"
+
+volumes:
+  casaya-pg:

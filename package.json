@@ -1,0 +1,16 @@
+{
+  "name": "casaya",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w @casaya/api",
+    "dev:web": "npm run dev -w @casaya/web",
+    "build": "npm run build -w @casaya/api && npm run build -w @casaya/web",
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run prisma:migrate -w @casaya/api",
+    "db:seed": "npm run prisma:seed -w @casaya/api",
+    "db:studio": "npm run prisma:studio -w @casaya/api"
+  }
+}

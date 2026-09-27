@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+out/
+.env
+.env.local
+*.log
+.DS_Store
+apps/api/generated/
+
+# исходный макет и бизнес-план (не в репозиторий)
+Casaya Portal.html
+Casaya App.html
+*.docx
+~$*
