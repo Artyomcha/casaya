@@ -26,7 +26,7 @@ npm run db:seed
 
 # 3. API и фронтенд (в двух терминалах)
 npm run dev:api   # http://localhost:4100/api
-npm run dev:web   # http://localhost:3000
+npm run dev:web   # http://localhost:3100
 ```
 
 Переменные окружения: `apps/api/.env.example`, `apps/web/.env.example`.
