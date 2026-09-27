@@ -12,11 +12,6 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 60);
 
-/** Координаты Коста-Бланки, из которых собирается позиция пина на карте поиска. */
-const BBOX = { minLat: 37.9, maxLat: 38.85, minLng: -0.95, maxLng: 0.25 };
-
-const percent = (value: number) => `${Math.round(Math.min(96, Math.max(4, value)))}%`;
-
 @Injectable()
 export class FeedImportService {
   private readonly logger = new Logger(FeedImportService.name);
@@ -149,8 +144,8 @@ export class FeedImportService {
       features: item.features,
       coverImage: cover,
       gallery: gallery.slice(0, 12),
-      mapX: this.mapX(item.lng),
-      mapY: this.mapY(item.lat),
+      lat: item.lat,
+      lng: item.lng,
       agencyId: feed.agencyId,
       feedId: feed.id,
       source: 'FEED' as const,
@@ -162,16 +157,6 @@ export class FeedImportService {
       externalHash: hash,
       lastSeenAt: new Date(),
     };
-  }
-
-  private mapX(lng: number | null) {
-    if (lng == null) return '50%';
-    return percent(((lng - BBOX.minLng) / (BBOX.maxLng - BBOX.minLng)) * 100);
-  }
-
-  private mapY(lat: number | null) {
-    if (lat == null) return '50%';
-    return percent(((BBOX.maxLat - lat) / (BBOX.maxLat - BBOX.minLat)) * 100);
   }
 
   /** Объект пропал из выгрузки — уводим в архив, а не удаляем: на него могут быть лиды. */

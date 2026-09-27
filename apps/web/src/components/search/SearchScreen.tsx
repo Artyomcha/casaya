@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { ListingRow } from '@/components/listing/ListingRow';
+import { PropertyMap } from '@/components/map/PropertyMap';
+import { useApp } from '@/components/providers/AppProviders';
 import { Check, Chevron } from '@/components/ui/icons';
-import { groupDigits, pinLabel, toCard } from '@/lib/format';
+import { groupDigits, toCard } from '@/lib/format';
 import type { Listing, MapPin, Mode } from '@/lib/types';
 import { c } from '@/lib/theme';
 
@@ -16,9 +18,6 @@ const MODES: { key: Exclude<Mode, 'value'>; label: string }[] = [
   { key: 'rent', label: 'Снять' },
   { key: 'new', label: 'Новостройки' },
 ];
-
-const MAP_SRC =
-  'https://www.openstreetmap.org/export/embed.html?bbox=-0.62%2C38.30%2C-0.36%2C38.42&layer=mapnik';
 
 export function SearchScreen({
   listings,
@@ -32,8 +31,9 @@ export function SearchScreen({
   query: string;
 }) {
   const router = useRouter();
+  const { favorites } = useApp();
   const [verifiedOnly, setVerifiedOnly] = useState(true);
-  const [selected, setSelected] = useState(pins[0]?.id ?? '');
+  const [selected, setSelected] = useState<string | null>(null);
 
   const rent = mode === 'rent';
   const visible = useMemo(
@@ -41,6 +41,12 @@ export function SearchScreen({
     [listings, verifiedOnly],
   );
   const cards = useMemo(() => visible.map((l) => toCard(l, mode)), [visible, mode]);
+
+  // Карта показывает ровно то, что в выдаче: фильтр «Только Verificado» действует на оба списка.
+  const visiblePins = useMemo(() => {
+    const ids = new Set(visible.map((l) => l.id));
+    return pins.filter((p) => ids.has(p.id));
+  }, [pins, visible]);
 
   const setMode = (next: string) => {
     if (next === 'new') return router.push('/new');
@@ -183,7 +189,13 @@ export function SearchScreen({
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {cards.map((item) => (
-            <ListingRow key={item.id} item={item} />
+            <div
+              key={item.id}
+              onMouseEnter={() => setSelected(item.id)}
+              onMouseLeave={() => setSelected(null)}
+            >
+              <ListingRow item={item} highlighted={item.id === selected} />
+            </div>
           ))}
           {!cards.length && (
             <div style={{ background: c.surface, borderRadius: 22, padding: 32, fontSize: 15, color: c.muted }}>
@@ -204,38 +216,13 @@ export function SearchScreen({
             background: '#EEF0F4',
           }}
         >
-          <iframe src={MAP_SRC} style={{ border: 0, width: '100%', height: '100%', filter: 'saturate(0.55) contrast(1.02)' }} title="Карта" />
-
-          {pins.map((p) => {
-            const active = p.id === selected;
-            return (
-              <Link
-                key={p.id}
-                href={`/listing/${p.slug}`}
-                onMouseEnter={() => setSelected(p.id)}
-                style={{
-                  position: 'absolute',
-                  left: p.mapX,
-                  top: p.mapY,
-                  transform: 'translate(-50%,-100%)',
-                  border: 0,
-                  background: active ? c.violet : c.white,
-                  color: active ? c.white : c.ink,
-                  font: 'inherit',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  padding: '6px 10px',
-                  borderRadius: 10,
-                  boxShadow: '0 6px 16px -4px rgba(23,17,43,0.35)',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  fontVariantNumeric: 'tabular-nums',
-                }}
-              >
-                {pinLabel(p.price, mode)}
-              </Link>
-            );
-          })}
+          <PropertyMap
+            pins={visiblePins}
+            mode={mode}
+            selectedId={selected}
+            onSelect={setSelected}
+            favorites={favorites}
+          />
         </div>
       </div>
     </main>

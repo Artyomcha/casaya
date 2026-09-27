@@ -32,8 +32,8 @@ export interface Listing {
   features: string[];
   coverImage: string;
   gallery: string[];
-  mapX: string;
-  mapY: string;
+  lat: number | null;
+  lng: number | null;
   videoTour: boolean;
   agency: Agency;
 }
@@ -51,9 +51,15 @@ export interface MapPin {
   id: string;
   slug: string;
   title: string;
+  address: string;
   price: number;
-  mapX: string;
-  mapY: string;
+  lat: number;
+  lng: number;
+  kind: PropertyKind;
+  bedrooms: number;
+  area: number;
+  coverImage: string;
+  verified: boolean;
 }
 
 export interface Project {

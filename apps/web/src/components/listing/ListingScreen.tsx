@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useApp } from '@/components/providers/AppProviders';
 import { monthlyPayment } from '@/components/home/MortgageCalculator';
+import { PropertyMap } from '@/components/map/PropertyMap';
 import { Check, Heart, MapPinIcon, Shield } from '@/components/ui/icons';
 import { fmt, toCard } from '@/lib/format';
 import type { Listing } from '@/lib/types';
@@ -14,9 +15,6 @@ const VERIFY_ITEMS = [
   'Обременений нет',
   'Личность агента подтверждена',
 ];
-
-const MAP_SRC =
-  'https://www.openstreetmap.org/export/embed.html?bbox=-0.52%2C38.33%2C-0.44%2C38.38&layer=mapnik';
 
 const h2: React.CSSProperties = { margin: 0, fontSize: 24, letterSpacing: '-0.03em', fontWeight: 700 };
 
@@ -206,12 +204,33 @@ export function ListingScreen({ listing }: { listing: Listing }) {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 style={h2}>На карте</h2>
-            <div style={{ height: 340, borderRadius: 24, overflow: 'hidden', border: `1px solid ${c.line}` }}>
-              <iframe src={MAP_SRC} style={{ border: 0, width: '100%', height: '100%', filter: 'saturate(0.55)' }} title="Карта" />
+          {listing.lat != null && listing.lng != null && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <h2 style={h2}>На карте</h2>
+              <div style={{ height: 340, borderRadius: 24, overflow: 'hidden', border: `1px solid ${c.line}` }}>
+                <PropertyMap
+                  variant="single"
+                  mode="buy"
+                  pins={[
+                    {
+                      id: listing.id,
+                      slug: listing.slug,
+                      title: listing.title,
+                      address: listing.address,
+                      price: listing.price,
+                      lat: listing.lat,
+                      lng: listing.lng,
+                      kind: listing.kind,
+                      bedrooms: listing.bedrooms,
+                      area: listing.area,
+                      coverImage: listing.coverImage,
+                      verified: listing.verified,
+                    },
+                  ]}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <aside style={{ position: 'sticky', top: 92, display: 'flex', flexDirection: 'column', gap: 12 }}>

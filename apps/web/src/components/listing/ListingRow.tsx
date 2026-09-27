@@ -5,7 +5,7 @@ import type { ListingCard as Card } from '@/lib/types';
 import { c } from '@/lib/theme';
 
 /** Горизонтальная карточка выдачи поиска — фото слева, данные справа. */
-export function ListingRow({ item }: { item: Card }) {
+export function ListingRow({ item, highlighted = false }: { item: Card; highlighted?: boolean }) {
   return (
     <Link
       href={item.href}
@@ -15,11 +15,13 @@ export function ListingRow({ item }: { item: Card }) {
         gridTemplateColumns: 'minmax(0,260px) minmax(0,1fr)',
         gap: 20,
         padding: 12,
-        border: `1px solid ${c.line}`,
+        border: `1px solid ${highlighted ? '#DDD5F5' : c.line}`,
         borderRadius: 22,
         cursor: 'pointer',
         background: c.white,
         color: 'inherit',
+        // Наведение на пин карты подсвечивает карточку так же, как наведение мышью.
+        boxShadow: highlighted ? '0 12px 32px -12px rgba(45,20,110,0.18)' : 'none',
       }}
     >
       <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', aspectRatio: '4 / 3', background: c.violetTintSoft }}>

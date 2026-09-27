@@ -15,18 +15,18 @@ const AGENCIES = [
 type Raw = {
   id: string; slug: string; img: number; gal: number[]; kind: PropertyKind; sea: boolean;
   price: number; m2: number; bd: number; ba: number; title: string; addr: string;
-  agencyId: string; badge: string | null; x: string; y: string;
+  agencyId: string; badge: string | null; lat: number; lng: number;
 };
 
 const LISTINGS: Raw[] = [
-  { id: 'l1', slug: 'villa-s-basseynom-altea-hills', img: 29453302, gal: [5570222, 1428348, 20200291, 6180674], kind: 'HOUSE', sea: true, price: 485000, m2: 170, bd: 4, ba: 3, title: 'Вилла с бассейном', addr: 'Altea Hills, Альтея', agencyId: 'ag-costa-living', badge: 'Новое', x: '72%', y: '28%' },
-  { id: 'l2', slug: 'villa-s-panoramnym-vidom-javea', img: 31817156, gal: [20390760, 6775268, 5570222, 1428348], kind: 'HOUSE', sea: true, price: 1250000, m2: 320, bd: 5, ba: 4, title: 'Вилла с панорамным видом', addr: 'Cumbre del Sol, Хавеа', agencyId: 'ag-mediterra', badge: null, x: '84%', y: '18%' },
-  { id: 'l3', slug: 'apartamenty-s-terrasoy-san-juan', img: 6775268, gal: [1428348, 6180674, 20390760, 5570222], kind: 'FLAT', sea: true, price: 289000, m2: 80, bd: 2, ba: 2, title: 'Апартаменты с террасой у моря', addr: 'Playa de San Juan, Аликанте', agencyId: 'ag-alicante-prime', badge: 'Новое', x: '58%', y: '40%' },
-  { id: 'l4', slug: 'dom-s-sadom-la-mata', img: 20200291, gal: [5570222, 6180674, 1428348, 20390760], kind: 'HOUSE', sea: false, price: 345000, m2: 140, bd: 3, ba: 2, title: 'Дом с садом и бассейном', addr: 'La Mata, Торревьеха', agencyId: 'ag-sol', badge: null, x: '30%', y: '70%' },
-  { id: 'l5', slug: 'svetlaya-kvartira-centro', img: 1428348, gal: [6180674, 20390760, 5570222, 6775268], kind: 'FLAT', sea: false, price: 199000, m2: 68, bd: 2, ba: 1, title: 'Светлая квартира в центре', addr: 'Centro, Аликанте', agencyId: 'ag-alicante-prime', badge: '−5%', x: '44%', y: '52%' },
-  { id: 'l6', slug: 'kvartira-posle-remonta-gran-via', img: 6180674, gal: [1428348, 5570222, 20390760, 6775268], kind: 'FLAT', sea: false, price: 239000, m2: 75, bd: 2, ba: 2, title: 'Квартира после ремонта', addr: 'Gran Vía, Аликанте', agencyId: 'ag-casa-norte', badge: null, x: '38%', y: '44%' },
-  { id: 'l7', slug: 'penthaus-s-solyariem-poniente', img: 5570222, gal: [20390760, 1428348, 6180674, 6775268], kind: 'FLAT', sea: true, price: 312000, m2: 95, bd: 3, ba: 2, title: 'Пентхаус с солярием', addr: 'Poniente, Бенидорм', agencyId: 'ag-mediterra', badge: 'Новое', x: '64%', y: '60%' },
-  { id: 'l8', slug: 'studiya-v-skandinavskom-stile', img: 20390760, gal: [5570222, 1428348, 6180674, 6775268], kind: 'FLAT', sea: false, price: 178000, m2: 62, bd: 1, ba: 1, title: 'Студия в скандинавском стиле', addr: 'Santa Pola, Санта-Пола', agencyId: 'ag-casa-norte', badge: null, x: '22%', y: '82%' },
+  { id: 'l1', slug: 'villa-s-basseynom-altea-hills', img: 29453302, gal: [5570222, 1428348, 20200291, 6180674], kind: 'HOUSE', sea: true, price: 485000, m2: 170, bd: 4, ba: 3, title: 'Вилла с бассейном', addr: 'Altea Hills, Альтея', agencyId: 'ag-costa-living', badge: 'Новое', lat: 38.5906, lng: -0.0447 },
+  { id: 'l2', slug: 'villa-s-panoramnym-vidom-javea', img: 31817156, gal: [20390760, 6775268, 5570222, 1428348], kind: 'HOUSE', sea: true, price: 1250000, m2: 320, bd: 5, ba: 4, title: 'Вилла с панорамным видом', addr: 'Cumbre del Sol, Хавеа', agencyId: 'ag-mediterra', badge: null, lat: 38.7044, lng: 0.1656 },
+  { id: 'l3', slug: 'apartamenty-s-terrasoy-san-juan', img: 6775268, gal: [1428348, 6180674, 20390760, 5570222], kind: 'FLAT', sea: true, price: 289000, m2: 80, bd: 2, ba: 2, title: 'Апартаменты с террасой у моря', addr: 'Playa de San Juan, Аликанте', agencyId: 'ag-alicante-prime', badge: 'Новое', lat: 38.3745, lng: -0.418 },
+  { id: 'l4', slug: 'dom-s-sadom-la-mata', img: 20200291, gal: [5570222, 6180674, 1428348, 20390760], kind: 'HOUSE', sea: false, price: 345000, m2: 140, bd: 3, ba: 2, title: 'Дом с садом и бассейном', addr: 'La Mata, Торревьеха', agencyId: 'ag-sol', badge: null, lat: 38.0164, lng: -0.6664 },
+  { id: 'l5', slug: 'svetlaya-kvartira-centro', img: 1428348, gal: [6180674, 20390760, 5570222, 6775268], kind: 'FLAT', sea: false, price: 199000, m2: 68, bd: 2, ba: 1, title: 'Светлая квартира в центре', addr: 'Centro, Аликанте', agencyId: 'ag-alicante-prime', badge: '−5%', lat: 38.3452, lng: -0.481 },
+  { id: 'l6', slug: 'kvartira-posle-remonta-gran-via', img: 6180674, gal: [1428348, 5570222, 20390760, 6775268], kind: 'FLAT', sea: false, price: 239000, m2: 75, bd: 2, ba: 2, title: 'Квартира после ремонта', addr: 'Gran Vía, Аликанте', agencyId: 'ag-casa-norte', badge: null, lat: 38.3565, lng: -0.4905 },
+  { id: 'l7', slug: 'penthaus-s-solyariem-poniente', img: 5570222, gal: [20390760, 1428348, 6180674, 6775268], kind: 'FLAT', sea: true, price: 312000, m2: 95, bd: 3, ba: 2, title: 'Пентхаус с солярием', addr: 'Poniente, Бенидорм', agencyId: 'ag-mediterra', badge: 'Новое', lat: 38.5342, lng: -0.1435 },
+  { id: 'l8', slug: 'studiya-v-skandinavskom-stile', img: 20390760, gal: [5570222, 1428348, 6180674, 6775268], kind: 'FLAT', sea: false, price: 178000, m2: 62, bd: 1, ba: 1, title: 'Студия в скандинавском стиле', addr: 'Santa Pola, Санта-Пола', agencyId: 'ag-casa-norte', badge: null, lat: 38.1908, lng: -0.562 },
 ];
 
 const HOUSE_FEATURES = ['Бассейн', 'Сад', 'Парковка на 2 авто', 'Кондиционер', 'Солнечные панели', 'Барбекю-зона'];
@@ -141,8 +141,8 @@ async function main() {
         features: l.kind === 'HOUSE' ? HOUSE_FEATURES : FLAT_FEATURES,
         coverImage: img(l.img),
         gallery: l.gal.map(img),
-        mapX: l.x,
-        mapY: l.y,
+        lat: l.lat,
+        lng: l.lng,
         agencyId: l.agencyId,
         publishedAt: new Date(now - index * 3600_000),
         projectId: project ? (await prisma.project.findUnique({ where: { slug: project.slug } }))!.id : null,

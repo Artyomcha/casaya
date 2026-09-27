@@ -171,8 +171,10 @@ model Listing {
   features      String[]
   coverImage    String
   gallery       String[]
-  mapX          String
-  mapY          String
+  /// Координаты для карты. Из фида берутся как есть, у ручных объявлений
+  /// проставляются геокодером при модерации.
+  lat           Float?
+  lng           Float?
   videoTour     Boolean      @default(true)
   source        ListingSource @default(MANUAL)
   status        ListingStatus @default(PUBLISHED)
@@ -196,6 +198,7 @@ model Listing {
   @@unique([agencyId, externalId])
   @@index([kind, deal, price])
   @@index([seaView])
+  @@index([lat, lng])
   @@index([status, publishedAt])
 }
 

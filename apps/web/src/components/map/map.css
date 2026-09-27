@@ -1,0 +1,86 @@
+/* Подгоняем стандартный хром MapLibre под оформление портала. */
+.maplibregl-ctrl-group {
+  border-radius: 12px !important;
+  box-shadow: 0 6px 16px -6px rgba(23, 17, 43, 0.28) !important;
+  border: 1px solid #efecf4 !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid #efecf4 !important;
+}
+
+.maplibregl-ctrl-attrib {
+  border-radius: 8px 0 0 0 !important;
+  font-size: 11px !important;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: #7c7690 !important;
+}
+
+/* Ценовая «таблетка» — тот же вид, что у пинов в макете. */
+.casaya-pin {
+  cursor: pointer;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #17112b;
+  box-shadow: 0 6px 16px -4px rgba(23, 17, 43, 0.35);
+  transition: background 140ms, color 140ms, transform 140ms;
+  will-change: transform;
+}
+
+.casaya-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  transform: translateX(-50%) rotate(45deg);
+  background: inherit;
+  border-radius: 2px;
+}
+
+.casaya-pin:hover {
+  transform: translateY(-2px);
+}
+
+.casaya-pin--active {
+  background: #6d3bf5;
+  color: #ffffff;
+  z-index: 2;
+}
+
+/* Объект уже в избранном — акцент терракотой, как сердце на карточке. */
+.casaya-pin--fav {
+  box-shadow: 0 0 0 2px #ff5a3c, 0 6px 16px -4px rgba(23, 17, 43, 0.35);
+}
+
+.maplibregl-popup-content {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 48px -16px rgba(23, 17, 43, 0.28) !important;
+}
+
+.maplibregl-popup-close-button {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  margin: 6px;
+  font-size: 16px;
+  color: #17112b;
+  background: rgba(255, 255, 255, 0.92) !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #ffffff !important;
+}

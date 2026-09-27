@@ -74,8 +74,12 @@ export class CatalogService {
   /** Пины на карте поиска — по всем объектам, без учёта фильтра, как в дизайне. */
   mapPins() {
     return this.prisma.listing.findMany({
-      where: { status: 'PUBLISHED' },
-      select: { id: true, slug: true, price: true, mapX: true, mapY: true, title: true },
+      where: { status: 'PUBLISHED', lat: { not: null }, lng: { not: null } },
+      select: {
+        id: true, slug: true, title: true, address: true, price: true,
+        lat: true, lng: true, kind: true, bedrooms: true, area: true,
+        coverImage: true, verified: true,
+      },
       orderBy: { publishedAt: 'desc' },
     });
   }
