@@ -117,7 +117,6 @@ export function PropertyMap({
       const el = document.createElement('button');
       el.type = 'button';
       el.className = 'casaya-pin';
-      el.style.position = 'relative';
       el.textContent = variant === 'single' ? fmt(pin.price) : pinLabel(pin.price, mode);
       el.setAttribute('aria-label', `${pin.title}, ${pin.address}`);
 
@@ -136,7 +135,12 @@ export function PropertyMap({
 
       markers.current.set(
         pin.id,
-        { marker: new maplibregl.Marker({ element: el }).setLngLat([pin.lng, pin.lat]).addTo(instance), el },
+        {
+          marker: new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -5] })
+            .setLngLat([pin.lng, pin.lat])
+            .addTo(instance),
+          el,
+        },
       );
     }
 

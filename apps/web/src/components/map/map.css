@@ -33,8 +33,7 @@
   background: #ffffff;
   color: #17112b;
   box-shadow: 0 6px 16px -4px rgba(23, 17, 43, 0.35);
-  transition: background 140ms, color 140ms, transform 140ms;
-  will-change: transform;
+  transition: background 140ms, color 140ms;
 }
 
 .casaya-pin::after {
@@ -50,7 +49,7 @@
 }
 
 .casaya-pin:hover {
-  transform: translateY(-2px);
+  z-index: 3;
 }
 
 .casaya-pin--active {
