@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Casaya",
+    "slug": "casaya",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "casaya",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "backgroundColor": "#FFFFFF",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "es.casaya.app"
+    },
+    "android": {
+      "package": "es.casaya.app",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#6D3BF5"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "@maplibre/maplibre-react-native"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

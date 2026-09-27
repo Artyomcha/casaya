@@ -10,6 +10,7 @@
 
 - **apps/web** — Next.js 16 (App Router) + TypeScript + React 19
 - **apps/api** — NestJS 11 + Prisma 6 + PostgreSQL
+- **apps/mobile** — Expo 54 + React Native 0.81 + expo-router
 - **docker-compose.yml** — Postgres для локальной разработки (`casaya-db`, порт **5433**)
 
 ## Запуск
@@ -29,7 +30,26 @@ npm run dev:api   # http://localhost:4100/api
 npm run dev:web   # http://localhost:3100
 ```
 
-Переменные окружения: `apps/api/.env.example`, `apps/web/.env.example`.
+Переменные окружения: `apps/api/.env.example`, `apps/web/.env.example`, `apps/mobile/.env.example`.
+
+## Приложение
+
+```bash
+cd apps/mobile
+npx expo run:ios       # первая сборка ~10 минут, дальше — npx expo start
+```
+
+Нужен **development build**, не Expo Go: карта использует нативный MapLibre.
+На реальном телефоне `localhost` не сработает — в `apps/mobile/.env` подставьте
+IP компьютера в локальной сети:
+
+```
+EXPO_PUBLIC_API_URL=http://192.168.1.5:4100/api
+EXPO_PUBLIC_ASSETS_URL=http://192.168.1.5:4100
+```
+
+Экраны: главная, выдача, карта, объявление, избранное, сделка, ипотека, чат, профиль.
+Вкладки — плавающая панель из макета: активная раскрывается и показывает подпись.
 
 ## Страницы
 
@@ -75,6 +95,11 @@ CARTO Positron — светлой и почти монохромной, чтоб
 Координаты объектов приходят из фидов агентств (`lat`/`lng` в выгрузке CRM).
 Объекты без координат на карту просто не попадают.
 
+В приложении — тот же MapLibre и тот же стиль CARTO через
+`@maplibre/maplibre-react-native`. Apple Maps и Google Maps отпали сразу:
+подложку Apple Maps нельзя перекрасить под макет, а Google Maps требует ключ
+и выглядит на iOS и Android по-разному.
+
 Воркер тайлов MapLibre копируется в `public/vendor/maplibre/` скриптом
 `apps/web/scripts/copy-maplibre-worker.mjs` перед `dev` и `build`: бандлер его
 не эмитит, и без этого карта остаётся пустой.
@@ -89,5 +114,11 @@ CARTO Positron — светлой и почти монохромной, чтоб
 - **Импорт из фида не выдаёт бейдж Verificado.** Он появляется только после
   nota simple и видео-тура — это и есть «solo pisos reales».
 - **Пропавшие из фида объекты архивируются, а не удаляются** — на них есть отклики.
-- **Избранное анонимного посетителя** живёт в localStorage и переносится
-  в аккаунт через `POST /favorites/merge` после входа.
+- **Избранное анонимного посетителя** живёт в localStorage (в приложении —
+  AsyncStorage) и переносится в аккаунт через `POST /favorites/merge` после входа.
+- **Демо-фото отдаёт API** (`apps/api/public/img`), а не фронтенд: приложению
+  тогда нужен один адрес вместо двух. Фото из агентских фидов — абсолютные
+  ссылки на их CDN, они идут мимо.
+- **Типы объектов различают виллу и дом, студию и квартиру** — так устроен
+  испанский рынок и так фильтрует приложение. На портале пресет «Дома»
+  по-прежнему включает виллы и таунхаусы, «Квартиры» — студии и пентхаусы.

@@ -18,10 +18,13 @@ export class CatalogService {
     // Витрина показывает только опубликованное: архив из фидов и черновики скрыты.
     const where: Prisma.ListingWhereInput = { status: 'PUBLISHED' };
 
-    if (query.filter === 'flat') where.kind = 'FLAT';
-    if (query.filter === 'house') where.kind = 'HOUSE';
+    // Пресет «Квартиры» покрывает и студии с пентхаусами, «Дома» — виллы и таунхаусы:
+    // на витрине это одна привычная категория, в базе — разные типы.
+    if (query.filter === 'flat') where.kind = { in: ['FLAT', 'STUDIO', 'PENTHOUSE'] };
+    if (query.filter === 'house') where.kind = { in: ['HOUSE', 'VILLA', 'TOWNHOUSE'] };
     if (query.filter === 'sea') where.seaView = true;
     if (query.kind) where.kind = query.kind;
+    if (query.kinds?.length) where.kind = { in: query.kinds };
     if (query.verifiedOnly === 'true') where.verified = true;
     if (query.bedrooms) where.bedrooms = { gte: query.bedrooms };
 

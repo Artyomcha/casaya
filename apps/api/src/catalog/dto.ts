@@ -22,6 +22,16 @@ export class ListingQueryDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.toUpperCase() : value))
   kind?: PropertyKind;
 
+  /** Несколько типов через запятую — чипсы фильтра в приложении. */
+  @IsOptional()
+  @IsEnum(PropertyKind, { each: true })
+  @Transform(({ value }) =>
+    typeof value === 'string'
+      ? value.split(',').map((v) => v.trim().toUpperCase()).filter(Boolean)
+      : value,
+  )
+  kinds?: PropertyKind[];
+
   @IsOptional()
   @IsString()
   q?: string;

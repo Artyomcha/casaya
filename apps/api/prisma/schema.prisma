@@ -9,8 +9,10 @@ datasource db {
 
 enum PropertyKind {
   FLAT
-  HOUSE
+  STUDIO
   PENTHOUSE
+  HOUSE
+  VILLA
   TOWNHOUSE
   COMMERCIAL
 }

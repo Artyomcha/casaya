@@ -43,12 +43,15 @@ export function arr<T = any>(value: T | T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
+// Порядок важен: более узкие типы проверяются раньше общих.
 const KIND_MAP: [RegExp, PropertyKind][] = [
   [/penthouse|ático|atico|пентхаус/i, 'PENTHOUSE'],
   [/townhouse|adosad|bungalow|таунхаус/i, 'TOWNHOUSE'],
-  [/villa|chalet|casa|house|detached|дом|вилла/i, 'HOUSE'],
+  [/villa|chalet|вилла/i, 'VILLA'],
+  [/casa|house|detached|дом/i, 'HOUSE'],
   [/commercial|local|office|nave|коммерч/i, 'COMMERCIAL'],
-  [/apartment|piso|flat|studio|estudio|квартир|студи/i, 'FLAT'],
+  [/studio|estudio|студи/i, 'STUDIO'],
+  [/apartment|piso|flat|квартир/i, 'FLAT'],
 ];
 
 export function toKind(value: any): PropertyKind {
@@ -67,8 +70,10 @@ export function detectSeaView(...values: any[]): boolean {
 export function fallbackTitle(kind: PropertyKind, city: string, beds: number): string {
   const label: Record<PropertyKind, string> = {
     FLAT: 'Квартира',
-    HOUSE: 'Дом',
+    STUDIO: 'Студия',
     PENTHOUSE: 'Пентхаус',
+    HOUSE: 'Дом',
+    VILLA: 'Вилла',
     TOWNHOUSE: 'Таунхаус',
     COMMERCIAL: 'Коммерческое помещение',
   };
