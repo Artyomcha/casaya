@@ -18,7 +18,7 @@ export class CatalogService {
   ) {}
 
   private readonly listingInclude = {
-    agency: { select: { id: true, name: true, initials: true, brandColor: true, verified: true, replyTime: true } },
+    agency: { select: { id: true, name: true, initials: true, brandColor: true, logoUrl: true, verified: true, replyTime: true } },
   } satisfies Prisma.ListingInclude;
 
   async listings(query: ListingQueryDto) {

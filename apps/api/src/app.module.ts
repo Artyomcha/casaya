@@ -15,6 +15,7 @@ import { PropertiesModule } from './properties/properties.module';
 import { RankingModule } from './ranking/ranking.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { CrmModule } from './crm/crm.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CrmModule } from './crm/crm.module';
     FeedsModule,
     PromotionsModule,
     CrmModule,
+    UploadsModule,
     LeadsModule,
     ValuationModule,
     MortgageModule,

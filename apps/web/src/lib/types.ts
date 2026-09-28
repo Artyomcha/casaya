@@ -7,6 +7,8 @@ export interface Agency {
   name: string;
   initials: string;
   brandColor: string;
+  /** Логотип. Пусто — показываем инициалы на фирменном цвете. */
+  logoUrl?: string | null;
   verified: boolean;
   replyTime: number;
 }
@@ -207,7 +209,12 @@ export interface FeedPreview {
 }
 
 export interface AgencyDashboard {
-  agency: Agency & { plan: Plan | null; feeds: AgencyFeed[]; crm: string | null; freeUntil: string | null };
+  agency: Agency & {
+    plan: Plan | null;
+    feeds: AgencyFeed[];
+    crm: string | null;
+    freeUntil: string | null;
+  };
   inventory: { published: number; archived: number; verified: number; verifiedShare: number };
   feeds: AgencyFeed[];
   lastRun: FeedRun | null;

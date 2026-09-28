@@ -11,7 +11,7 @@ export class FavoritesService {
       include: {
         listing: {
           include: {
-            agency: { select: { id: true, name: true, initials: true, brandColor: true, verified: true, replyTime: true } },
+            agency: { select: { id: true, name: true, initials: true, brandColor: true, logoUrl: true, verified: true, replyTime: true } },
           },
         },
       },

@@ -113,6 +113,8 @@ model Agency {
   name       String    @unique
   initials   String
   brandColor String
+  /// Логотип агентства. Пусто — показываем инициалы на фирменном цвете.
+  logoUrl    String?
   crm        String?
   feedUrl    String?
   verified   Boolean   @default(true)
@@ -387,6 +389,8 @@ model User {
   phone     String?    @unique
   email     String?    @unique
   name      String?
+  /// Аватар частного продавца.
+  avatarUrl String?
   locale    String     @default("ru")
   favorites Favorite[]
   leads     Lead[]

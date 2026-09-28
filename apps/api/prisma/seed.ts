@@ -4,9 +4,12 @@ const prisma = new PrismaClient();
 
 const img = (id: number) => `/img/p${id}.jpg`;
 
-const AGENCIES = [
-  { id: 'ag-costa-living', name: 'Costa Living', initials: 'CL', brandColor: '#6D3BF5', crm: 'Inmovilla', planKey: 'pro' },
-  { id: 'ag-mediterra', name: 'Mediterra Homes', initials: 'MH', brandColor: '#16A37A', crm: 'Witei', planKey: 'premium' },
+const AGENCIES: {
+  id: string; name: string; initials: string; brandColor: string;
+  crm: string; planKey: string; logoUrl?: string;
+}[] = [
+  { id: 'ag-costa-living', name: 'Costa Living', initials: 'CL', brandColor: '#6D3BF5', crm: 'Inmovilla', planKey: 'pro', logoUrl: demoLogo('CL', '#6D3BF5') },
+  { id: 'ag-mediterra', name: 'Mediterra Homes', initials: 'MH', brandColor: '#16A37A', crm: 'Witei', planKey: 'premium', logoUrl: demoLogo('MH', '#16A37A') },
   { id: 'ag-alicante-prime', name: 'Alicante Prime', initials: 'AP', brandColor: '#FF5A3C', crm: 'Mobilia', planKey: 'pro' },
   { id: 'ag-sol', name: 'Sol Inmobiliaria', initials: 'SI', brandColor: '#2F80ED', crm: 'Resales Online', planKey: 'start' },
   { id: 'ag-casa-norte', name: 'Casa Norte', initials: 'CN', brandColor: '#17112B', crm: 'Kyero XML', planKey: 'start' },
@@ -117,6 +120,18 @@ const PIPELINE_SEED: { status: 'NEW' | 'CONTACTED' | 'VIEWING' | 'NEGOTIATION' |
   { status: 'WON', name: 'Sophie Dubois', budget: 485000, listing: 'l1' },
   { status: 'LOST', name: 'Tom Wilson', budget: 180000, listing: 'l8' },
 ];
+
+/** Простые SVG-логотипы для демонстрации: буквы на фирменном цвете. */
+function demoLogo(initials: string, color: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<rect width="64" height="64" rx="16" fill="${color}"/>` +
+    `<circle cx="32" cy="24" r="9" fill="#FFFFFF" opacity="0.92"/>` +
+    `<path d="M14 54c0-10 8-16 18-16s18 6 18 16z" fill="#FFFFFF" opacity="0.92"/>` +
+    `<text x="32" y="60" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#FFFFFF">${initials}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+}
 
 async function main() {
   await prisma.leadNote.deleteMany();

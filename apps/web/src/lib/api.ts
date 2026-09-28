@@ -21,6 +21,12 @@ export const CLIENT_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:
 
 const base = () => (typeof window === 'undefined' ? SERVER_BASE : CLIENT_BASE);
 
+const ASSETS_BASE = (process.env.NEXT_PUBLIC_ASSETS_URL ?? CLIENT_BASE.replace(/\/api$/, ''));
+
+/** Загруженные файлы лежат на хосте API, data-URI отдаются как есть. */
+export const imageUrl = (src: string): string =>
+  /^(https?:|data:)/.test(src) ? src : `${ASSETS_BASE}${src}`;
+
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);

@@ -6,6 +6,7 @@ import { monthlyPayment } from '@/components/home/MortgageCalculator';
 import { NearbyListings } from '@/components/listing/NearbyListings';
 import { OffersCompare } from '@/components/listing/OffersCompare';
 import { PropertyMap } from '@/components/map/PropertyMap';
+import { AgencyAvatar } from '@/components/ui/AgencyAvatar';
 import { Check, Heart, MapPinIcon, Shield } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { money } from '@/i18n/format';
@@ -278,21 +279,15 @@ export function ListingScreen({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 4 }}>
-              <span
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  background: listing.agency.brandColor,
-                  color: c.white,
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontSize: 15,
-                  fontWeight: 700,
-                }}
-              >
-                {item.agentInitials}
-              </span>
+              <AgencyAvatar
+                name={listing.agency.name}
+                initials={item.agentInitials}
+                brandColor={listing.agency.brandColor}
+                logoUrl={listing.agency.logoUrl}
+                size={44}
+                radius={12}
+                fontSize={15}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>{listing.agency.name}</div>
                 <div style={{ fontSize: 13, color: c.green, fontWeight: 500 }}>

@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { VerifiedBadge } from '@/components/layout/Header';
+import { AD_CARD, AdBadge } from '@/components/listing/AdBadge';
+import { AgencyAvatar } from '@/components/ui/AgencyAvatar';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
 import type { Dictionary } from '@/i18n/getDictionary';
 import type { ListingCard as Card } from '@/lib/types';
@@ -24,34 +26,24 @@ export function ListingRow({
         gridTemplateColumns: 'minmax(0,260px) minmax(0,1fr)',
         gap: 20,
         padding: 12,
-        border: `1px solid ${highlighted ? '#DDD5F5' : c.line}`,
+        border: `1px solid ${item.promoted ? AD_CARD.borderColor : highlighted ? '#DDD5F5' : c.line}`,
         borderRadius: 22,
         cursor: 'pointer',
-        background: c.white,
+        background: item.promoted ? AD_CARD.backgroundSolid : c.white,
         color: 'inherit',
         // Наведение на пин карты подсвечивает карточку так же, как наведение мышью.
-        boxShadow: highlighted ? '0 12px 32px -12px rgba(45,20,110,0.18)' : 'none',
+        boxShadow: item.promoted
+          ? AD_CARD.shadow
+          : highlighted
+            ? '0 12px 32px -12px rgba(45,20,110,0.18)'
+            : 'none',
       }}
     >
       <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', aspectRatio: '4 / 3', background: c.violetTintSoft }}>
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <span style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {item.verified && <VerifiedBadge compact label={dict.common.verified} />}
-          {item.promoted && (
-            <span
-              style={{
-                background: c.white,
-                color: c.muted,
-                border: `1px solid ${c.lineStrong}`,
-                fontSize: 11,
-                fontWeight: 600,
-                padding: '4px 9px',
-                borderRadius: 999,
-              }}
-            >
-              {dict.common.ad}
-            </span>
-          )}
+          {item.promoted && <AdBadge label={dict.common.ad} size="sm" />}
           {item.offersCount > 1 && (
             <span
               style={{
@@ -98,21 +90,12 @@ export function ListingRow({
             marginTop: 6,
           }}
         >
-          <span
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: 7,
-              background: item.agency.brandColor,
-              color: c.white,
-              display: 'grid',
-              placeItems: 'center',
-              fontSize: 11,
-              fontWeight: 700,
-            }}
-          >
-            {item.agentInitials}
-          </span>
+          <AgencyAvatar
+            name={item.agency.name}
+            initials={item.agentInitials}
+            brandColor={item.agency.brandColor}
+            logoUrl={item.agency.logoUrl}
+          />
           {item.agency.name}
           <span style={{ marginLeft: 'auto' }}>{item.dateLabel}</span>
         </div>

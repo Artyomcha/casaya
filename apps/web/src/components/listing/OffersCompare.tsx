@@ -1,3 +1,5 @@
+import { AdBadge } from '@/components/listing/AdBadge';
+import { AgencyAvatar } from '@/components/ui/AgencyAvatar';
 import { money } from '@/i18n/format';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { localePath, type Locale } from '@/i18n/locales';
@@ -86,22 +88,15 @@ export function OffersCompare({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                <span
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    background: offer.agency.brandColor,
-                    color: c.white,
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontSize: 12,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  {offer.agency.initials}
-                </span>
+                <AgencyAvatar
+                  name={offer.agency.name}
+                  initials={offer.agency.initials}
+                  brandColor={offer.agency.brandColor}
+                  logoUrl={offer.agency.logoUrl}
+                  size={34}
+                  radius={10}
+                  fontSize={12}
+                />
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 15, fontWeight: 600 }}>{offer.agency.name}</span>
                   <span
@@ -134,20 +129,7 @@ export function OffersCompare({
                     {dict.common.verified}
                   </span>
                 )}
-                {offer.promoted && (
-                  <span
-                    style={{
-                      background: c.surfaceAlt,
-                      color: c.muted,
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: '4px 8px',
-                      borderRadius: 999,
-                    }}
-                  >
-                    {dict.common.ad}
-                  </span>
-                )}
+                {offer.promoted && <AdBadge label={dict.common.ad} size="sm" />}
                 {isCheapest && data.spread > 0 && (
                   <span
                     style={{

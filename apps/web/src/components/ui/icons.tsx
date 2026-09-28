@@ -66,6 +66,13 @@ export const Close = ({ size = 16 }: Props) => (
   </svg>
 );
 
+/** Искра у метки рекламы — читается как «продвигается», а не как ошибка. */
+export const Sparkle = ({ size = 11, color = '#FFFFFF' }: Props) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+    <path d="M12 2.5l2.1 5.6 5.6 2.1-5.6 2.1L12 17.9l-2.1-5.6-5.6-2.1 5.6-2.1z" />
+  </svg>
+);
+
 /** Логотип Casaya — дом с «точкой» терракотового акцента. */
 export const Logo = ({ size = 34 }: Props) => (
   <svg width={size} height={size} viewBox="0 0 32 32" style={{ display: 'block', flexShrink: 0 }}>

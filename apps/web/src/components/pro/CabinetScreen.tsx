@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { FeedConnect } from '@/components/pro/FeedConnect';
+import { LogoUpload } from '@/components/pro/LogoUpload';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { LOCALE_TAGS, type Locale } from '@/i18n/locales';
 import { api } from '@/lib/api';
@@ -168,21 +169,20 @@ export function CabinetScreen({ dict, locale }: { dict: Dictionary; locale: Loca
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '40px 32px 0', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 16,
-                background: agency.brandColor,
-                color: c.white,
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 17,
-                fontWeight: 700,
+            <LogoUpload
+              agencyId={agency.id}
+              name={agency.name}
+              initials={agency.initials}
+              brandColor={agency.brandColor}
+              logoUrl={agency.logoUrl}
+              labels={{
+                upload: dict.cabinet.logoUpload,
+                replace: dict.cabinet.logoReplace,
+                hint: dict.cabinet.logoHint,
+                uploading: dict.cabinet.logoUploading,
               }}
-            >
-              {agency.initials}
-            </span>
+              onUploaded={() => void load(agencyId)}
+            />
             <div>
               <h1 style={{ margin: 0, fontSize: 'clamp(26px,3vw,36px)', letterSpacing: '-0.04em', fontWeight: 700 }}>{agency.name}</h1>
               <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>

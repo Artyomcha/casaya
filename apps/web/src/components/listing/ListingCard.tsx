@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { VerifiedBadge } from '@/components/layout/Header';
+import { AD_CARD, AdBadge } from '@/components/listing/AdBadge';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
 import { Play } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
@@ -26,28 +27,22 @@ export function ListingCard({
     >
       <div
         className={compact ? undefined : 'h-zoom'}
-        style={{ position: 'relative', aspectRatio: '4 / 3', borderRadius: 20, overflow: 'hidden', background: c.violetTintSoft }}
+        style={{
+          position: 'relative',
+          aspectRatio: '4 / 3',
+          borderRadius: 20,
+          overflow: 'hidden',
+          background: c.violetTintSoft,
+          // Оплаченная карточка отделяется от органической выдачи рамкой.
+          ...(item.promoted ? { boxShadow: AD_CARD.ring } : null),
+        }}
       >
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
 
         {!compact && (
           <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none', flexWrap: 'wrap' }}>
             {item.verified && <VerifiedBadge label={dict.common.verified} />}
-            {item.promoted && (
-              <span
-                style={{
-                  background: c.white,
-                  color: c.muted,
-                  border: `1px solid ${c.lineStrong}`,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '4px 9px',
-                  borderRadius: 999,
-                }}
-              >
-                {dict.common.ad}
-              </span>
-            )}
+            {item.promoted && <AdBadge label={dict.common.ad} />}
             {item.offersCount > 1 && (
               <span
                 style={{
