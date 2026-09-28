@@ -4,43 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { ChoiceCards, ChoicePills } from '@/components/ui/Segmented';
 import { Check, Plus, Shield } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { localePath, type Locale } from '@/i18n/locales';
 import { api } from '@/lib/api';
 import { c } from '@/lib/theme';
 
-const STEP_LABELS = ['Тип', 'Объект', 'Фото', 'Цена'];
-
-const DEALS = [
-  { key: 'sell', label: 'Продать' },
-  { key: 'rent', label: 'Сдать в аренду' },
-] as const;
-
-const WHOS = [
-  { key: 'owner', label: 'Я собственник' },
-  { key: 'agency', label: 'Я агентство' },
-] as const;
-
-const TYPES = [
-  { key: 'flat', label: 'Квартира' },
-  { key: 'house', label: 'Дом или вилла' },
-  { key: 'pent', label: 'Пентхаус' },
-  { key: 'town', label: 'Таунхаус' },
-  { key: 'com', label: 'Коммерческая' },
-] as const;
-
-const FIELDS = [
-  { name: 'address', label: 'Адрес', ph: 'Calle, номер, город' },
-  { name: 'area', label: 'Площадь, м²', ph: '85' },
-  { name: 'bedrooms', label: 'Спальни', ph: '2' },
-  { name: 'bathrooms', label: 'Ванные', ph: '2' },
-];
-
-const PHOTO_SLOTS = ['Главное фото', 'Гостиная', 'Кухня', 'Спальня', 'Ванная', 'Вид из окна'];
-
-const TARIFFS = [
-  { key: 'free', label: 'Бесплатно', price: '0 €', d: 'Обычное размещение в выдаче' },
-  { key: 'dest', label: 'Destacado', price: '19,90 € / нед', d: 'Выделение цветом и выше в поиске' },
-  { key: 'top', label: 'Top района', price: '39,90 € / нед', d: 'Первые позиции в вашем районе' },
-] as const;
+type DealKey = 'sell' | 'rent';
+type WhoKey = 'owner' | 'agency';
+type TypeKey = 'flat' | 'house' | 'pent' | 'town' | 'com';
+type TariffKey = 'free' | 'dest' | 'top';
 
 const inputStyle: React.CSSProperties = {
   border: `1px solid ${c.lineStrong}`,
@@ -55,14 +27,56 @@ const inputStyle: React.CSSProperties = {
 
 const groupLabel: React.CSSProperties = { fontSize: 16, fontWeight: 600 };
 
-export function PostWizard() {
+export function PostWizard({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [deal, setDeal] = useState<(typeof DEALS)[number]['key']>('sell');
-  const [who, setWho] = useState<(typeof WHOS)[number]['key']>('owner');
-  const [type, setType] = useState<(typeof TYPES)[number]['key']>('flat');
-  const [tariff, setTariff] = useState<(typeof TARIFFS)[number]['key']>('free');
+  const [deal, setDeal] = useState<DealKey>('sell');
+  const [who, setWho] = useState<WhoKey>('owner');
+  const [type, setType] = useState<TypeKey>('flat');
+  const [tariff, setTariff] = useState<TariffKey>('free');
   const [values, setValues] = useState<Record<string, string>>({});
+
+  const stepLabels = [dict.post.stepType, dict.post.stepObject, dict.post.stepPhotos, dict.post.stepPrice];
+
+  const deals: { key: DealKey; label: string }[] = [
+    { key: 'sell', label: dict.post.dealSell },
+    { key: 'rent', label: dict.post.dealRent },
+  ];
+
+  const whos: { key: WhoKey; label: string }[] = [
+    { key: 'owner', label: dict.post.whoOwner },
+    { key: 'agency', label: dict.post.whoAgency },
+  ];
+
+  const types: { key: TypeKey; label: string }[] = [
+    { key: 'flat', label: dict.post.typeFlat },
+    { key: 'house', label: dict.post.typeHouse },
+    { key: 'pent', label: dict.post.typePenthouse },
+    { key: 'town', label: dict.post.typeTownhouse },
+    { key: 'com', label: dict.post.typeCommercial },
+  ];
+
+  const fields = [
+    { name: 'address', label: dict.post.fieldAddress, ph: dict.post.fieldAddressPlaceholder },
+    { name: 'area', label: dict.post.fieldArea, ph: '85' },
+    { name: 'bedrooms', label: dict.post.fieldBedrooms, ph: '2' },
+    { name: 'bathrooms', label: dict.post.fieldBathrooms, ph: '2' },
+  ];
+
+  const photoSlots = [
+    dict.post.photoMain,
+    dict.post.photoLiving,
+    dict.post.photoKitchen,
+    dict.post.photoBedroom,
+    dict.post.photoBathroom,
+    dict.post.photoView,
+  ];
+
+  const tariffs: { key: TariffKey; label: string; price: string; d: string }[] = [
+    { key: 'free', label: dict.post.tariffFree, price: '0 €', d: dict.post.tariffFreeText },
+    { key: 'dest', label: dict.post.tariffFeatured, price: '19,90 € / 7d', d: dict.post.tariffFeaturedText },
+    { key: 'top', label: dict.post.tariffTop, price: '39,90 € / 7d', d: dict.post.tariffTopText },
+  ];
 
   const last = step === 3;
   const done = step === 4;
@@ -90,12 +104,12 @@ export function PostWizard() {
     <main>
       <section style={{ maxWidth: 880, margin: '0 auto', padding: '40px 32px 0', display: 'flex', flexDirection: 'column', gap: 28 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <h1 style={{ margin: 0, fontSize: 'clamp(30px,3.4vw,42px)', letterSpacing: '-0.045em', fontWeight: 700 }}>Разместить объявление</h1>
-          <p style={{ margin: 0, fontSize: 16, color: c.muted }}>Первое объявление от собственника бесплатно навсегда.</p>
+          <h1 style={{ margin: 0, fontSize: 'clamp(30px,3.4vw,42px)', letterSpacing: '-0.045em', fontWeight: 700 }}>{dict.post.title}</h1>
+          <p style={{ margin: 0, fontSize: 16, color: c.muted }}>{dict.post.lead}</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-          {STEP_LABELS.map((label, i) => (
+          {stepLabels.map((label, i) => (
             <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ height: 4, borderRadius: 999, background: i <= step ? c.violet : c.line }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: i <= step ? c.ink : c.greyLight }}>{label}</span>
@@ -116,33 +130,33 @@ export function PostWizard() {
           {step === 0 && (
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span style={groupLabel}>Что хотите сделать</span>
-                <ChoiceCards options={DEALS.map((d) => ({ ...d }))} value={deal} onChange={setDeal} />
+                <span style={groupLabel}>{dict.post.dealQuestion}</span>
+                <ChoiceCards options={deals} value={deal} onChange={setDeal} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span style={groupLabel}>Кто размещает</span>
-                <ChoiceCards options={WHOS.map((w) => ({ ...w }))} value={who} onChange={setWho} />
+                <span style={groupLabel}>{dict.post.whoQuestion}</span>
+                <ChoiceCards options={whos} value={who} onChange={setWho} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <span style={groupLabel}>Тип объекта</span>
-                <ChoicePills options={TYPES.map((t) => ({ ...t }))} value={type} onChange={setType} />
+                <span style={groupLabel}>{dict.post.typeQuestion}</span>
+                <ChoicePills options={types} value={type} onChange={setType} />
               </div>
             </>
           )}
 
           {step === 1 && (
             <>
-              {FIELDS.map((f) => (
+              {fields.map((f) => (
                 <label key={f.name} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <span style={{ fontSize: 14, color: c.muted }}>{f.label}</span>
                   <input placeholder={f.ph} value={values[f.name] ?? ''} onChange={set(f.name)} style={inputStyle} />
                 </label>
               ))}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, color: c.muted }}>Описание</span>
+                <span style={{ fontSize: 14, color: c.muted }}>{dict.post.fieldDescription}</span>
                 <textarea
                   rows={5}
-                  placeholder="Расскажите об объекте: ремонт, вид, инфраструктура"
+                  placeholder={dict.post.fieldDescriptionPlaceholder}
                   value={values.description ?? ''}
                   onChange={set('description')}
                   style={{ ...inputStyle, resize: 'vertical' }}
@@ -154,7 +168,7 @@ export function PostWizard() {
           {step === 2 && (
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10 }}>
-                {PHOTO_SLOTS.map((slot) => (
+                {photoSlots.map((slot) => (
                   <div
                     key={slot}
                     style={{
@@ -182,8 +196,7 @@ export function PostWizard() {
               <div style={{ background: c.greenTint, borderRadius: 18, padding: '18px 20px', display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                 <Shield size={22} color={c.green} width={2} />
                 <div style={{ fontSize: 15, lineHeight: 1.55, color: c.greenDark }}>
-                  <strong>Получите бейдж Verificado.</strong> После публикации мы запросим nota simple и видео-тур по чек-листу.
-                  Проверенные объекты получают в среднем в 3 раза больше откликов.
+                  <strong>{dict.post.verifyHintTitle}</strong> {dict.post.verifyHintText}
                 </div>
               </div>
             </>
@@ -192,7 +205,7 @@ export function PostWizard() {
           {step === 3 && (
             <>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontSize: 14, color: c.muted }}>Цена, €</span>
+                <span style={{ fontSize: 14, color: c.muted }}>{dict.post.fieldPrice}</span>
                 <input
                   placeholder="289 000"
                   value={values.price ?? ''}
@@ -202,8 +215,8 @@ export function PostWizard() {
               </label>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <span style={groupLabel}>Продвижение</span>
-                {TARIFFS.map((t) => {
+                <span style={groupLabel}>{dict.post.promotion}</span>
+                {tariffs.map((t) => {
                   const active = t.key === tariff;
                   return (
                     <button
@@ -243,13 +256,13 @@ export function PostWizard() {
               <span style={{ width: 64, height: 64, borderRadius: 20, background: c.green, display: 'grid', placeItems: 'center' }}>
                 <Check size={30} width={2.6} />
               </span>
-              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em' }}>Объявление отправлено на проверку</div>
+              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em' }}>{dict.post.doneTitle}</div>
               <div style={{ fontSize: 15, color: c.muted, maxWidth: 420, lineHeight: 1.55 }}>
-                Модерация занимает до 2 часов. Мы пришлём ссылку на видео-тур для получения бейджа Verificado.
+                {dict.post.doneText}
               </div>
               <button
                 type="button"
-                onClick={() => router.push('/')}
+                onClick={() => router.push(localePath(locale))}
                 className="h-ink-to-violet"
                 style={{
                   border: 0,
@@ -264,7 +277,7 @@ export function PostWizard() {
                   marginTop: 6,
                 }}
               >
-                На главную
+                {dict.post.doneCta}
               </button>
             </div>
           )}
@@ -288,7 +301,7 @@ export function PostWizard() {
                   visibility: step > 0 ? 'visible' : 'hidden',
                 }}
               >
-                Назад
+                {dict.post.back}
               </button>
               <button
                 type="button"
@@ -306,7 +319,7 @@ export function PostWizard() {
                   cursor: 'pointer',
                 }}
               >
-                {last ? 'Опубликовать' : 'Далее'}
+                {last ? dict.post.publish : dict.post.next}
               </button>
             </div>
           )}

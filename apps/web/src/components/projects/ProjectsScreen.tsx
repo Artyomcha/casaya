@@ -3,21 +3,31 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Pills } from '@/components/ui/Segmented';
-import { fmt } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { money } from '@/i18n/format';
+import { localePath, type Locale } from '@/i18n/locales';
 import type { Project } from '@/lib/types';
 import { c } from '@/lib/theme';
 
-const FILTERS = [
-  { key: 'all', label: 'Все' },
-  { key: '2026', label: 'Сдача 2026' },
-  { key: '2027', label: 'Сдача 2027' },
-  { key: '2028', label: 'Сдача 2028' },
-] as const;
+type FilterKey = 'all' | '2026' | '2027' | '2028';
 
-type FilterKey = (typeof FILTERS)[number]['key'];
-
-export function ProjectsScreen({ projects }: { projects: Project[] }) {
+export function ProjectsScreen({
+  dict,
+  locale,
+  projects,
+}: {
+  dict: Dictionary;
+  locale: Locale;
+  projects: Project[];
+}) {
   const [year, setYear] = useState<FilterKey>('all');
+
+  const filters: { key: FilterKey; label: string }[] = [
+    { key: 'all', label: dict.projects.filterAll },
+    { key: '2026', label: `${dict.projects.filterYear} 2026` },
+    { key: '2027', label: `${dict.projects.filterYear} 2027` },
+    { key: '2028', label: `${dict.projects.filterYear} 2028` },
+  ];
 
   const visible = useMemo(
     () => (year === 'all' ? projects : projects.filter((p) => p.deliveryYear === year)),
@@ -27,19 +37,19 @@ export function ProjectsScreen({ projects }: { projects: Project[] }) {
   return (
     <main>
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '40px 32px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: c.greenText }}>Obra nueva</span>
+        <span style={{ fontSize: 14, fontWeight: 600, color: c.greenText }}>{dict.projects.brand}</span>
         <h1 style={{ margin: 0, fontSize: 'clamp(34px,4.2vw,54px)', lineHeight: 1.04, letterSpacing: '-0.045em', fontWeight: 700 }}>
-          Новостройки на Коста-Бланке
+          {dict.projects.title}
         </h1>
         <div style={{ marginTop: 6 }}>
-          <Pills options={FILTERS.map((f) => ({ key: f.key, label: f.label }))} value={year} onChange={setYear} />
+          <Pills options={filters} value={year} onChange={setYear} />
         </div>
       </section>
 
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '32px 32px 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(100%,420px),1fr))', gap: 20 }}>
           {visible.map((p) => {
-            const href = p.listings[0] ? `/listing/${p.listings[0].slug}` : '/search';
+            const href = localePath(locale, p.listings[0] ? `listing/${p.listings[0].slug}` : 'search');
             return (
               <Link
                 key={p.id}
@@ -81,9 +91,9 @@ export function ProjectsScreen({ projects }: { projects: Project[] }) {
                       <div style={{ fontSize: 14, color: c.grey, marginTop: 3 }}>{p.address}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 13, color: c.grey }}>от</div>
+                      <div style={{ fontSize: 13, color: c.grey }}>{dict.common.from}</div>
                       <div style={{ fontSize: 21, fontWeight: 700, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
-                        {fmt(p.priceFrom)}
+                        {money(p.priceFrom, locale)}
                       </div>
                     </div>
                   </div>
@@ -98,7 +108,7 @@ export function ProjectsScreen({ projects }: { projects: Project[] }) {
                   </div>
 
                   <div style={{ fontSize: 13, color: c.muted }}>
-                    Застройщик: <span style={{ color: c.ink, fontWeight: 500 }}>{p.developer}</span> · {p.units}
+                    {dict.projects.developer} <span style={{ color: c.ink, fontWeight: 500 }}>{p.developer}</span> · {p.units}
                   </div>
                 </div>
               </Link>

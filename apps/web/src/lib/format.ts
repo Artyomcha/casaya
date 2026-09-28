@@ -1,31 +1,28 @@
+import type { Dictionary } from '@/i18n/getDictionary';
+import { decimalMark, groupDigits, money } from '@/i18n/format';
+import type { Locale } from '@/i18n/locales';
 import type { Listing, ListingCard, Mode } from './types';
 
 /** Месячная аренда как доля от цены продажи — витринный коэффициент портала. */
 export const RENT_RATIO = 0.0045;
-
-/**
- * Разряды разделяются неразрывным пробелом — как в ru-RU.
- * Форматируем вручную, чтобы разметка на сервере и в браузере совпадала байт в байт.
- */
-export function groupDigits(value: number): string {
-  return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-}
-
-export const fmt = (value: number): string => `${groupDigits(value)} €`;
-
-export const pricePerM2 = (price: number, area: number): string =>
-  `${groupDigits(price / area)} €/м²`;
 
 export const rentOf = (price: number): number => Math.round((price * RENT_RATIO) / 10) * 10;
 
 export const priceOf = (price: number, mode: Mode): number =>
   mode === 'rent' ? rentOf(price) : price;
 
-const plural = (n: number, one: string, few: string) => (n === 1 ? one : few);
+export const pricePerM2 = (price: number, area: number, locale: Locale, dict: Dictionary): string =>
+  `${groupDigits(price / area, locale)} ${dict.common.perSqm}`;
 
-export const specsOf = (l: Pick<Listing, 'bedrooms' | 'area' | 'bathrooms'>): string =>
-  `${l.bedrooms} ${plural(l.bedrooms, 'спальня', 'спальни')} · ${l.area} м² · ` +
-  `${l.bathrooms} ${plural(l.bathrooms, 'ванная', 'ванные')}`;
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
+
+export const specsOf = (
+  l: Pick<Listing, 'bedrooms' | 'area' | 'bathrooms'>,
+  dict: Dictionary,
+): string =>
+  `${l.bedrooms} ${plural(l.bedrooms, dict.common.bedroomOne, dict.common.bedroomMany)} · ` +
+  `${l.area} ${dict.common.sqm} · ` +
+  `${l.bathrooms} ${plural(l.bathrooms, dict.common.bathroomOne, dict.common.bathroomMany)}`;
 
 export const initialsOf = (name: string): string =>
   name
@@ -34,23 +31,25 @@ export const initialsOf = (name: string): string =>
     .join('');
 
 /** Короткая подпись пина на карте: «485 тыс €» / «1,25 млн €». */
-export const pinLabel = (price: number, mode: Mode): string => {
-  if (mode === 'rent') return fmt(rentOf(price));
-  if (price >= 1e6) return `${(price / 1e6).toFixed(2).replace('.', ',')} млн €`;
-  return `${Math.round(price / 1000)} тыс €`;
+export const pinLabel = (price: number, mode: Mode, locale: Locale): string => {
+  if (mode === 'rent') return money(rentOf(price), locale);
+  if (price >= 1e6) return `${(price / 1e6).toFixed(2).replace('.', decimalMark(locale))} M €`;
+  return `${Math.round(price / 1000)}K €`;
 };
 
 /** Приводит объект из API к виду, в котором его рисует карточка. */
-export function toCard(l: Listing, mode: Mode): ListingCard {
+export function toCard(l: Listing, mode: Mode, locale: Locale, dict: Dictionary): ListingCard {
   const price = priceOf(l.price, mode);
   return {
     ...l,
-    href: `/listing/${l.slug}`,
-    priceLabel: mode === 'rent' ? `${fmt(price)} / мес` : fmt(price),
-    subLabel: mode === 'rent' ? 'без комиссии' : pricePerM2(l.price, l.area),
-    specs: specsOf(l),
+    href: `/${locale}/listing/${l.slug}`,
+    priceLabel: mode === 'rent' ? `${money(price, locale)} ${dict.common.perMonth}` : money(price, locale),
+    subLabel: mode === 'rent' ? dict.common.noCommission : pricePerM2(l.price, l.area, locale, dict),
+    specs: specsOf(l, dict),
     agentInitials: l.agency.initials || initialsOf(l.agency.name),
-    dateLabel: 'сегодня',
+    dateLabel: dict.common.today,
     badge: mode === 'rent' ? null : l.badge,
   };
 }
+
+export { groupDigits, money };

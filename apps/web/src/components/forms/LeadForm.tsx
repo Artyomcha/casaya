@@ -10,6 +10,8 @@ export interface LeadField {
   type?: string;
 }
 
+/** Ключ поля определяет и плейсхолдер, и то, в какое поле лида оно попадёт. */
+
 export interface LeadFormTheme {
   inputBorder: string;
   inputBg: string;

@@ -3,15 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Check, Search } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { localePath, type Locale } from '@/i18n/locales';
 import type { Mode } from '@/lib/types';
 import { c } from '@/lib/theme';
-
-const MODES: { key: Mode; label: string }[] = [
-  { key: 'buy', label: 'Купить' },
-  { key: 'rent', label: 'Снять' },
-  { key: 'new', label: 'Новостройки' },
-  { key: 'value', label: 'Оценить' },
-];
 
 const fieldBox: React.CSSProperties = {
   background: c.surface,
@@ -24,17 +19,34 @@ const fieldBox: React.CSSProperties = {
 
 const fieldLabel: React.CSSProperties = { fontSize: 12, color: c.grey, fontWeight: 500 };
 
-export function HeroSearch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
+export function HeroSearch({
+  dict,
+  locale,
+  mode,
+  onMode,
+}: {
+  dict: Dictionary;
+  locale: Locale;
+  mode: Mode;
+  onMode: (m: Mode) => void;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const rent = mode === 'rent';
 
+  const modes: { key: Mode; label: string }[] = [
+    { key: 'buy', label: dict.home.modeBuy },
+    { key: 'rent', label: dict.home.modeRent },
+    { key: 'new', label: dict.home.modeNew },
+    { key: 'value', label: dict.home.modeValue },
+  ];
+
   const go = () => {
-    if (mode === 'value') return router.push('/value');
-    if (mode === 'new') return router.push('/new');
+    if (mode === 'value') return router.push(localePath(locale, 'value'));
+    if (mode === 'new') return router.push(localePath(locale, 'new'));
     const qs = new URLSearchParams({ mode });
     if (query.trim()) qs.set('q', query.trim());
-    router.push(`/search?${qs}`);
+    router.push(localePath(locale, `search?${qs}`));
   };
 
   return (
@@ -74,7 +86,7 @@ export function HeroSearch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => 
               <span style={{ width: 18, height: 18, borderRadius: 999, background: c.green, display: 'grid', placeItems: 'center' }}>
                 <Check size={11} />
               </span>
-              12 480 проверенных объектов на Коста-Бланке
+              {dict.home.badge}
             </span>
 
             <h1
@@ -88,13 +100,13 @@ export function HeroSearch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => 
                 textWrap: 'balance',
               }}
             >
-              Недвижимость в Испании без фейков и дублей
+              {dict.home.title}
             </h1>
           </div>
 
           <div style={{ background: c.white, borderRadius: 22, padding: 8, boxShadow: '0 30px 60px -20px rgba(23,17,43,0.45)' }}>
             <div style={{ display: 'flex', gap: 4, padding: '6px 8px 10px', flexWrap: 'wrap' }}>
-              {MODES.map((m) => (
+              {modes.map((m) => (
                 <button
                   key={m.key}
                   type="button"
@@ -118,27 +130,27 @@ export function HeroSearch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => 
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 6 }}>
               <label style={{ ...fieldBox, gridColumn: 'span 2', minWidth: 0 }}>
-                <span style={fieldLabel}>Где ищем</span>
+                <span style={fieldLabel}>{dict.home.searchWhere}</span>
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && go()}
-                  placeholder="Город, район или улица"
+                  placeholder={dict.home.searchPlaceholder}
                   style={{ border: 0, outline: 0, font: 'inherit', fontSize: 16, color: c.ink, padding: 0, background: 'transparent', minWidth: 0 }}
                 />
               </label>
 
               <div style={{ ...fieldBox, cursor: 'pointer' }}>
-                <span style={fieldLabel}>Тип</span>
-                <span style={{ fontSize: 16 }}>Квартира, дом</span>
+                <span style={fieldLabel}>{dict.home.type}</span>
+                <span style={{ fontSize: 16 }}>{dict.home.typeValue}</span>
               </div>
               <div style={{ ...fieldBox, cursor: 'pointer' }}>
-                <span style={fieldLabel}>Цена</span>
-                <span style={{ fontSize: 16 }}>{rent ? 'До 1 500 €/мес' : 'До 500 000 €'}</span>
+                <span style={fieldLabel}>{dict.home.price}</span>
+                <span style={{ fontSize: 16 }}>{rent ? dict.home.priceRent : dict.home.priceBuy}</span>
               </div>
               <div style={{ ...fieldBox, cursor: 'pointer' }}>
-                <span style={fieldLabel}>Спальни</span>
-                <span style={{ fontSize: 16 }}>2+</span>
+                <span style={fieldLabel}>{dict.home.bedrooms}</span>
+                <span style={{ fontSize: 16 }}>{dict.home.bedroomsValue}</span>
               </div>
 
               <button
@@ -162,7 +174,7 @@ export function HeroSearch({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => 
                 }}
               >
                 <Search size={18} />
-                {rent ? 'Показать 2 140' : 'Показать 12 480'}
+                {rent ? dict.home.showRent : dict.home.showBuy}
               </button>
             </div>
           </div>

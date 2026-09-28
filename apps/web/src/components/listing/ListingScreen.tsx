@@ -5,39 +5,46 @@ import { useApp } from '@/components/providers/AppProviders';
 import { monthlyPayment } from '@/components/home/MortgageCalculator';
 import { PropertyMap } from '@/components/map/PropertyMap';
 import { Check, Heart, MapPinIcon, Shield } from '@/components/ui/icons';
-import { fmt, toCard } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { money } from '@/i18n/format';
+import { LOCALE_TAGS, localePath, type Locale } from '@/i18n/locales';
+import { toCard } from '@/lib/format';
 import type { Listing } from '@/lib/types';
 import { c } from '@/lib/theme';
 
-const VERIFY_ITEMS = [
-  'Видео-тур снят по чек-листу',
-  'Nota simple: собственник совпадает',
-  'Обременений нет',
-  'Личность агента подтверждена',
-];
-
 const h2: React.CSSProperties = { margin: 0, fontSize: 24, letterSpacing: '-0.03em', fontWeight: 700 };
 
-const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+/** В макете год без «г.» — убираем суффикс, который добавляет русская локаль Intl. */
+const formatDate = (iso: string, locale: Locale) =>
+  new Intl.DateTimeFormat(LOCALE_TAGS[locale], { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(iso))
+    .replace(/\s*г\.$/, '');
 
-/** В макете год без «г.» — убираем суффикс, который добавляет Intl. */
-const formatDate = (iso: string) => dateFormatter.format(new Date(iso)).replace(/\s*г\.$/, '');
-
-export function ListingScreen({ listing }: { listing: Listing }) {
+export function ListingScreen({
+  dict,
+  locale,
+  listing,
+}: {
+  dict: Dictionary;
+  locale: Locale;
+  listing: Listing;
+}) {
   const { isFavorite, toggleFavorite, openLogin } = useApp();
-  const item = toCard(listing, 'buy');
+  const item = toCard(listing, 'buy', locale, dict);
   const fav = isFavorite(listing.id);
 
   // Ипотека «от» в боковой карточке: 70% стоимости на 25 лет.
   const { monthly } = monthlyPayment(listing.price, 30, 25);
 
   const facts = [
-    { k: 'Площадь', v: `${listing.area} м²` },
-    { k: 'Спальни', v: String(listing.bedrooms) },
-    { k: 'Ванные', v: String(listing.bathrooms) },
-    { k: 'Год постройки', v: listing.yearBuilt ? String(listing.yearBuilt) : '—' },
-    { k: 'До моря', v: listing.seaDistance ?? '—' },
+    { k: dict.listing.area, v: `${listing.area} ${dict.common.sqm}` },
+    { k: dict.listing.bedrooms, v: String(listing.bedrooms) },
+    { k: dict.listing.bathrooms, v: String(listing.bathrooms) },
+    { k: dict.listing.yearBuilt, v: listing.yearBuilt ? String(listing.yearBuilt) : '—' },
+    { k: dict.listing.toSea, v: listing.seaDistance ?? '—' },
   ];
+
+  const verifyItems = [dict.listing.verify1, dict.listing.verify2, dict.listing.verify3, dict.listing.verify4];
 
   const gallery = [listing.coverImage, ...listing.gallery];
 
@@ -45,12 +52,12 @@ export function ListingScreen({ listing }: { listing: Listing }) {
     <main>
       <div style={{ maxWidth: 1360, margin: '0 auto', padding: '24px 32px 0', display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div style={{ fontSize: 13, color: c.grey, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Link href="/" style={{ color: c.grey }}>
-            Главная
+          <Link href={localePath(locale)} style={{ color: c.grey }}>
+            {dict.common.home}
           </Link>
           <span>/</span>
-          <Link href="/search" style={{ color: c.grey }}>
-            Поиск
+          <Link href={localePath(locale, 'search')} style={{ color: c.grey }}>
+            {dict.common.search}
           </Link>
           <span>/</span>
           <span style={{ color: c.ink }}>{listing.title}</span>
@@ -72,7 +79,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
               onClick={() => navigator.share?.({ title: listing.title, url: window.location.href }).catch(() => {})}
               style={{ border: `1px solid ${c.lineStrong}`, background: c.white, font: 'inherit', fontSize: 14, fontWeight: 500, padding: '10px 14px', borderRadius: 12, cursor: 'pointer' }}
             >
-              Поделиться
+              {dict.listing.share}
             </button>
             <button
               type="button"
@@ -93,7 +100,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
               }}
             >
               <Heart size={16} fill={fav ? c.coral : 'none'} stroke={fav ? c.coral : c.ink} />
-              В избранное
+              {dict.listing.addToFavorites}
             </button>
           </div>
         </div>
@@ -126,7 +133,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
                 fontWeight: 600,
               }}
             >
-              + 18 фото · видео-тур
+              {dict.listing.morePhotos}
             </span>
           </div>
         </div>
@@ -154,7 +161,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 style={h2}>Описание</h2>
+            <h2 style={h2}>{dict.listing.description}</h2>
             <p style={{ margin: 0, fontSize: 16, lineHeight: 1.7, color: c.inkSoft, maxWidth: 720, textWrap: 'pretty' }}>{listing.description}</p>
           </div>
 
@@ -175,15 +182,15 @@ export function ListingScreen({ listing }: { listing: Listing }) {
                   <Shield size={20} />
                 </span>
                 <div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: c.greenDark }}>Объект проверен Casaya Verify</div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: c.greenDark }}>{dict.listing.verifyTitle}</div>
                   <div style={{ fontSize: 14, color: c.greenMid }}>
-                    Последняя проверка: {listing.verifiedAt ? formatDate(listing.verifiedAt) : '—'}
+                    {dict.listing.lastCheck} {listing.verifiedAt ? formatDate(listing.verifiedAt, locale) : '—'}
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10 }}>
-                {VERIFY_ITEMS.map((v) => (
+                {verifyItems.map((v) => (
                   <div key={v} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 15, color: c.greenDark }}>
                     <Check size={18} color={c.green} width={2.4} style={{ flexShrink: 0, marginTop: 2 }} />
                     {v}
@@ -194,7 +201,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <h2 style={h2}>Удобства</h2>
+            <h2 style={h2}>{dict.listing.features}</h2>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {listing.features.map((f) => (
                 <span key={f} style={{ border: `1px solid ${c.lineStrong}`, borderRadius: 999, padding: '8px 14px', fontSize: 14 }}>
@@ -206,11 +213,13 @@ export function ListingScreen({ listing }: { listing: Listing }) {
 
           {listing.lat != null && listing.lng != null && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <h2 style={h2}>На карте</h2>
+              <h2 style={h2}>{dict.listing.onMap}</h2>
               <div style={{ height: 340, borderRadius: 24, overflow: 'hidden', border: `1px solid ${c.line}` }}>
                 <PropertyMap
                   variant="single"
                   mode="buy"
+                  dict={dict}
+                  locale={locale}
                   pins={[
                     {
                       id: listing.id,
@@ -252,8 +261,10 @@ export function ListingScreen({ listing }: { listing: Listing }) {
             </div>
 
             <div style={{ background: c.greenTint, borderRadius: 14, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, color: c.greenMid }}>Ипотека от</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: c.greenDark, fontVariantNumeric: 'tabular-nums' }}>{fmt(monthly)} / мес</span>
+              <span style={{ fontSize: 14, color: c.greenMid }}>{dict.listing.mortgageFrom}</span>
+              <span style={{ fontSize: 16, fontWeight: 700, color: c.greenDark, fontVariantNumeric: 'tabular-nums' }}>
+                {money(monthly, locale)} {dict.common.perMonth}
+              </span>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 4 }}>
@@ -275,7 +286,8 @@ export function ListingScreen({ listing }: { listing: Listing }) {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 600 }}>{listing.agency.name}</div>
                 <div style={{ fontSize: 13, color: c.green, fontWeight: 500 }}>
-                  {listing.agency.verified ? 'Агентство проверено · ' : ''}отвечает за {listing.agency.replyTime} мин
+                  {listing.agency.verified ? `${dict.listing.agencyVerified} · ` : ''}
+                  {dict.listing.repliesIn} {listing.agency.replyTime} {dict.listing.minutes}
                 </div>
               </div>
             </div>
@@ -286,7 +298,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
               className="h-violet"
               style={{ border: 0, background: c.violet, color: c.white, font: 'inherit', fontSize: 16, fontWeight: 600, padding: 15, borderRadius: 14, cursor: 'pointer' }}
             >
-              Показать телефон
+              {dict.listing.showPhone}
             </button>
             <button
               type="button"
@@ -294,17 +306,17 @@ export function ListingScreen({ listing }: { listing: Listing }) {
               className="h-soft"
               style={{ border: `1px solid ${c.lineStrong}`, background: c.white, color: c.ink, font: 'inherit', fontSize: 16, fontWeight: 600, padding: 14, borderRadius: 14, cursor: 'pointer' }}
             >
-              Написать сообщение
+              {dict.listing.sendMessage}
             </button>
           </div>
 
           <div style={{ background: c.coralTint, borderRadius: 24, padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ fontSize: 17, fontWeight: 700 }}>Видео-осмотр по запросу</div>
+            <div style={{ fontSize: 17, fontWeight: 700 }}>{dict.listing.viewingTitle}</div>
             <div style={{ fontSize: 14, lineHeight: 1.55, color: '#6B4A40' }}>
-              Местный эксперт снимет объект по чек-листу: влажность, шум, район вечером.
+              {dict.listing.viewingText}
             </div>
             <Link
-              href="/services"
+              href={localePath(locale, 'services')}
               className="h-coral"
               style={{
                 alignSelf: 'flex-start',
@@ -319,7 +331,7 @@ export function ListingScreen({ listing }: { listing: Listing }) {
                 cursor: 'pointer',
               }}
             >
-              Заказать за 49 €
+              {dict.listing.viewingCta}
             </Link>
           </div>
         </aside>

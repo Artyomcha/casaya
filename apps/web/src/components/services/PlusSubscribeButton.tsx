@@ -4,7 +4,7 @@ import { useApp } from '@/components/providers/AppProviders';
 import { c } from '@/lib/theme';
 
 /** Подписка Casaya+ оформляется только на аккаунт, поэтому открываем вход. */
-export function PlusSubscribeButton() {
+export function PlusSubscribeButton({ label }: { label: string }) {
   const { openLogin } = useApp();
 
   return (
@@ -25,7 +25,7 @@ export function PlusSubscribeButton() {
         marginTop: 4,
       }}
     >
-      Оформить подписку
+      {label}
     </button>
   );
 }

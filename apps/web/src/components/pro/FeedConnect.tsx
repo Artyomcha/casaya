@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import { api } from '@/lib/api';
-import { fmt } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { money } from '@/i18n/format';
+import type { Locale } from '@/i18n/locales';
 import type { FeedFormat, FeedPreview } from '@/lib/types';
 import { c } from '@/lib/theme';
 
-const FORMATS: { key: FeedFormat | 'auto'; label: string }[] = [
-  { key: 'auto', label: 'Определить автоматически' },
-  { key: 'INMOVILLA', label: 'Inmovilla' },
-  { key: 'WITEI', label: 'Witei' },
-  { key: 'MOBILIA', label: 'Mobilia' },
-  { key: 'RESALES', label: 'Resales Online' },
-  { key: 'KYERO', label: 'Kyero XML' },
-  { key: 'CASAYA', label: 'Схема Casaya' },
-];
+/** Названия CRM — имена собственные, переводится только первый и последний пункт. */
+const CRM_FORMATS: FeedFormat[] = ['INMOVILLA', 'WITEI', 'MOBILIA', 'RESALES', 'KYERO'];
+const CRM_LABELS: Record<string, string> = {
+  INMOVILLA: 'Inmovilla',
+  WITEI: 'Witei',
+  MOBILIA: 'Mobilia',
+  RESALES: 'Resales Online',
+  KYERO: 'Kyero XML',
+};
 
 const inputStyle: React.CSSProperties = {
   border: `1px solid ${c.lineStrong}`,
@@ -32,7 +34,17 @@ const inputStyle: React.CSSProperties = {
  * Подключение XML-выгрузки CRM: сначала сухой прогон (ничего не пишем в базу),
  * агентство видит, что подхватится, и только потом подтверждает.
  */
-export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onConnected: () => void }) {
+export function FeedConnect({
+  agencyId,
+  dict,
+  locale,
+  onConnected,
+}: {
+  agencyId: string;
+  dict: Dictionary;
+  locale: Locale;
+  onConnected: () => void;
+}) {
   const [url, setUrl] = useState('');
   const [format, setFormat] = useState<FeedFormat | 'auto'>('auto');
   const [preview, setPreview] = useState<FeedPreview | null>(null);
@@ -62,9 +74,9 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
   return (
     <div style={{ border: `1px solid ${c.line}`, borderRadius: 24, padding: 28, display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>Подключить фид</div>
+        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>{dict.cabinet.connectTitle}</div>
         <div style={{ fontSize: 14, color: c.muted, marginTop: 4 }}>
-          Вставьте ссылку на XML-выгрузку вашей CRM. Проверим её до подключения — ничего не изменится, пока вы не подтвердите.
+          {dict.cabinet.connectText}
         </div>
       </div>
 
@@ -75,11 +87,13 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
         onChange={(e) => setFormat(e.target.value as FeedFormat | 'auto')}
         style={{ ...inputStyle, cursor: 'pointer' }}
       >
-        {FORMATS.map((f) => (
-          <option key={f.key} value={f.key}>
-            {f.label}
+        <option value="auto">{dict.cabinet.formatAuto}</option>
+        {CRM_FORMATS.map((f) => (
+          <option key={f} value={f}>
+            {CRM_LABELS[f]}
           </option>
         ))}
+        <option value="CASAYA">{dict.cabinet.formatCasaya}</option>
       </select>
 
       {error && (
@@ -105,7 +119,7 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
             opacity: url ? 1 : 0.5,
           }}
         >
-          {busy === 'preview' ? 'Проверяем…' : 'Проверить фид'}
+          {busy === 'preview' ? dict.cabinet.checking : dict.cabinet.checkFeed}
         </button>
 
         <button
@@ -126,7 +140,7 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
             opacity: preview ? 1 : 0.5,
           }}
         >
-          {busy === 'connect' ? 'Подключаем…' : 'Подключить и загрузить'}
+          {busy === 'connect' ? dict.cabinet.connecting : dict.cabinet.connectFeed}
         </button>
       </div>
 
@@ -134,10 +148,10 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
         <div style={{ background: c.surface, borderRadius: 18, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             {[
-              ['Формат', preview.format],
-              ['Объектов в фиде', String(preview.total)],
-              ['Загрузим', String(preview.importable)],
-              ['Пропустим', String(preview.total - preview.importable)],
+              [dict.cabinet.previewFormat, preview.format],
+              [dict.cabinet.previewTotal, String(preview.total)],
+              [dict.cabinet.previewImport, String(preview.importable)],
+              [dict.cabinet.previewSkip, String(preview.total - preview.importable)],
             ].map(([k, v]) => (
               <div key={k}>
                 <div style={{ fontSize: 12, color: c.grey }}>{k}</div>
@@ -148,7 +162,7 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
 
           {preview.sample.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 13, color: c.grey }}>Первые объекты из выгрузки</div>
+              <div style={{ fontSize: 13, color: c.grey }}>{dict.cabinet.previewSample}</div>
               {preview.sample.map((s) => (
                 <div
                   key={s.externalId}
@@ -158,10 +172,10 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}</div>
                     <div style={{ color: c.grey, fontSize: 13 }}>
-                      {s.address} · {s.area} м² · {s.bedrooms} сп.
+                      {s.address} · {s.area} {dict.common.sqm} · {s.bedrooms}
                     </div>
                   </div>
-                  <div style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{fmt(s.price)}</div>
+                  <div style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{money(s.price, locale)}</div>
                 </div>
               ))}
             </div>
@@ -169,10 +183,10 @@ export function FeedConnect({ agencyId, onConnected }: { agencyId: string; onCon
 
           {preview.skipped.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div style={{ fontSize: 13, color: c.grey }}>Не сможем загрузить</div>
+              <div style={{ fontSize: 13, color: c.grey }}>{dict.cabinet.previewSkipped}</div>
               {preview.skipped.slice(0, 5).map((s, i) => (
                 <div key={i} style={{ fontSize: 13, color: c.coralDark }}>
-                  {s.externalId ?? 'без ref'} — {s.reason}
+                  {s.externalId ?? '—'} · {s.reason}
                 </div>
               ))}
             </div>

@@ -2,16 +2,18 @@
 
 import { useApp } from '@/components/providers/AppProviders';
 import { Heart } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
 import { c } from '@/lib/theme';
 
 interface Props {
   listingId: string;
+  dict: Dictionary;
   /** floating — круглая кнопка на фото; inline — иконка в строке выдачи. */
   variant?: 'floating' | 'inline';
   size?: number;
 }
 
-export function FavoriteButton({ listingId, variant = 'floating', size = 18 }: Props) {
+export function FavoriteButton({ listingId, dict, variant = 'floating', size = 18 }: Props) {
   const { isFavorite, toggleFavorite } = useApp();
   const active = isFavorite(listingId);
 
@@ -40,7 +42,7 @@ export function FavoriteButton({ listingId, variant = 'floating', size = 18 }: P
   return (
     <button
       type="button"
-      aria-label={active ? 'Убрать из избранного' : 'В избранное'}
+      aria-label={active ? dict.common.favoriteRemove : dict.common.favoriteAdd}
       aria-pressed={active}
       onClick={(e) => {
         e.preventDefault();

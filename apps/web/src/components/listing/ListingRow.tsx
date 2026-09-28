@@ -1,11 +1,20 @@
 import Link from 'next/link';
 import { VerifiedBadge } from '@/components/layout/Header';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
+import type { Dictionary } from '@/i18n/getDictionary';
 import type { ListingCard as Card } from '@/lib/types';
 import { c } from '@/lib/theme';
 
 /** Горизонтальная карточка выдачи поиска — фото слева, данные справа. */
-export function ListingRow({ item, highlighted = false }: { item: Card; highlighted?: boolean }) {
+export function ListingRow({
+  item,
+  dict,
+  highlighted = false,
+}: {
+  item: Card;
+  dict: Dictionary;
+  highlighted?: boolean;
+}) {
   return (
     <Link
       href={item.href}
@@ -28,7 +37,7 @@ export function ListingRow({ item, highlighted = false }: { item: Card; highligh
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         {item.verified && (
           <span style={{ position: 'absolute', top: 10, left: 10 }}>
-            <VerifiedBadge compact />
+            <VerifiedBadge compact label={dict.common.verified} />
           </span>
         )}
       </div>
@@ -36,7 +45,7 @@ export function ListingRow({ item, highlighted = false }: { item: Card; highligh
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 6px 6px 0', minWidth: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 17, fontWeight: 600, letterSpacing: '-0.015em' }}>{item.title}</span>
-          <FavoriteButton listingId={item.id} variant="inline" size={20} />
+          <FavoriteButton listingId={item.id} dict={dict} variant="inline" size={20} />
         </div>
 
         <div style={{ fontSize: 14, color: c.grey }}>{item.address}</div>

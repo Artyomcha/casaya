@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { LoginModal } from '@/components/layout/LoginModal';
+import type { Dictionary } from '@/i18n/getDictionary';
 
 const FAVORITES_KEY = 'casaya:favorites';
 
@@ -17,7 +18,7 @@ interface AppState {
 
 const AppContext = createContext<AppState | null>(null);
 
-export function AppProviders({ children }: { children: React.ReactNode }) {
+export function AppProviders({ dict, children }: { dict: Dictionary; children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -73,7 +74,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={value}>
       {children}
-      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+      {loginOpen && <LoginModal dict={dict} onClose={() => setLoginOpen(false)} />}
     </AppContext.Provider>
   );
 }

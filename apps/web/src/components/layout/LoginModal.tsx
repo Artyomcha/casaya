@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Close } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
 import { CLIENT_BASE } from '@/lib/api';
 import { c } from '@/lib/theme';
 
@@ -29,7 +30,7 @@ const inputStyle: React.CSSProperties = {
   color: c.ink,
 };
 
-export function LoginModal({ onClose }: { onClose: () => void }) {
+export function LoginModal({ dict, onClose }: { dict: Dictionary; onClose: () => void }) {
   const [tab, setTab] = useState<'phone' | 'email'>('phone');
   const [identity, setIdentity] = useState('');
   const [sent, setSent] = useState(false);
@@ -46,7 +47,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ channel: tab, identity }),
       });
-      if (!res.ok) throw new Error('Не удалось отправить код');
+      if (!res.ok) throw new Error(dict.errors.loadFailed);
       setSent(true);
     } catch (e) {
       setError((e as Error).message);
@@ -84,7 +85,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.035em' }}>Вход в Casaya</span>
+          <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.035em' }}>{dict.login.title}</span>
           <button
             type="button"
             onClick={onClose}
@@ -96,10 +97,10 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4, background: c.surfaceAlt, borderRadius: 12, padding: 4 }}>
           <button type="button" onClick={() => setTab('phone')} style={tabStyle(tab === 'phone')}>
-            Телефон
+            {dict.login.tabPhone}
           </button>
           <button type="button" onClick={() => setTab('email')} style={tabStyle(tab === 'email')}>
-            Email
+            {dict.login.tabEmail}
           </button>
         </div>
 
@@ -109,13 +110,13 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
             setIdentity(e.target.value);
             setSent(false);
           }}
-          placeholder={tab === 'phone' ? '+34 600 000 000' : 'you@example.com'}
+          placeholder={tab === 'phone' ? dict.login.phonePlaceholder : dict.login.emailPlaceholder}
           style={inputStyle}
         />
 
         {sent && (
           <div style={{ fontSize: 14, color: c.greenText, background: c.greenTint, borderRadius: 12, padding: '12px 14px' }}>
-            Код отправлен. Он действует 5 минут.
+            {dict.login.codeSent}
           </div>
         )}
         {error && <div style={{ fontSize: 14, color: c.coralDark }}>{error}</div>}
@@ -138,12 +139,12 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
             opacity: busy ? 0.7 : 1,
           }}
         >
-          Получить код
+          {dict.login.getCode}
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: c.greyLight, fontSize: 13 }}>
           <span style={{ flex: 1, height: 1, background: c.line }} />
-          или
+          {dict.login.or}
           <span style={{ flex: 1, height: 1, background: c.line }} />
         </div>
 
@@ -161,7 +162,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div style={{ fontSize: 12, color: c.greyLight, lineHeight: 1.5, textAlign: 'center' }}>
-          Продолжая, вы принимаете условия использования и политику конфиденциальности.
+          {dict.login.terms}
         </div>
       </div>
     </div>

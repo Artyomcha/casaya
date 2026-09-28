@@ -2,17 +2,19 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { FeedConnect } from '@/components/pro/FeedConnect';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { LOCALE_TAGS, type Locale } from '@/i18n/locales';
 import { api } from '@/lib/api';
 import type { AgencyDashboard, FeedStatus } from '@/lib/types';
 import { c } from '@/lib/theme';
 
 const AGENCY_KEY = 'casaya:agencyId';
 
-const STATUS_STYLE: Record<FeedStatus, { bg: string; fg: string; label: string }> = {
-  ACTIVE: { bg: c.greenTint, fg: c.greenText, label: 'Активен' },
-  PENDING: { bg: c.violetTint, fg: c.violet, label: 'Первая загрузка' },
-  PAUSED: { bg: c.surfaceAlt, fg: c.grey, label: 'На паузе' },
-  ERROR: { bg: c.coralTint, fg: c.coralDark, label: 'Ошибка' },
+const STATUS_COLORS: Record<FeedStatus, { bg: string; fg: string }> = {
+  ACTIVE: { bg: c.greenTint, fg: c.greenText },
+  PENDING: { bg: c.violetTint, fg: c.violet },
+  PAUSED: { bg: c.surfaceAlt, fg: c.grey },
+  ERROR: { bg: c.coralTint, fg: c.coralDark },
 };
 
 const inputStyle: React.CSSProperties = {
@@ -26,9 +28,21 @@ const inputStyle: React.CSSProperties = {
   color: c.ink,
 };
 
-const dt = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+export function CabinetScreen({ dict, locale }: { dict: Dictionary; locale: Locale }) {
+  const dt = new Intl.DateTimeFormat(LOCALE_TAGS[locale], {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-export function CabinetScreen() {
+  const statusLabel: Record<FeedStatus, string> = {
+    ACTIVE: dict.cabinet.feedActive,
+    PENDING: dict.cabinet.feedPending,
+    PAUSED: dict.cabinet.feedPaused,
+    ERROR: dict.cabinet.feedError,
+  };
+
   const [agencyId, setAgencyId] = useState<string | null>(null);
   const [data, setData] = useState<AgencyDashboard | null>(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', crm: '' });
@@ -86,19 +100,19 @@ export function CabinetScreen() {
       <main>
         <section style={{ maxWidth: 720, margin: '0 auto', padding: '40px 32px 0', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: c.violet }}>Casaya Pro</span>
-            <h1 style={{ margin: 0, fontSize: 'clamp(30px,3.4vw,42px)', letterSpacing: '-0.045em', fontWeight: 700 }}>Кабинет агентства</h1>
+            <span style={{ fontSize: 14, fontWeight: 600, color: c.violet }}>{dict.pro.brand}</span>
+            <h1 style={{ margin: 0, fontSize: 'clamp(30px,3.4vw,42px)', letterSpacing: '-0.045em', fontWeight: 700 }}>{dict.cabinet.title}</h1>
             <p style={{ margin: 0, fontSize: 16, color: c.muted, lineHeight: 1.6 }}>
-              Зарегистрируйте агентство — и сразу подключайте XML-фид. Базовое размещение бесплатно 12 месяцев.
+              {dict.cabinet.lead}
             </p>
           </div>
 
           <div style={{ border: `1px solid ${c.line}`, borderRadius: 24, padding: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {([
-              ['name', 'Название агентства'],
-              ['email', 'Email'],
-              ['phone', 'Телефон'],
-              ['crm', 'CRM (Inmovilla, Witei…)'],
+              ['name', dict.cabinet.fieldAgency],
+              ['email', dict.cabinet.fieldEmail],
+              ['phone', dict.cabinet.fieldPhone],
+              ['crm', dict.cabinet.fieldCrm],
             ] as const).map(([name, ph]) => (
               <input
                 key={name}
@@ -129,7 +143,7 @@ export function CabinetScreen() {
                 opacity: form.name && form.email ? 1 : 0.5,
               }}
             >
-              Создать кабинет
+              {dict.cabinet.create}
             </button>
           </div>
         </section>
@@ -141,7 +155,7 @@ export function CabinetScreen() {
     return (
       <main>
         <section style={{ maxWidth: 1360, margin: '0 auto', padding: '40px 32px 0' }}>
-          <div style={{ fontSize: 16, color: c.muted }}>{error ?? 'Загружаем кабинет…'}</div>
+          <div style={{ fontSize: 16, color: c.muted }}>{error ?? dict.cabinet.loading}</div>
         </section>
       </main>
     );
@@ -172,8 +186,8 @@ export function CabinetScreen() {
             <div>
               <h1 style={{ margin: 0, fontSize: 'clamp(26px,3vw,36px)', letterSpacing: '-0.04em', fontWeight: 700 }}>{agency.name}</h1>
               <div style={{ fontSize: 14, color: c.muted, marginTop: 2 }}>
-                Тариф: {agency.plan?.name ?? 'Старт'}
-                {agency.freeUntil && ` · бесплатно до ${dt.format(new Date(agency.freeUntil))}`}
+                {dict.cabinet.plan} {agency.plan?.name ?? '—'}
+                {agency.freeUntil && ` · ${dict.cabinet.freeUntil} ${dt.format(new Date(agency.freeUntil))}`}
               </div>
             </div>
           </div>
@@ -181,10 +195,10 @@ export function CabinetScreen() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
           {[
-            ['Опубликовано', String(inventory.published), c.violetTint, c.violet],
-            ['С бейджем Verificado', `${inventory.verified} · ${Math.round(inventory.verifiedShare * 100)}%`, c.greenTint, c.greenText],
-            ['В архиве', String(inventory.archived), c.surface, c.grey],
-            ['Новых откликов', String(data.newLeads), c.coralTint, c.coralDark],
+            [dict.cabinet.statPublished, String(inventory.published), c.violetTint, c.violet],
+            [dict.cabinet.statVerified, `${inventory.verified} · ${Math.round(inventory.verifiedShare * 100)}%`, c.greenTint, c.greenText],
+            [dict.cabinet.statArchived, String(inventory.archived), c.surface, c.grey],
+            [dict.cabinet.statLeads, String(data.newLeads), c.coralTint, c.coralDark],
           ].map(([label, value, bg, fg]) => (
             <div key={label} style={{ background: bg, borderRadius: 20, padding: 22 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: fg }}>{label}</div>
@@ -195,8 +209,9 @@ export function CabinetScreen() {
 
         {lastRun && (
           <div style={{ fontSize: 14, color: c.muted }}>
-            Последняя синхронизация {dt.format(new Date(lastRun.startedAt))}: разобрано {lastRun.parsed}, новых {lastRun.created},
-            обновлено {lastRun.updated}, снято {lastRun.archived}
+            {dict.cabinet.lastSync} {dt.format(new Date(lastRun.startedAt))}: {dict.cabinet.syncParsed} {lastRun.parsed},{' '}
+            {dict.cabinet.syncCreated} {lastRun.created}, {dict.cabinet.syncUpdated} {lastRun.updated},{' '}
+            {dict.cabinet.syncArchived} {lastRun.archived}
             {lastRun.error && <span style={{ color: c.coralDark }}> · {lastRun.error}</span>}
           </div>
         )}
@@ -213,25 +228,27 @@ export function CabinetScreen() {
           alignItems: 'start',
         }}
       >
-        <FeedConnect agencyId={agencyId} onConnected={() => load(agencyId)} />
+        <FeedConnect agencyId={agencyId} dict={dict} locale={locale} onConnected={() => load(agencyId)} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>Подключённые фиды</div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>{dict.cabinet.feedsTitle}</div>
 
           {!feeds.length && (
             <div style={{ background: c.surface, borderRadius: 18, padding: 20, fontSize: 15, color: c.muted }}>
-              Пока ни одного фида. Подключите первый — объекты появятся в выдаче в течение нескольких минут.
+              {dict.cabinet.feedsEmpty}
             </div>
           )}
 
           {feeds.map((f) => {
-            const s = STATUS_STYLE[f.status];
+            const s = STATUS_COLORS[f.status];
             return (
               <div key={f.id} style={{ border: `1px solid ${c.line}`, borderRadius: 18, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ background: s.bg, color: s.fg, fontSize: 12, fontWeight: 700, padding: '5px 10px', borderRadius: 999 }}>{s.label}</span>
+                  <span style={{ background: s.bg, color: s.fg, fontSize: 12, fontWeight: 700, padding: '5px 10px', borderRadius: 999 }}>
+                    {statusLabel[f.status]}
+                  </span>
                   <span style={{ fontSize: 13, color: c.grey }}>
-                    {f.format} · каждые {f.intervalMin} мин
+                    {f.format} · {dict.cabinet.feedEvery} {f.intervalMin} {dict.cabinet.feedMinutes}
                   </span>
                 </div>
 
@@ -239,8 +256,8 @@ export function CabinetScreen() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: 13, color: c.muted }}>
-                    {f.listingCount} объектов
-                    {f.lastOkAt && ` · обновлён ${dt.format(new Date(f.lastOkAt))}`}
+                    {f.listingCount} {dict.cabinet.feedObjects}
+                    {f.lastOkAt && ` · ${dict.cabinet.feedUpdated} ${dt.format(new Date(f.lastOkAt))}`}
                   </span>
                   <button
                     type="button"
@@ -259,7 +276,7 @@ export function CabinetScreen() {
                       cursor: busy ? 'progress' : 'pointer',
                     }}
                   >
-                    Синхронизировать
+                    {dict.cabinet.sync}
                   </button>
                 </div>
 
@@ -271,11 +288,11 @@ export function CabinetScreen() {
       </section>
 
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '48px 32px 0' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>Отклики</div>
+        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>{dict.cabinet.leadsTitle}</div>
 
         {!leads.length ? (
           <div style={{ background: c.surface, borderRadius: 18, padding: 20, fontSize: 15, color: c.muted, marginTop: 12 }}>
-            Откликов пока нет. Они появятся, как только покупатели начнут писать по вашим объектам.
+            {dict.cabinet.leadsEmpty}
           </div>
         ) : (
           <div style={{ marginTop: 12, border: `1px solid ${c.line}`, borderRadius: 20, overflow: 'hidden' }}>
@@ -292,7 +309,7 @@ export function CabinetScreen() {
                   fontSize: 14,
                 }}
               >
-                <span style={{ fontWeight: 600 }}>{l.name ?? 'Без имени'}</span>
+                <span style={{ fontWeight: 600 }}>{l.name ?? dict.cabinet.leadNoName}</span>
                 <span style={{ color: c.muted }}>{l.email ?? l.phone ?? '—'}</span>
                 <span style={{ color: c.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {l.listing?.title ?? '—'}

@@ -7,29 +7,41 @@ import { ListingRow } from '@/components/listing/ListingRow';
 import { PropertyMap } from '@/components/map/PropertyMap';
 import { useApp } from '@/components/providers/AppProviders';
 import { Check, Chevron } from '@/components/ui/icons';
-import { groupDigits, toCard } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { groupDigits } from '@/i18n/format';
+import { localePath, type Locale } from '@/i18n/locales';
+import { toCard } from '@/lib/format';
 import type { Listing, MapPin, Mode } from '@/lib/types';
 import { c } from '@/lib/theme';
 
-const QUICK_FILTERS = ['Цена', 'Спальни', 'Площадь', 'Тип', 'Ещё фильтры'];
-
-const MODES: { key: Exclude<Mode, 'value'>; label: string }[] = [
-  { key: 'buy', label: 'Купить' },
-  { key: 'rent', label: 'Снять' },
-  { key: 'new', label: 'Новостройки' },
-];
-
 export function SearchScreen({
+  dict,
+  locale,
   listings,
   pins,
   mode,
   query,
 }: {
+  dict: Dictionary;
+  locale: Locale;
   listings: Listing[];
   pins: MapPin[];
   mode: Mode;
   query: string;
 }) {
+  const quickFilters = [
+    dict.search.filterPrice,
+    dict.search.filterBedrooms,
+    dict.search.filterArea,
+    dict.search.filterType,
+    dict.search.filterMore,
+  ];
+
+  const modes: { key: Exclude<Mode, 'value'>; label: string }[] = [
+    { key: 'buy', label: dict.home.modeBuy },
+    { key: 'rent', label: dict.home.modeRent },
+    { key: 'new', label: dict.home.modeNew },
+  ];
   const router = useRouter();
   const { favorites } = useApp();
   const [verifiedOnly, setVerifiedOnly] = useState(true);
@@ -40,7 +52,7 @@ export function SearchScreen({
     () => (verifiedOnly ? listings.filter((l) => l.verified) : listings),
     [listings, verifiedOnly],
   );
-  const cards = useMemo(() => visible.map((l) => toCard(l, mode)), [visible, mode]);
+  const cards = useMemo(() => visible.map((l) => toCard(l, mode, locale, dict)), [visible, mode, locale, dict]);
 
   // Карта показывает ровно то, что в выдаче: фильтр «Только Verificado» действует на оба списка.
   const visiblePins = useMemo(() => {
@@ -49,33 +61,33 @@ export function SearchScreen({
   }, [pins, visible]);
 
   const setMode = (next: string) => {
-    if (next === 'new') return router.push('/new');
+    if (next === 'new') return router.push(localePath(locale, 'new'));
     const qs = new URLSearchParams({ mode: next });
     if (query) qs.set('q', query);
-    router.push(`/search?${qs}`);
+    router.push(localePath(locale, `search?${qs}`));
   };
 
   const title =
-    (rent ? 'Снять жильё в Аликанте' : 'Купить недвижимость в Аликанте') +
-    ` · ${groupDigits(cards.length * 156)} объектов`;
+    (rent ? dict.search.titleRent : dict.search.titleBuy) +
+    ` · ${groupDigits(cards.length * 156, locale)} ${dict.common.objects}`;
 
   return (
     <main>
       <div style={{ maxWidth: 1360, margin: '0 auto', padding: '24px 32px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ fontSize: 13, color: c.grey, display: 'flex', gap: 8 }}>
-          <Link href="/" style={{ color: c.grey }}>
-            Главная
+          <Link href={localePath(locale)} style={{ color: c.grey }}>
+            {dict.common.home}
           </Link>
           <span>/</span>
-          <span>Аликанте</span>
+          <span>{dict.common.city}</span>
           <span>/</span>
-          <span style={{ color: c.ink }}>{rent ? 'Аренда' : 'Продажа'}</span>
+          <span style={{ color: c.ink }}>{rent ? dict.search.rent : dict.search.sale}</span>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <h1 style={{ margin: 0, fontSize: 'clamp(26px,3vw,36px)', letterSpacing: '-0.04em', fontWeight: 700 }}>{title}</h1>
           <div style={{ display: 'flex', gap: 6, background: c.surfaceAlt, borderRadius: 12, padding: 4 }}>
-            {MODES.map((m) => {
+            {modes.map((m) => {
               const active = m.key === mode;
               return (
                 <button
@@ -112,7 +124,7 @@ export function SearchScreen({
             borderBottom: `1px solid ${c.line}`,
           }}
         >
-          {QUICK_FILTERS.map((f) => (
+          {quickFilters.map((f) => (
             <button
               key={f}
               type="button"
@@ -166,12 +178,12 @@ export function SearchScreen({
             >
               <Check size={11} width={3.4} />
             </span>
-            Только Verificado
+            {dict.search.verifiedOnly}
           </button>
 
           <span style={{ flex: 1 }} />
           <span style={{ fontSize: 14, color: c.grey }}>
-            Сортировка: <span style={{ color: c.ink, fontWeight: 500 }}>сначала новые</span>
+            {dict.search.sortLabel} <span style={{ color: c.ink, fontWeight: 500 }}>{dict.search.sortValue}</span>
           </span>
         </div>
       </div>
@@ -194,12 +206,12 @@ export function SearchScreen({
               onMouseEnter={() => setSelected(item.id)}
               onMouseLeave={() => setSelected(null)}
             >
-              <ListingRow item={item} highlighted={item.id === selected} />
+              <ListingRow item={item} dict={dict} highlighted={item.id === selected} />
             </div>
           ))}
           {!cards.length && (
             <div style={{ background: c.surface, borderRadius: 22, padding: 32, fontSize: 15, color: c.muted }}>
-              По этим условиям объектов не нашлось. Снимите фильтр «Только Verificado» или измените запрос.
+              {dict.search.empty}
             </div>
           )}
         </div>
@@ -219,6 +231,8 @@ export function SearchScreen({
           <PropertyMap
             pins={visiblePins}
             mode={mode}
+            dict={dict}
+            locale={locale}
             selectedId={selected}
             onSelect={setSelected}
             favorites={favorites}

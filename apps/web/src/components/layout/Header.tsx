@@ -3,22 +3,12 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { useApp } from '@/components/providers/AppProviders';
-import { Check, Chevron, Globe, Heart, Logo, Plus } from '@/components/ui/icons';
+import { Check, Chevron, Heart, Logo, Plus } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { localePath, type Locale } from '@/i18n/locales';
 import { c } from '@/lib/theme';
-
-const NAV = [
-  { label: 'Купить', href: '/search?mode=buy' },
-  { label: 'Снять', href: '/search?mode=rent' },
-  { label: 'Новостройки', href: '/new' },
-];
-
-const MORE = [
-  { label: 'Ипотека', href: '/mortgage', d: 'Калькулятор и 14 банков' },
-  { label: 'Оценка', href: '/value', d: 'Стоимость вашей недвижимости' },
-  { label: 'Сервисы', href: '/services', d: 'NIE, юрист, задаток, перевод денег' },
-  { label: 'Агентствам', href: '/pro', d: 'Casaya Pro и тарифы' },
-];
 
 const navButton: React.CSSProperties = {
   border: 0,
@@ -31,11 +21,26 @@ const navButton: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-export function Header() {
+export function Header({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const router = useRouter();
   const { favoritesCount, openLogin } = useApp();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+
+  const href = (path: string) => localePath(locale, path);
+
+  const nav = [
+    { label: dict.nav.buy, href: href('search?mode=buy') },
+    { label: dict.nav.rent, href: href('search?mode=rent') },
+    { label: dict.nav.newBuild, href: href('new') },
+  ];
+
+  const more = [
+    { label: dict.nav.mortgage, href: href('mortgage'), d: dict.nav.mortgageHint },
+    { label: dict.nav.valuation, href: href('value'), d: dict.nav.valuationHint },
+    { label: dict.nav.services, href: href('services'), d: dict.nav.servicesHint },
+    { label: dict.nav.forAgencies, href: href('pro'), d: dict.nav.agenciesHint },
+  ];
 
   // Меню «Ещё» закрывается по клику вне него — в макете оно тоже не липнет.
   useEffect(() => {
@@ -70,7 +75,7 @@ export function Header() {
         }}
       >
         <Link
-          href="/"
+          href={href('')}
           style={{
             border: 0,
             background: 'transparent',
@@ -100,7 +105,7 @@ export function Header() {
             flexWrap: 'nowrap',
           }}
         >
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <div key={n.label} style={{ height: 72, display: 'flex', alignItems: 'center' }}>
               <Link href={n.href} className="h-soft" style={navButton}>
                 {n.label}
@@ -124,7 +129,7 @@ export function Header() {
               gap: 4,
             }}
           >
-            Ещё
+            {dict.nav.more}
             <Chevron size={14} />
           </button>
 
@@ -146,7 +151,7 @@ export function Header() {
                 zIndex: 40,
               }}
             >
-              {MORE.map((m) => (
+              {more.map((m) => (
                 <Link
                   key={m.href}
                   href={m.href}
@@ -174,30 +179,11 @@ export function Header() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 'auto' }}>
-          <button
-            type="button"
-            className="h-soft"
-            style={{
-              border: 0,
-              background: 'transparent',
-              font: 'inherit',
-              fontSize: 14,
-              fontWeight: 500,
-              color: c.ink,
-              padding: '9px 10px',
-              borderRadius: 10,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}
-          >
-            <Globe size={18} />
-            RU
-          </button>
+          <LanguageSwitcher locale={locale} label={dict.nav.language} />
 
           <Link
-            href="/favorites"
+            href={href('favorites')}
+            aria-label={dict.nav.favorites}
             className="h-soft"
             style={{
               border: 0,
@@ -251,12 +237,12 @@ export function Header() {
               borderRadius: 10,
             }}
           >
-            Войти
+            {dict.nav.login}
           </button>
 
           <button
             type="button"
-            onClick={() => router.push('/post')}
+            onClick={() => router.push(href('post'))}
             className="h-violet"
             style={{
               border: 0,
@@ -275,7 +261,7 @@ export function Header() {
             }}
           >
             <Plus size={16} />
-            Разместить
+            {dict.nav.post}
           </button>
         </div>
       </div>
@@ -284,7 +270,7 @@ export function Header() {
 }
 
 /** Бейдж Verificado — один и тот же во всех выдачах, отличается только масштабом. */
-export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
+export function VerifiedBadge({ compact = false, label = 'Verificado' }: { compact?: boolean; label?: string }) {
   const dot = compact ? 15 : 16;
   return (
     <span
@@ -303,7 +289,7 @@ export function VerifiedBadge({ compact = false }: { compact?: boolean }) {
       <span style={{ width: dot, height: dot, borderRadius: 999, background: c.green, display: 'grid', placeItems: 'center' }}>
         <Check size={compact ? 9 : 10} width={3.4} />
       </span>
-      Verificado
+      {label}
     </span>
   );
 }

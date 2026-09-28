@@ -5,7 +5,10 @@ import * as maplibregl from 'maplibre-gl';
 import type { LngLatBoundsLike, Map as MlMap, Marker, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
-import { fmt, pinLabel, specsOf } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { money } from '@/i18n/format';
+import type { Locale } from '@/i18n/locales';
+import { pinLabel, specsOf } from '@/lib/format';
 import type { MapPin, Mode } from '@/lib/types';
 import { ATTRIBUTION, BASEMAP_STYLE, COSTA_BLANCA, WORKER_URL } from './mapStyle';
 
@@ -16,6 +19,8 @@ maplibregl.setWorkerUrl(WORKER_URL);
 interface Props {
   pins: MapPin[];
   mode: Mode;
+  dict: Dictionary;
+  locale: Locale;
   /** Подсвеченный объект — синхронизируется с наведением на карточку выдачи. */
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
@@ -31,9 +36,13 @@ const escapeHtml = (value: string) =>
   );
 
 /** Мини-карточка в попапе — та же вёрстка, что у карточки выдачи, только компактнее. */
-function popupHtml(pin: MapPin, mode: Mode): string {
-  const price = mode === 'rent' ? `${fmt(Math.round((pin.price * 0.0045) / 10) * 10)} / мес` : fmt(pin.price);
-  const specs = specsOf({ bedrooms: pin.bedrooms, area: pin.area, bathrooms: 0 })
+function popupHtml(pin: MapPin, mode: Mode, dict: Dictionary, locale: Locale): string {
+  const rent = Math.round((pin.price * 0.0045) / 10) * 10;
+  const price =
+    mode === 'rent'
+      ? `${money(rent, locale)} ${dict.common.perMonth}`
+      : money(pin.price, locale);
+  const specs = specsOf({ bedrooms: pin.bedrooms, area: pin.area, bathrooms: 0 }, dict)
     .split(' · ')
     .slice(0, 2)
     .join(' · ');
@@ -47,7 +56,7 @@ function popupHtml(pin: MapPin, mode: Mode): string {
             ? `<span style="position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:5px;background:#FFFFFF;color:#0E7A5A;font-size:11px;font-weight:600;padding:4px 9px 4px 5px;border-radius:999px">
                  <span style="width:14px;height:14px;border-radius:999px;background:#16A37A;display:grid;place-items:center">
                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>
-                 </span>Verificado
+                 </span>${escapeHtml(dict.common.verified)}
                </span>`
             : ''
         }
@@ -63,6 +72,8 @@ function popupHtml(pin: MapPin, mode: Mode): string {
 export function PropertyMap({
   pins,
   mode,
+  dict,
+  locale,
   selectedId,
   onSelect,
   favorites = [],
@@ -117,7 +128,7 @@ export function PropertyMap({
       const el = document.createElement('button');
       el.type = 'button';
       el.className = 'casaya-pin';
-      el.textContent = variant === 'single' ? fmt(pin.price) : pinLabel(pin.price, mode);
+      el.textContent = variant === 'single' ? money(pin.price, locale) : pinLabel(pin.price, mode, locale);
       el.setAttribute('aria-label', `${pin.title}, ${pin.address}`);
 
       if (variant === 'search') {
@@ -127,7 +138,7 @@ export function PropertyMap({
           popup.current?.remove();
           popup.current = new maplibregl.Popup({ offset: 18, closeButton: true, maxWidth: '260px' })
             .setLngLat([pin.lng, pin.lat])
-            .setHTML(popupHtml(pin, mode))
+            .setHTML(popupHtml(pin, mode, dict, locale))
             .addTo(instance);
         });
         el.addEventListener('mouseenter', () => selectRef.current?.(pin.id));
@@ -151,7 +162,7 @@ export function PropertyMap({
       );
       instance.fitBounds(bounds as LngLatBoundsLike, { padding: 72, maxZoom: 12.5, duration: 0 });
     }
-  }, [pins, mode, variant]);
+  }, [pins, mode, variant, dict, locale]);
 
   // Подсветка выбранной метки — без пересоздания маркеров.
   useEffect(() => {

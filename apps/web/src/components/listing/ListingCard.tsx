@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { VerifiedBadge } from '@/components/layout/Header';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
 import { Play } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
 import type { ListingCard as Card } from '@/lib/types';
 import { c } from '@/lib/theme';
 
@@ -9,7 +10,15 @@ import { c } from '@/lib/theme';
  * Карточка сетки: главная, избранное, «похожие рядом».
  * compact — вариант без бейджей и видео-метки (оценка и избранное).
  */
-export function ListingCard({ item, compact = false }: { item: Card; compact?: boolean }) {
+export function ListingCard({
+  item,
+  dict,
+  compact = false,
+}: {
+  item: Card;
+  dict: Dictionary;
+  compact?: boolean;
+}) {
   return (
     <Link
       href={item.href}
@@ -23,7 +32,7 @@ export function ListingCard({ item, compact = false }: { item: Card; compact?: b
 
         {!compact && (
           <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none' }}>
-            {item.verified && <VerifiedBadge />}
+            {item.verified && <VerifiedBadge label={dict.common.verified} />}
             {item.badge && (
               <span style={{ background: c.coral, color: c.white, fontSize: 12, fontWeight: 600, padding: '5px 10px', borderRadius: 999 }}>
                 {item.badge}
@@ -32,7 +41,7 @@ export function ListingCard({ item, compact = false }: { item: Card; compact?: b
           </div>
         )}
 
-        <FavoriteButton listingId={item.id} />
+        <FavoriteButton listingId={item.id} dict={dict} />
 
         {!compact && item.videoTour && (
           <span
@@ -53,7 +62,7 @@ export function ListingCard({ item, compact = false }: { item: Card; compact?: b
             }}
           >
             <Play size={12} />
-            Видео-тур
+            {dict.common.videoTour}
           </span>
         )}
       </div>

@@ -4,22 +4,33 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { LeadForm, WHITE_ON_LILAC_THEME } from '@/components/forms/LeadForm';
 import { Check } from '@/components/ui/icons';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { localePath, type Locale } from '@/i18n/locales';
 import type { Plan } from '@/lib/types';
 import { c } from '@/lib/theme';
 
+/** Названия CRM — имена собственные, не переводятся. */
 const CRMS = ['Inmovilla', 'Witei', 'Mobilia', 'Idealista Tools', 'Resales Online', 'Kyero XML'];
-
-const FEATURES = [
-  { n: '01', t: 'Фид за 15 минут', d: 'Вставьте ссылку на XML-выгрузку вашей CRM. Объекты, цены и статусы обновляются автоматически.', bg: c.violetTint, fg: c.violet },
-  { n: '02', t: 'Только живые отклики', d: 'Покупатели пишут с профилем: бюджет, сроки, ипотека. Без анонимного спама.', bg: c.greenTint, fg: c.greenText },
-  { n: '03', t: 'Покупатели из 7 стран', d: 'Объявления переводятся на RU, EN, NL, DE, SV, PL и FR автоматически.', bg: c.coralTint, fg: c.coralDark },
-];
 
 const h2: React.CSSProperties = { margin: 0, fontSize: 'clamp(28px,3vw,38px)', letterSpacing: '-0.04em', fontWeight: 700 };
 
-export function ProScreen({ plans }: { plans: Plan[] }) {
+export function ProScreen({
+  dict,
+  locale,
+  plans,
+}: {
+  dict: Dictionary;
+  locale: Locale;
+  plans: Plan[];
+}) {
   const [selected, setSelected] = useState(plans.find((p) => p.tag)?.key ?? plans[0]?.key ?? 'pro');
   const planName = plans.find((p) => p.key === selected)?.name ?? '—';
+
+  const features = [
+    { n: '01', t: dict.pro.feature1Title, d: dict.pro.feature1Text, bg: c.violetTint, fg: c.violet },
+    { n: '02', t: dict.pro.feature2Title, d: dict.pro.feature2Text, bg: c.greenTint, fg: c.greenText },
+    { n: '03', t: dict.pro.feature3Title, d: dict.pro.feature3Text, bg: c.coralTint, fg: c.coralDark },
+  ];
 
   return (
     <main>
@@ -36,12 +47,12 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
           }}
         >
           <div style={{ padding: 'clamp(28px,5vw,64px)', display: 'flex', flexDirection: 'column', gap: 20, justifyContent: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: c.lilac }}>Casaya Pro</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: c.lilac }}>{dict.pro.brand}</span>
             <h1 style={{ margin: 0, fontSize: 'clamp(36px,4.6vw,58px)', lineHeight: 1.02, letterSpacing: '-0.045em', fontWeight: 700, textWrap: 'balance' }}>
-              Больше покупателей из-за рубежа. Базовое размещение бесплатно.
+              {dict.pro.title}
             </h1>
             <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: '#B5AECB', maxWidth: 480 }}>
-              Подключите XML-фид вашей CRM за 15 минут. Объекты обновляются автоматически, отклики приходят с профилями покупателей.
+              {dict.pro.lead}
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
               <a
@@ -49,14 +60,14 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
                 className="h-violet-light"
                 style={{ border: 0, background: c.violet, color: c.white, font: 'inherit', fontSize: 15, fontWeight: 600, padding: '14px 22px', borderRadius: 14, cursor: 'pointer' }}
               >
-                Подключить агентство
+                {dict.pro.connect}
               </a>
               <Link
-                href="/pro/cabinet"
+                href={localePath(locale, 'pro/cabinet')}
                 className="h-ink"
                 style={{ border: '1px solid #3A3158', background: 'transparent', color: c.white, font: 'inherit', fontSize: 15, fontWeight: 500, padding: '14px 22px', borderRadius: 14, cursor: 'pointer' }}
               >
-                Кабинет агентства
+                {dict.pro.cabinet}
               </Link>
             </div>
           </div>
@@ -67,7 +78,7 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
       </section>
 
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '48px 32px 0', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <span style={{ fontSize: 14, color: c.grey }}>Работаем с CRM</span>
+        <span style={{ fontSize: 14, color: c.grey }}>{dict.pro.crmLabel}</span>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {CRMS.map((crm) => (
             <span key={crm} style={{ border: `1px solid ${c.lineStrong}`, borderRadius: 14, padding: '12px 18px', fontSize: 16, fontWeight: 600, color: c.ink }}>
@@ -79,7 +90,7 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
 
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '80px 32px 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 14 }}>
-          {FEATURES.map((f) => (
+          {features.map((f) => (
             <div key={f.n} style={{ background: f.bg, borderRadius: 24, padding: 28, display: 'flex', flexDirection: 'column', gap: 40, minHeight: 220 }}>
               <span className="mono" style={{ fontSize: 14, color: f.fg }}>
                 {f.n}
@@ -94,7 +105,7 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
       </section>
 
       <section id="tariffs" style={{ maxWidth: 1360, margin: '0 auto', padding: '80px 32px 0', scrollMarginTop: 92 }}>
-        <h2 style={h2}>Тарифы</h2>
+        <h2 style={h2}>{dict.pro.tariffsTitle}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(290px,1fr))', gap: 14, marginTop: 24 }}>
           {plans.map((p) => {
             const active = p.key === selected;
@@ -172,9 +183,9 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
           }}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <h2 style={{ ...h2, fontSize: 'clamp(28px,3.4vw,40px)', lineHeight: 1.08 }}>Подключить агентство</h2>
+            <h2 style={{ ...h2, fontSize: 'clamp(28px,3.4vw,40px)', lineHeight: 1.08 }}>{dict.pro.formTitle}</h2>
             <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: c.inkSoft }}>
-              Выбранный тариф: <strong style={{ color: c.ink }}>{planName}</strong>. Менеджер проверит фид и активирует аккаунт в течение дня.
+              {dict.pro.formTextPrefix} <strong style={{ color: c.ink }}>{planName}</strong>. {dict.pro.formTextSuffix}
             </p>
           </div>
 
@@ -183,14 +194,14 @@ export function ProScreen({ plans }: { plans: Plan[] }) {
             theme={WHITE_ON_LILAC_THEME}
             payload={{ planKey: selected }}
             fields={[
-              { name: 'name', placeholder: 'Название агентства' },
-              { name: 'email', placeholder: 'Email', type: 'email' },
-              { name: 'phone', placeholder: 'Телефон', type: 'tel' },
-              { name: 'feedUrl', placeholder: 'Ссылка на XML-фид (необязательно)' },
+              { name: 'name', placeholder: dict.pro.fieldAgency },
+              { name: 'email', placeholder: dict.pro.fieldEmail, type: 'email' },
+              { name: 'phone', placeholder: dict.pro.fieldPhone, type: 'tel' },
+              { name: 'feedUrl', placeholder: dict.pro.fieldFeed },
             ]}
-            submitLabel="Отправить заявку"
-            doneTitle="Заявка принята"
-            doneText="Инструкция по подключению фида отправлена на вашу почту."
+            submitLabel={dict.pro.submit}
+            doneTitle={dict.pro.doneTitle}
+            doneText={dict.pro.doneText}
           />
         </div>
       </section>

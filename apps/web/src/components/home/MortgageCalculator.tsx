@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { Segmented } from '@/components/ui/Segmented';
-import { fmt } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { money } from '@/i18n/format';
+import { localePath, type Locale } from '@/i18n/locales';
 import { c } from '@/lib/theme';
 
 /** Базовая ставка партнёрских банков — та же, что в API. */
@@ -50,23 +52,32 @@ function Slider({
  * Калькулятор ипотеки. Два вида: блок на главной (с зелёной панелью результата)
  * и карточка в шапке страницы «Ипотека».
  */
-export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
+export function MortgageCalculator({
+  variant,
+  dict,
+  locale,
+}: {
+  variant: 'home' | 'page';
+  dict: Dictionary;
+  locale: Locale;
+}) {
   const [price, setPrice] = useState(300000);
   const [down, setDown] = useState(30);
   const [term, setTerm] = useState(25);
 
   const { loan, monthly } = useMemo(() => monthlyPayment(price, down, term), [price, down, term]);
+  const fmt = (value: number) => money(value, locale);
 
   const sliders = (
     <>
-      <Slider label="Стоимость объекта" valueLabel={fmt(price)} min={80000} max={1500000} step={5000} value={price} onChange={setPrice} />
-      <Slider label="Первый взнос" valueLabel={`${down}% · ${fmt((price * down) / 100)}`} min={30} max={70} step={5} value={down} onChange={setDown} />
+      <Slider label={dict.mortgageBlock.propertyPrice} valueLabel={fmt(price)} min={80000} max={1500000} step={5000} value={price} onChange={setPrice} />
+      <Slider label={dict.mortgageBlock.downPayment} valueLabel={`${down}% · ${fmt((price * down) / 100)}`} min={30} max={70} step={5} value={down} onChange={setDown} />
     </>
   );
 
   const termPicker = (
     <Segmented
-      options={TERMS.map((t) => ({ key: t, label: `${t} лет` }))}
+      options={TERMS.map((t) => ({ key: t, label: `${t} ${dict.mortgageBlock.years}` }))}
       value={term}
       onChange={setTerm}
       columns={4}
@@ -102,13 +113,13 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
           }}
         >
           <div>
-            <div style={{ fontSize: 14, color: c.greenMid }}>Платёж в месяц</div>
+            <div style={{ fontSize: 14, color: c.greenMid }}>{dict.mortgage.monthlyPayment}</div>
             <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.04em', color: c.greenDark, fontVariantNumeric: 'tabular-nums' }}>
               {fmt(monthly)}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 13, color: c.greenMid }}>Кредит</div>
+            <div style={{ fontSize: 13, color: c.greenMid }}>{dict.mortgageBlock.loan}</div>
             <div style={{ fontSize: 17, fontWeight: 600, color: c.greenDark, fontVariantNumeric: 'tabular-nums' }}>{fmt(loan)}</div>
           </div>
         </div>
@@ -136,14 +147,14 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
         }}
       >
         <div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: c.violet }}>Casaya Hipotecas</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: c.violet }}>{dict.mortgageBlock.brand}</span>
           <h2 style={{ margin: '10px 0 0', fontSize: 'clamp(28px,3vw,38px)', lineHeight: 1.1, letterSpacing: '-0.04em', fontWeight: 700 }}>
-            Ипотека для нерезидентов
+            {dict.mortgageBlock.title}
           </h2>
         </div>
         {sliders}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <span style={{ fontSize: 14, color: c.muted }}>Срок</span>
+          <span style={{ fontSize: 14, color: c.muted }}>{dict.mortgageBlock.term}</span>
           {termPicker}
         </div>
       </div>
@@ -160,7 +171,7 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span style={{ fontSize: 15, color: c.greenMid }}>Ежемесячный платёж</span>
+          <span style={{ fontSize: 15, color: c.greenMid }}>{dict.mortgageBlock.monthly}</span>
           <span style={{ fontSize: 'clamp(44px,5vw,64px)', fontWeight: 700, letterSpacing: '-0.045em', color: c.greenDark, fontVariantNumeric: 'tabular-nums' }}>
             {fmt(monthly)}
           </span>
@@ -176,9 +187,9 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
           }}
         >
           {[
-            ['Кредит', fmt(loan)],
-            ['Ставка', 'от 3,2%'],
-            ['Банков', '14'],
+            [dict.mortgageBlock.loan, fmt(loan)],
+            [dict.mortgageBlock.rate, dict.mortgageBlock.rateValue],
+            [dict.mortgageBlock.banks, dict.mortgageBlock.banksValue],
           ].map(([k, v]) => (
             <div key={k}>
               <div style={{ fontSize: 13, color: c.greenMid }}>{k}</div>
@@ -188,7 +199,7 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
         </div>
 
         <Link
-          href="/mortgage"
+          href={localePath(locale, 'mortgage')}
           className="h-green-dark"
           style={{
             border: 0,
@@ -203,7 +214,7 @@ export function MortgageCalculator({ variant }: { variant: 'home' | 'page' }) {
             textAlign: 'center',
           }}
         >
-          Получить предварительное одобрение
+          {dict.mortgageBlock.cta}
         </Link>
       </div>
     </div>

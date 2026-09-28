@@ -7,31 +7,21 @@ import { MortgageCalculator } from '@/components/home/MortgageCalculator';
 import { ListingCard } from '@/components/listing/ListingCard';
 import { Pills } from '@/components/ui/Segmented';
 import { PathIcon } from '@/components/ui/icons';
-import { groupDigits, toCard } from '@/lib/format';
+import type { Dictionary } from '@/i18n/getDictionary';
+import { groupDigits } from '@/i18n/format';
+import { localePath, type Locale } from '@/i18n/locales';
+import { toCard } from '@/lib/format';
 import type { City, Listing, ListingFilter, Mode, ServiceOffer } from '@/lib/types';
 import { c } from '@/lib/theme';
 
-const CATEGORIES = [
-  { href: '/search?mode=buy&filter=flat', t: 'Квартиры', n: '6 214 объектов', bg: c.violetTint, fg: c.violet, icon: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M8 7h4M8 11h4M8 15h4M2 21h20' },
-  { href: '/search?mode=buy&filter=house', t: 'Дома и виллы', n: '3 480 объектов', bg: c.coralTint, fg: c.coralDark, icon: 'M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5' },
-  { href: '/new', t: 'Новостройки', n: '412 проектов', bg: c.greenTint, fg: c.greenText, icon: 'M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4' },
-  { href: '/search?mode=rent&filter=all', t: 'Аренда', n: '2 140 объектов', bg: c.blueTint, fg: c.blue, icon: 'M15 7a4 4 0 1 1-3.9 4.9L4 19v2h3v-2h2v-2h2l1.1-1.1A4 4 0 0 1 15 7Z' },
-  { href: '/search?mode=buy&filter=sea', t: 'С видом на море', n: '1 906 объектов', bg: c.cyanTint, fg: c.cyan, icon: 'M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M2 20c2 0 2-1.5 4-1.5S8 20 10 20s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M12 3v8M8 7l4-4 4 4' },
-  { href: '/search?filter=all', t: 'Коммерческая', n: '738 объектов', bg: c.amberTint, fg: c.amber, icon: 'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6' },
-];
-
-const FILTERS: { key: ListingFilter; label: string }[] = [
-  { key: 'all', label: 'Все' },
-  { key: 'flat', label: 'Квартиры' },
-  { key: 'house', label: 'Дома' },
-  { key: 'sea', label: 'У моря' },
-];
-
-const CHECKS = [
-  { n: '01', t: 'Видео-тур по чек-листу', d: 'Комнаты, вид из окна, подъезд и двор сняты по единому сценарию.' },
-  { n: '02', t: 'Nota simple из Registro de la Propiedad', d: 'Право собственности и обременения по официальной выписке реестра.' },
-  { n: '03', t: 'Подтверждённая личность', d: 'Владелец или агент проходит верификацию документов.' },
-];
+const CATEGORY_ICONS = {
+  flats: 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M8 7h4M8 11h4M8 15h4M2 21h20',
+  houses: 'M3 11.5 12 4l9 7.5M5.5 10v10h13V10M10 20v-5h4v5',
+  newBuild: 'M3 21h18M6 21V8l6-4 6 4v13M10 12h4M10 16h4',
+  rent: 'M15 7a4 4 0 1 1-3.9 4.9L4 19v2h3v-2h2v-2h2l1.1-1.1A4 4 0 0 1 15 7Z',
+  sea: 'M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M2 20c2 0 2-1.5 4-1.5S8 20 10 20s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5M12 3v8M8 7l4-4 4 4',
+  commercial: 'M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9h18M9 20v-6h6v6',
+};
 
 const h2: React.CSSProperties = {
   margin: 0,
@@ -44,10 +34,14 @@ const h2: React.CSSProperties = {
 const sectionStyle: React.CSSProperties = { maxWidth: 1360, margin: '0 auto', padding: '96px 32px 0' };
 
 export function HomeScreen({
+  dict,
+  locale,
   listings,
   cities,
   services,
 }: {
+  dict: Dictionary;
+  locale: Locale;
   listings: Listing[];
   cities: City[];
   services: ServiceOffer[];
@@ -55,22 +49,46 @@ export function HomeScreen({
   const [mode, setMode] = useState<Mode>('buy');
   const [filter, setFilter] = useState<ListingFilter>('all');
 
+  const href = (path: string) => localePath(locale, path);
+
+  const categories = [
+    { href: href('search?mode=buy&filter=flat'), t: dict.home.catFlats, n: dict.home.catFlatsCount, bg: c.violetTint, fg: c.violet, icon: CATEGORY_ICONS.flats },
+    { href: href('search?mode=buy&filter=house'), t: dict.home.catHouses, n: dict.home.catHousesCount, bg: c.coralTint, fg: c.coralDark, icon: CATEGORY_ICONS.houses },
+    { href: href('new'), t: dict.home.catNew, n: dict.home.catNewCount, bg: c.greenTint, fg: c.greenText, icon: CATEGORY_ICONS.newBuild },
+    { href: href('search?mode=rent&filter=all'), t: dict.home.catRent, n: dict.home.catRentCount, bg: c.blueTint, fg: c.blue, icon: CATEGORY_ICONS.rent },
+    { href: href('search?mode=buy&filter=sea'), t: dict.home.catSea, n: dict.home.catSeaCount, bg: c.cyanTint, fg: c.cyan, icon: CATEGORY_ICONS.sea },
+    { href: href('search?filter=all'), t: dict.home.catCommercial, n: dict.home.catCommercialCount, bg: c.amberTint, fg: c.amber, icon: CATEGORY_ICONS.commercial },
+  ];
+
+  const filters: { key: ListingFilter; label: string }[] = [
+    { key: 'all', label: dict.home.filterAll },
+    { key: 'flat', label: dict.home.filterFlats },
+    { key: 'house', label: dict.home.filterHouses },
+    { key: 'sea', label: dict.home.filterSea },
+  ];
+
+  const checks = [
+    { n: '01', t: dict.home.check1Title, d: dict.home.check1Text },
+    { n: '02', t: dict.home.check2Title, d: dict.home.check2Text },
+    { n: '03', t: dict.home.check3Title, d: dict.home.check3Text },
+  ];
+
   const cards = useMemo(() => {
     const matched = listings.filter((l) => {
       if (filter === 'all') return true;
       if (filter === 'sea') return l.seaView;
       return l.kind === (filter === 'flat' ? 'FLAT' : 'HOUSE');
     });
-    return matched.map((l) => toCard(l, mode));
-  }, [listings, filter, mode]);
+    return matched.map((l) => toCard(l, mode, locale, dict));
+  }, [listings, filter, mode, locale, dict]);
 
   return (
     <main>
-      <HeroSearch mode={mode} onMode={setMode} />
+      <HeroSearch dict={dict} locale={locale} mode={mode} onMode={setMode} />
 
       <section style={{ maxWidth: 1360, margin: '0 auto', padding: '24px 32px 0' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <Link
               key={cat.t}
               href={cat.href}
@@ -105,19 +123,19 @@ export function HomeScreen({
 
       <section style={sectionStyle}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
-          <h2 style={h2}>Свежие проверенные объекты</h2>
-          <Pills options={FILTERS} value={filter} onChange={setFilter} />
+          <h2 style={h2}>{dict.home.freshTitle}</h2>
+          <Pills options={filters} value={filter} onChange={setFilter} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(290px,1fr))', gap: '32px 20px', marginTop: 32 }}>
           {cards.map((item) => (
-            <ListingCard key={item.id} item={item} />
+            <ListingCard key={item.id} item={item} dict={dict} />
           ))}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
           <Link
-            href={`/search?mode=${mode === 'rent' ? 'rent' : 'buy'}`}
+            href={href(`search?mode=${mode === 'rent' ? 'rent' : 'buy'}`)}
             className="h-soft"
             style={{
               border: `1px solid ${c.lineStrong}`,
@@ -131,18 +149,18 @@ export function HomeScreen({
               cursor: 'pointer',
             }}
           >
-            Показать все объекты
+            {dict.common.showAll}
           </Link>
         </div>
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={h2}>Популярные направления</h2>
+        <h2 style={h2}>{dict.home.citiesTitle}</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, marginTop: 32 }}>
           {cities.map((city) => (
             <Link
               key={city.id}
-              href={`/search?q=${encodeURIComponent(city.name)}`}
+              href={href(`search?q=${encodeURIComponent(city.name)}`)}
               style={{
                 border: 0,
                 padding: 0,
@@ -174,7 +192,7 @@ export function HomeScreen({
               >
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.03em' }}>{city.name}</span>
-                  <span style={{ fontSize: 14, opacity: 0.86 }}>{groupDigits(city.listingsCount)} объектов</span>
+                  <span style={{ fontSize: 14, opacity: 0.86 }}>{groupDigits(city.listingsCount, locale)} {dict.common.objects}</span>
                 </span>
                 <span
                   style={{
@@ -188,7 +206,7 @@ export function HomeScreen({
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {groupDigits(city.pricePerM2)} €/м²
+                  {groupDigits(city.pricePerM2, locale)} {dict.common.perSqm}
                 </span>
               </span>
             </Link>
@@ -210,16 +228,16 @@ export function HomeScreen({
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: c.lilacText }}>Casaya Verify</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: c.lilacText }}>{dict.home.verifyBrand}</span>
               <h2 style={{ ...h2, fontSize: 'clamp(32px,4vw,52px)', lineHeight: 1.02, letterSpacing: '-0.045em', textWrap: 'balance' }}>
-                Solo pisos reales. Каждый объект проверен.
+                {dict.home.verifyTitle}
               </h2>
               <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: c.lilacBody, maxWidth: 460 }}>
-                Бейдж Verificado получает объект, прошедший три проверки. Неактуальные объявления снимаются автоматически.
+                {dict.home.verifyText}
               </p>
             </div>
             <Link
-              href="/services"
+              href={href('services')}
               className="h-lilac"
               style={{
                 alignSelf: 'flex-start',
@@ -234,12 +252,12 @@ export function HomeScreen({
                 cursor: 'pointer',
               }}
             >
-              Как мы проверяем
+              {dict.home.verifyCta}
             </Link>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {CHECKS.map((ch) => (
+            {checks.map((ch) => (
               <div
                 key={ch.n}
                 style={{
@@ -269,14 +287,14 @@ export function HomeScreen({
       </section>
 
       <section style={sectionStyle}>
-        <MortgageCalculator variant="home" />
+        <MortgageCalculator variant="home" dict={dict} locale={locale} />
       </section>
 
       <section style={sectionStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexWrap: 'wrap' }}>
-          <h2 style={{ ...h2, maxWidth: 640 }}>Сделка под ключ для покупателей из-за рубежа</h2>
-          <Link href="/services" style={{ border: 0, background: 'transparent', font: 'inherit', fontSize: 15, fontWeight: 600, color: c.violet, cursor: 'pointer', padding: 0 }}>
-            Все сервисы
+          <h2 style={{ ...h2, maxWidth: 640 }}>{dict.home.servicesTitle}</h2>
+          <Link href={href('services')} style={{ border: 0, background: 'transparent', font: 'inherit', fontSize: 15, fontWeight: 600, color: c.violet, cursor: 'pointer', padding: 0 }}>
+            {dict.common.allServices}
           </Link>
         </div>
 
@@ -284,7 +302,7 @@ export function HomeScreen({
           {services.map((s) => (
             <Link
               key={s.id}
-              href="/services"
+              href={href('services')}
               className="h-lift"
               style={{
                 background: s.bg,
@@ -324,27 +342,27 @@ export function HomeScreen({
           }}
         >
           <div style={{ padding: 'clamp(28px,5vw,64px)', display: 'flex', flexDirection: 'column', gap: 20, justifyContent: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: c.lilac }}>Casaya Pro · для агентств</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: c.lilac }}>{dict.home.proBrand}</span>
             <h2 style={{ ...h2, fontSize: 'clamp(30px,3.6vw,46px)', lineHeight: 1.05 }}>
-              Подключите CRM-фид за 15 минут. Бесплатно 12 месяцев.
+              {dict.home.proTitle}
             </h2>
             <p style={{ margin: 0, fontSize: 16, lineHeight: 1.6, color: '#B5AECB', maxWidth: 460 }}>
-              Inmovilla, Witei, Mobilia и другие CRM. Отклики только от покупателей с верифицированным профилем.
+              {dict.home.proText}
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
               <Link
-                href="/pro"
+                href={href('pro')}
                 className="h-violet-light"
                 style={{ border: 0, background: c.violet, color: c.white, font: 'inherit', fontSize: 15, fontWeight: 600, padding: '14px 22px', borderRadius: 14, cursor: 'pointer' }}
               >
-                Подключить агентство
+                {dict.home.proCta}
               </Link>
               <Link
-                href="/pro#tariffs"
+                href={`${href('pro')}#tariffs`}
                 className="h-ink"
                 style={{ border: '1px solid #3A3158', background: 'transparent', color: c.white, font: 'inherit', fontSize: 15, fontWeight: 500, padding: '14px 22px', borderRadius: 14, cursor: 'pointer' }}
               >
-                Тарифы
+                {dict.home.proTariffs}
               </Link>
             </div>
           </div>
