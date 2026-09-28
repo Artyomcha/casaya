@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ListingScreen } from '@/components/listing/ListingScreen';
 import { getDictionary } from '@/i18n/getDictionary';
 import { isLocale, LOCALES, LOCALE_TAGS } from '@/i18n/locales';
-import { api } from '@/lib/api';
+import { api, safe } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,5 +50,20 @@ export default async function Page({
   const [dict, listing] = await Promise.all([getDictionary(locale), load(slug)]);
   if (!listing) notFound();
 
-  return <ListingScreen dict={dict} locale={locale} listing={listing} />;
+  // Предложения других агентств и рекомендации рядом — оба блока не критичны,
+  // страница обязана открыться даже если они не пришли.
+  const [offers, nearby] = await Promise.all([
+    listing.propertyId ? safe(api.offers(listing.propertyId), null) : Promise.resolve(null),
+    safe(api.similar(slug), []),
+  ]);
+
+  return (
+    <ListingScreen
+      dict={dict}
+      locale={locale}
+      listing={listing}
+      offers={offers}
+      nearby={nearby}
+    />
+  );
 }

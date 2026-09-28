@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { AgencyFeed, FeedRunStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { PropertiesService } from '../properties/properties.service';
 import { FeedFetcherService } from './feed-fetcher.service';
 import { NormalizedListing } from './normalized';
 
@@ -19,6 +20,7 @@ export class FeedImportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fetcher: FeedFetcherService,
+    private readonly properties: PropertiesService,
   ) {}
 
   /**
@@ -87,6 +89,7 @@ export class FeedImportService {
   private async upsertAll(feed: AgencyFeed, items: NormalizedListing[]) {
     let created = 0;
     let updated = 0;
+    let duplicates = 0;
 
     for (const item of items) {
       const hash = createHash('sha1').update(JSON.stringify(item.raw)).digest('hex');
@@ -105,7 +108,21 @@ export class FeedImportService {
         continue;
       }
 
-      const data = this.toListingData(feed, item, hash);
+      // Каждое объявление привязывается к реальному объекту. Если объект уже
+      // есть — значит, его продаёт ещё одно агентство, и это дубль.
+      const match = await this.properties.findOrCreate({
+        address: item.address,
+        city: item.city || 'Alicante',
+        lat: item.lat,
+        lng: item.lng,
+        kind: item.kind,
+        area: item.area,
+        bedrooms: item.bedrooms,
+        bathrooms: item.bathrooms,
+      });
+      if (match.matched) duplicates += 1;
+
+      const data = { ...this.toListingData(feed, item, hash), propertyId: match.property.id };
 
       if (existing) {
         await this.prisma.listing.update({ where: { id: existing.id }, data });
@@ -122,7 +139,11 @@ export class FeedImportService {
       }
     }
 
-    return { created, updated };
+    if (duplicates) {
+      this.logger.log(`Фид ${feed.id}: ${duplicates} объявлений склеены с уже известными объектами`);
+    }
+
+    return { created, updated, duplicates };
   }
 
   private toListingData(feed: AgencyFeed, item: NormalizedListing, hash: string) {

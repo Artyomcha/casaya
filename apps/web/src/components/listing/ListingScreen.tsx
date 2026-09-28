@@ -3,13 +3,15 @@
 import Link from 'next/link';
 import { useApp } from '@/components/providers/AppProviders';
 import { monthlyPayment } from '@/components/home/MortgageCalculator';
+import { NearbyListings } from '@/components/listing/NearbyListings';
+import { OffersCompare } from '@/components/listing/OffersCompare';
 import { PropertyMap } from '@/components/map/PropertyMap';
 import { Check, Heart, MapPinIcon, Shield } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { money } from '@/i18n/format';
 import { LOCALE_TAGS, localePath, type Locale } from '@/i18n/locales';
 import { toCard } from '@/lib/format';
-import type { Listing } from '@/lib/types';
+import type { Listing, PropertyOffers, SimilarListing } from '@/lib/types';
 import { c } from '@/lib/theme';
 
 const h2: React.CSSProperties = { margin: 0, fontSize: 24, letterSpacing: '-0.03em', fontWeight: 700 };
@@ -24,10 +26,14 @@ export function ListingScreen({
   dict,
   locale,
   listing,
+  offers,
+  nearby,
 }: {
   dict: Dictionary;
   locale: Locale;
   listing: Listing;
+  offers: PropertyOffers | null;
+  nearby: SimilarListing[];
 }) {
   const { isFavorite, toggleFavorite, openLogin } = useApp();
   const item = toCard(listing, 'buy', locale, dict);
@@ -198,6 +204,10 @@ export function ListingScreen({
                 ))}
               </div>
             </div>
+          )}
+
+          {offers && (
+            <OffersCompare data={offers} dict={dict} locale={locale} currentListingId={listing.id} />
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

@@ -11,15 +11,23 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { FeedsModule } from './feeds/feeds.module';
 import { AgencyModule } from './agency/agency.module';
+import { PropertiesModule } from './properties/properties.module';
+import { RankingModule } from './ranking/ranking.module';
+import { PromotionsModule } from './promotions/promotions.module';
+import { CrmModule } from './crm/crm.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    PropertiesModule,
+    RankingModule,
     CatalogModule,
     AgencyModule,
     FeedsModule,
+    PromotionsModule,
+    CrmModule,
     LeadsModule,
     ValuationModule,
     MortgageModule,

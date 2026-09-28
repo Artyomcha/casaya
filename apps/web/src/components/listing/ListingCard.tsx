@@ -31,8 +31,22 @@ export function ListingCard({
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
 
         {!compact && (
-          <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none', flexWrap: 'wrap' }}>
             {item.verified && <VerifiedBadge label={dict.common.verified} />}
+            {item.offersCount > 1 && (
+              <span
+                style={{
+                  background: c.ink,
+                  color: c.white,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  padding: '5px 10px',
+                  borderRadius: 999,
+                }}
+              >
+                {dict.common.offers.replace('{n}', String(item.offersCount))}
+              </span>
+            )}
             {item.badge && (
               <span style={{ background: c.coral, color: c.white, fontSize: 12, fontWeight: 600, padding: '5px 10px', borderRadius: 999 }}>
                 {item.badge}

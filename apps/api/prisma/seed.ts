@@ -1,4 +1,4 @@
-import { PrismaClient, PropertyKind, ServiceScope } from '@prisma/client';
+import { PrismaClient, Placement, PromotionTier, PropertyKind, ServiceScope } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -90,10 +90,42 @@ const CITIES = [
   { slug: 'torrevieja', name: 'Торревьеха', listingsCount: 3044, pricePerM2: 1940, image: img(15172873), sort: 2 },
 ];
 
+/**
+ * Одну и ту же квартиру продают несколько агентств — это норма рынка.
+ * Здесь заведены такие дубли, чтобы схлопывание было видно на витрине.
+ */
+const DUPLICATE_OFFERS: {
+  of: string;
+  agencyId: string;
+  externalId: string;
+  /** Насколько цена отличается от первого предложения. */
+  priceDelta: number;
+  title: string;
+}[] = [
+  { of: 'l3', agencyId: 'ag-costa-living', externalId: 'CL-8841', priceDelta: 6000, title: 'Апартаменты у моря, Сан-Хуан' },
+  { of: 'l3', agencyId: 'ag-casa-norte', externalId: 'CN-2210', priceDelta: -4000, title: 'Квартира с террасой, Playa de San Juan' },
+  { of: 'l5', agencyId: 'ag-mediterra', externalId: 'MH-5517', priceDelta: 3000, title: 'Светлая квартира, центр Аликанте' },
+  { of: 'l1', agencyId: 'ag-sol', externalId: 'SI-7702', priceDelta: 15000, title: 'Вилла в Altea Hills с бассейном' },
+];
+
+const PIPELINE_SEED: { status: 'NEW' | 'CONTACTED' | 'VIEWING' | 'NEGOTIATION' | 'WON' | 'LOST'; name: string; budget: number; listing: string }[] = [
+  { status: 'NEW', name: 'Jan de Vries', budget: 320000, listing: 'l3' },
+  { status: 'NEW', name: 'Anna Schmidt', budget: 500000, listing: 'l1' },
+  { status: 'CONTACTED', name: 'Pieter Bakker', budget: 280000, listing: 'l5' },
+  { status: 'VIEWING', name: 'Erik Lindqvist', budget: 350000, listing: 'l4' },
+  { status: 'NEGOTIATION', name: 'Marek Nowak', budget: 300000, listing: 'l6' },
+  { status: 'WON', name: 'Sophie Dubois', budget: 485000, listing: 'l1' },
+  { status: 'LOST', name: 'Tom Wilson', budget: 180000, listing: 'l8' },
+];
+
 async function main() {
+  await prisma.leadNote.deleteMany();
+  await prisma.listingStat.deleteMany();
+  await prisma.promotion.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.lead.deleteMany();
   await prisma.listing.deleteMany();
+  await prisma.property.deleteMany();
   await prisma.project.deleteMany();
   await prisma.agency.deleteMany();
   await prisma.plan.deleteMany();
@@ -153,10 +185,141 @@ async function main() {
     });
   }
 
+  // --- Объекты: у каждого объявления появляется реальный объект недвижимости.
+  for (const l of LISTINGS) {
+    const property = await prisma.property.create({
+      data: {
+        slug: l.slug,
+        address: l.addr,
+        city: 'Alicante',
+        lat: l.lat,
+        lng: l.lng,
+        kind: l.kind,
+        area: l.m2,
+        bedrooms: l.bd,
+        bathrooms: l.ba,
+        seaView: l.sea,
+        yearBuilt: HOUSE_KINDS.includes(l.kind) ? 2019 : 2008,
+        matchKey: ['alicante', l.kind, Math.round(l.m2 / 10), l.bd].join('|'),
+      },
+    });
+    await prisma.listing.update({ where: { id: l.id }, data: { propertyId: property.id } });
+  }
+
+  // --- Дубли: те же объекты, но от других агентств и с другой ценой.
+  for (const [i, dup] of DUPLICATE_OFFERS.entries()) {
+    const origin = LISTINGS.find((l) => l.id === dup.of)!;
+    const base = await prisma.listing.findUniqueOrThrow({ where: { id: dup.of } });
+
+    await prisma.listing.create({
+      data: {
+        id: `${dup.of}-dup-${i + 1}`,
+        slug: `${origin.slug}-${dup.agencyId.replace('ag-', '')}`,
+        title: dup.title,
+        address: origin.addr,
+        kind: origin.kind,
+        price: origin.price + dup.priceDelta,
+        area: origin.m2,
+        bedrooms: origin.bd,
+        bathrooms: origin.ba,
+        seaView: origin.sea,
+        seaDistance: base.seaDistance,
+        yearBuilt: base.yearBuilt,
+        // Дубль из чужого фида бейджа не получает: проверку проходит объект,
+        // а не каждое предложение по нему.
+        verified: false,
+        description: base.description,
+        features: base.features,
+        coverImage: base.coverImage,
+        gallery: base.gallery,
+        lat: origin.lat,
+        lng: origin.lng,
+        agencyId: dup.agencyId,
+        externalId: dup.externalId,
+        source: 'FEED',
+        propertyId: base.propertyId,
+        publishedAt: new Date(Date.now() - (i + 1) * 5 * 3600_000),
+      },
+    });
+  }
+
+  // --- Продвижение: два объявления куплены, чтобы алгоритм было на чём проверить.
+  const promoted: [string, PromotionTier, number][] = [
+    ['l4', 'FEATURED', 1990],
+    ['l6', 'TOP_AREA', 3990],
+  ];
+  for (const [listingId, tier, cents] of promoted) {
+    await prisma.promotion.create({
+      data: {
+        listingId,
+        tier,
+        status: 'ACTIVE',
+        area: tier === 'TOP_AREA' ? 'Gran Vía' : null,
+        endsAt: new Date(Date.now() + 7 * 86_400_000),
+        priceCents: cents,
+      },
+    });
+  }
+
+  // --- Статистика показов за две недели: без неё в кабинете пусто.
+  const placements: Placement[] = ['SEARCH', 'MAP', 'RECOMMENDATION'];
+  for (const l of LISTINGS) {
+    for (let d = 0; d < 14; d += 1) {
+      const day = new Date();
+      day.setUTCHours(0, 0, 0, 0);
+      day.setUTCDate(day.getUTCDate() - d);
+
+      for (const placement of placements) {
+        const impressions = 20 + ((l.price / 1000 + d * 7 + placement.length) % 90 | 0);
+        await prisma.listingStat.create({
+          data: {
+            listingId: l.id,
+            day,
+            placement,
+            impressions,
+            clicks: Math.round(impressions * (0.04 + ((d % 5) * 0.01))),
+            leads: d % 6 === 0 ? 1 : 0,
+          },
+        });
+      }
+    }
+  }
+
+  // --- Воронка CRM.
+  for (const [i, lead] of PIPELINE_SEED.entries()) {
+    const created = await prisma.lead.create({
+      data: {
+        kind: 'LISTING_CONTACT',
+        status: lead.status,
+        name: lead.name,
+        email: `${lead.name.split(' ')[0].toLowerCase()}@example.com`,
+        phone: `+34 600 ${100 + i} ${200 + i}`,
+        budget: lead.budget,
+        needsMortgage: i % 3 === 0,
+        listingId: lead.listing,
+        agencyId: LISTINGS.find((l) => l.id === lead.listing)!.agencyId,
+        contactedAt: lead.status === 'NEW' ? null : new Date(Date.now() - (i + 1) * 86_400_000),
+        nextStepAt: ['CONTACTED', 'VIEWING', 'NEGOTIATION'].includes(lead.status)
+          ? new Date(Date.now() + (i - 1) * 86_400_000)
+          : null,
+        createdAt: new Date(Date.now() - (i + 1) * 2 * 86_400_000),
+      },
+    });
+
+    if (lead.status !== 'NEW') {
+      await prisma.leadNote.create({
+        data: { leadId: created.id, text: 'Созвонились, отправил подборку и расчёт ипотеки.' },
+      });
+    }
+  }
+
   const counts = {
+    properties: await prisma.property.count(),
     listings: await prisma.listing.count(),
     agencies: await prisma.agency.count(),
     projects: await prisma.project.count(),
+    promotions: await prisma.promotion.count(),
+    leads: await prisma.lead.count(),
   };
   console.log('seed ok', counts);
 }

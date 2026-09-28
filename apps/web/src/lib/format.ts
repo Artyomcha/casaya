@@ -49,6 +49,7 @@ export function toCard(l: Listing, mode: Mode, locale: Locale, dict: Dictionary)
     agentInitials: l.agency.initials || initialsOf(l.agency.name),
     dateLabel: dict.common.today,
     badge: mode === 'rent' ? null : l.badge,
+    offersCount: l.offersCount ?? 1,
   };
 }
 

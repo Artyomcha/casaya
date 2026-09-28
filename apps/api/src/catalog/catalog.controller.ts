@@ -12,6 +12,16 @@ export class CatalogController {
     return this.catalog.listings(query);
   }
 
+  @Get('listings/duplicate-stats')
+  duplicateStats() {
+    return this.catalog.duplicateStats();
+  }
+
+  @Get('properties/:id/offers')
+  offers(@Param('id') id: string) {
+    return this.catalog.offers(id);
+  }
+
   @Get('listings/map-pins')
   pins() {
     return this.catalog.mapPins();

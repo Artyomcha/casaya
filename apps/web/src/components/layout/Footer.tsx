@@ -24,6 +24,7 @@ export function Footer({ dict, locale }: { dict: Dictionary; locale: Locale }) {
       items: [
         ['Casaya Pro', href('pro')],
         [dict.footer.proCabinet, href('pro/cabinet')],
+        ['CRM', href('pro/crm')],
         [dict.footer.proTariffs, `${href('pro')}#tariffs`],
         [dict.footer.postListing, href('post')],
       ],

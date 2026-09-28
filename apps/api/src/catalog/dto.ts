@@ -59,6 +59,21 @@ export class ListingQueryDto {
   @IsBooleanString()
   verifiedOnly?: string;
 
+  /** Район — в нём действует купленный «Top района». */
+  @IsOptional()
+  @IsString()
+  area?: string;
+
+  /** Показать дубли как есть — режим для отладки и для кабинета агентства. */
+  @IsOptional()
+  @IsBooleanString()
+  showDuplicates?: string;
+
+  /** Вернуть разбор ранжирования по каждому объявлению. */
+  @IsOptional()
+  @IsBooleanString()
+  debug?: string;
+
   @IsOptional()
   @Type(() => Number)
   @IsInt()

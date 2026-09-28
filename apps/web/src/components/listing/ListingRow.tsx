@@ -35,11 +35,23 @@ export function ListingRow({
     >
       <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', aspectRatio: '4 / 3', background: c.violetTintSoft }}>
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        {item.verified && (
-          <span style={{ position: 'absolute', top: 10, left: 10 }}>
-            <VerifiedBadge compact label={dict.common.verified} />
-          </span>
-        )}
+        <span style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {item.verified && <VerifiedBadge compact label={dict.common.verified} />}
+          {item.offersCount > 1 && (
+            <span
+              style={{
+                background: c.ink,
+                color: c.white,
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '4px 9px',
+                borderRadius: 999,
+              }}
+            >
+              {dict.common.offers.replace('{n}', String(item.offersCount))}
+            </span>
+          )}
+        </span>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 6px 6px 0', minWidth: 0 }}>

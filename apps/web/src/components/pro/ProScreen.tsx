@@ -69,6 +69,13 @@ export function ProScreen({
               >
                 {dict.pro.cabinet}
               </Link>
+              <Link
+                href={localePath(locale, 'pro/crm')}
+                className="h-ink"
+                style={{ border: '1px solid #3A3158', background: 'transparent', color: c.white, font: 'inherit', fontSize: 15, fontWeight: 500, padding: '14px 22px', borderRadius: 14, cursor: 'pointer' }}
+              >
+                CRM
+              </Link>
             </div>
           </div>
           <div style={{ position: 'relative', minHeight: 420 }}>

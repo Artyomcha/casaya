@@ -1,4 +1,8 @@
 import type {
+  AnalyticsRow,
+  CrmLead,
+  PropertyOffers,
+  SimilarListing,
   AgencyDashboard,
   AgencyFeed,
   Bank,
@@ -53,7 +57,25 @@ export const api = {
     return request<{ items: Listing[]; total: number }>(`/listings${suffix ? `?${suffix}` : ''}`);
   },
   listing: (idOrSlug: string) => request<Listing>(`/listings/${idOrSlug}`),
-  similar: (idOrSlug: string) => request<Listing[]>(`/listings/${idOrSlug}/similar`),
+  similar: (idOrSlug: string) => request<SimilarListing[]>(`/listings/${idOrSlug}/similar`),
+  offers: (propertyId: string) => request<PropertyOffers>(`/properties/${propertyId}/offers`),
+  duplicateStats: () =>
+    request<{ properties: number; listings: number; duplicatedProperties: number; hiddenDuplicates: number; share: number }>(
+      '/listings/duplicate-stats',
+    ),
+  pipeline: (agencyId: string) =>
+    request<{ columns: { status: string; leads: CrmLead[] }[]; total: number; conversion: number; overdue: number }>(
+      `/crm/pipeline?agencyId=${agencyId}`,
+    ),
+  crmAnalytics: (agencyId: string) =>
+    request<{ totals: { impressions: number; clicks: number; leads: number; ctr: number }; rows: AnalyticsRow[] }>(
+      `/crm/analytics?agencyId=${agencyId}`,
+    ),
+  moveLead: (id: string, status: string) =>
+    request<CrmLead>(`/crm/leads/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  promotionTariffs: () => request<{ tier: string; cents: number; days: number; label: string }[]>('/promotions/tariffs'),
+  buyPromotion: (listingId: string, tier: string) =>
+    post<{ id: string; tier: string; endsAt: string }>('/promotions', { listingId, tier }),
   mapPins: () => request<MapPin[]>('/listings/map-pins'),
   projects: (year?: string) => request<Project[]>(`/projects${year && year !== 'all' ? `?year=${year}` : ''}`),
   cities: () => request<City[]>('/cities'),

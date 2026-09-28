@@ -36,6 +36,37 @@ export interface Listing {
   lng: number | null;
   videoTour: boolean;
   agency: Agency;
+  propertyId: string | null;
+  /** Сколько агентств продают этот же объект, включая текущее. */
+  offersCount?: number;
+  promotionTier?: PromotionTier;
+}
+
+export type PromotionTier = 'NONE' | 'BUMP' | 'FEATURED' | 'TOP_AREA';
+
+export interface Offer {
+  id: string;
+  slug: string;
+  title: string;
+  price: number;
+  verified: boolean;
+  agency: Agency;
+}
+
+export interface PropertyOffers {
+  property: { id: string; slug: string; address: string; area: number; bedrooms: number };
+  offers: Offer[];
+  count: number;
+  minPrice: number | null;
+  maxPrice: number | null;
+  /** Разброс цен между агентствами — то, чего на обычных порталах не видно. */
+  spread: number;
+}
+
+export interface SimilarListing extends Listing {
+  similarity: number;
+  distanceMeters: number | null;
+  promotionTier: PromotionTier;
 }
 
 export interface ListingCard extends Listing {
@@ -45,6 +76,7 @@ export interface ListingCard extends Listing {
   specs: string;
   agentInitials: string;
   dateLabel: string;
+  offersCount: number;
 }
 
 export interface MapPin {
@@ -184,4 +216,36 @@ export interface AgencyDashboard {
     listing: { id: string; slug: string; title: string } | null;
   }[];
   newLeads: number;
+}
+
+export interface CrmLead {
+  id: string;
+  status: string;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  budget: number | null;
+  needsMortgage: boolean | null;
+  contactedAt: string | null;
+  nextStepAt: string | null;
+  createdAt: string;
+  listing: { id: string; slug: string; title: string; address: string; price: number } | null;
+  assignee: { id: string; name: string | null } | null;
+  notes: { id: string; text: string; createdAt: string }[];
+}
+
+export interface AnalyticsRow {
+  id: string;
+  slug: string;
+  title: string;
+  address: string;
+  price: number;
+  verified: boolean;
+  coverImage: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  leads: number;
+  favorites: number;
+  promotion: { tier: PromotionTier; endsAt: string; area: string | null } | null;
 }

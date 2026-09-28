@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ServiceScope } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { PropertiesService } from '../properties/properties.service';
+import { RankingService } from '../ranking/ranking.service';
 import { ListingQueryDto } from './dto';
 
 /** Множитель месячной аренды от цены продажи — как в витрине портала. */
@@ -8,7 +10,11 @@ export const RENT_RATIO = 0.0045;
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ranking: RankingService,
+    private readonly properties: PropertiesService,
+  ) {}
 
   private readonly listingInclude = {
     agency: { select: { id: true, name: true, initials: true, brandColor: true, verified: true, replyTime: true } },
@@ -44,14 +50,75 @@ export class CatalogService {
       ];
     }
 
-    const items = await this.prisma.listing.findMany({
+    const found = await this.prisma.listing.findMany({
       where,
-      include: this.listingInclude,
+      include: { ...this.listingInclude, property: { select: { id: true, slug: true } } },
       orderBy: { publishedAt: 'desc' },
-      take: query.take ?? 48,
+      take: 300,
     });
 
-    return { items, total: items.length };
+    // Одну квартиру продают несколько агентств — в выдаче это одна карточка.
+    const deduped = query.showDuplicates === 'true' ? found : this.collapseDuplicates(found);
+
+    const { sorted, scores } = await this.ranking.rank(deduped, query.area);
+    const take = query.take ?? 48;
+    const page = sorted.slice(0, take);
+
+    const offerCounts = await this.offerCounts(page.map((l) => l.propertyId));
+
+    return {
+      items: page.map((l) => ({
+        ...l,
+        /// Сколько агентств продают этот же объект, включая текущее.
+        offersCount: l.propertyId ? (offerCounts.get(l.propertyId) ?? 1) : 1,
+        rank: query.debug === 'true' ? scores.get(l.id) : undefined,
+      })),
+      total: deduped.length,
+      /// Сколько карточек-дублей посетитель не увидел.
+      collapsed: found.length - deduped.length,
+    };
+  }
+
+  /**
+   * Из нескольких предложений по одному объекту оставляем одно.
+   * Побеждает проверенное, при равенстве — самое дешёвое: покупателю
+   * важнее цена, а агентству — что его объект вообще виден.
+   */
+  private collapseDuplicates<T extends { id: string; propertyId: string | null; price: number; verified: boolean }>(
+    listings: T[],
+  ): T[] {
+    const best = new Map<string, T>();
+    const singles: T[] = [];
+
+    for (const l of listings) {
+      if (!l.propertyId) {
+        singles.push(l);
+        continue;
+      }
+      const current = best.get(l.propertyId);
+      if (
+        !current ||
+        (l.verified && !current.verified) ||
+        (l.verified === current.verified && l.price < current.price)
+      ) {
+        best.set(l.propertyId, l);
+      }
+    }
+
+    return [...best.values(), ...singles];
+  }
+
+  private async offerCounts(propertyIds: (string | null)[]): Promise<Map<string, number>> {
+    const ids = propertyIds.filter((id): id is string => !!id);
+    if (!ids.length) return new Map();
+
+    const grouped = await this.prisma.listing.groupBy({
+      by: ['propertyId'],
+      where: { propertyId: { in: ids }, status: 'PUBLISHED' },
+      _count: { _all: true },
+    });
+
+    return new Map(grouped.map((g) => [g.propertyId!, g._count._all]));
   }
 
   async listing(idOrSlug: string) {
@@ -63,15 +130,30 @@ export class CatalogService {
     return listing;
   }
 
-  /** Похожие объекты рядом — блок на странице оценки и под объявлением. */
-  async similar(idOrSlug: string, take = 3) {
+  /**
+   * Похожие объекты рядом. Считает алгоритм похожести: расстояние, цена,
+   * площадь, комнаты. Другое предложение по тому же объекту сюда не попадёт.
+   */
+  async similar(idOrSlug: string, take = 6) {
     const base = await this.listing(idOrSlug);
-    return this.prisma.listing.findMany({
-      where: { id: { not: base.id }, status: 'PUBLISHED' },
-      include: this.listingInclude,
-      orderBy: { publishedAt: 'desc' },
-      take,
-    });
+    const scored = await this.ranking.similar(base.id, take);
+
+    return scored.map((s) => ({
+      ...s.listing,
+      similarity: Number(s.score.toFixed(3)),
+      distanceMeters: s.distance == null ? null : Math.round(s.distance),
+      promotionTier: s.promotionTier,
+    }));
+  }
+
+  /** Все предложения агентств по объекту — сравнение цен на карточке. */
+  offers(propertyId: string) {
+    return this.properties.offers(propertyId);
+  }
+
+  /** Сводка по схлопнутым дублям — витрина честности «solo pisos reales». */
+  duplicateStats() {
+    return this.properties.duplicateStats();
   }
 
   /** Пины на карте поиска — по всем объектам, без учёта фильтра, как в дизайне. */

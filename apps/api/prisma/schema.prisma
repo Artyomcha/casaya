@@ -29,10 +29,14 @@ enum LeadKind {
   LISTING_CONTACT
 }
 
+/// Стадии воронки в CRM. Порядок — порядок движения сделки.
 enum LeadStatus {
   NEW
-  IN_PROGRESS
-  DONE
+  CONTACTED
+  VIEWING
+  NEGOTIATION
+  WON
+  LOST
 }
 
 enum ServiceScope {
@@ -68,6 +72,34 @@ enum ListingSource {
   FEED
 }
 
+/// Уровень платного продвижения объявления.
+enum PromotionTier {
+  /// Обычная выдача.
+  NONE
+  /// Subida — разовый подъём наверх.
+  BUMP
+  /// Destacado — выделение цветом и вес в ранжировании.
+  FEATURED
+  /// Top района — закреплённые места в своём районе.
+  TOP_AREA
+}
+
+enum PromotionStatus {
+  SCHEDULED
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+/// Где показалось объявление — нужно, чтобы считать CTR по местам.
+enum Placement {
+  SEARCH
+  MAP
+  LISTING_CARD
+  RECOMMENDATION
+  HOME
+}
+
 enum ListingStatus {
   DRAFT
   MODERATION
@@ -90,6 +122,7 @@ model Agency {
   listings   Listing[]
   feeds      AgencyFeed[]
   members    AgencyMember[]
+  leads      Lead[]
   contactEmail String?
   contactPhone String?
   freeUntil  DateTime?
@@ -151,6 +184,73 @@ model AgencyMember {
   @@unique([agencyId, userId])
 }
 
+/// Реальный объект недвижимости.
+///
+/// Одну и ту же квартиру обычно продают 5–10 агентств сразу — на классических
+/// порталах это пять одинаковых карточек в выдаче. Мы схлопываем их в один
+/// Property, а предложения агентств держим как отдельные Listing.
+/// Оплаченное продвижение объявления на срок.
+model Promotion {
+  id         String          @id @default(cuid())
+  listingId  String
+  listing    Listing         @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  tier       PromotionTier
+  status     PromotionStatus @default(SCHEDULED)
+  /// Район, в котором куплен топ. Пусто — продвижение по всей выдаче.
+  area       String?
+  startsAt   DateTime        @default(now())
+  endsAt     DateTime
+  /// Сколько заплачено, в центах — деньги целыми числами.
+  priceCents Int             @default(0)
+  createdAt  DateTime        @default(now())
+
+  @@index([listingId, status])
+  @@index([status, endsAt])
+}
+
+/// Показы и клики по дням — из них считается CTR в кабинете.
+model ListingStat {
+  id          String    @id @default(cuid())
+  listingId   String
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  day         DateTime  @db.Date
+  placement   Placement
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  leads       Int       @default(0)
+
+  @@unique([listingId, day, placement])
+  @@index([listingId, day])
+}
+
+model Property {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  /// Referencia catastral — официальный идентификатор объекта в Испании.
+  /// Если он есть в обоих фидах, дубль определяется без всякой эвристики.
+  cadastralRef String?      @unique
+  address      String
+  city         String       @default("Alicante")
+  lat          Float?
+  lng          Float?
+  kind         PropertyKind
+  area         Int
+  bedrooms     Int
+  bathrooms    Int
+  /// Этаж различает соседние одинаковые квартиры в одном доме.
+  floor        Int?
+  seaView      Boolean      @default(false)
+  yearBuilt    Int?
+  /// Грубый ключ для отбора кандидатов: город, тип, площадь, спальни, сетка координат.
+  matchKey     String
+  listings     Listing[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([matchKey])
+  @@index([lat, lng])
+}
+
 model Listing {
   id            String       @id
   slug          String       @unique
@@ -187,17 +287,27 @@ model Listing {
   lastSeenAt    DateTime?
   feedId        String?
   feed          AgencyFeed?  @relation(fields: [feedId], references: [id], onDelete: SetNull)
+  /// Объект, к которому относится это предложение. Несколько Listing на один
+  /// Property — это и есть «дубль», только показанный честно.
+  propertyId    String?
+  property      Property?    @relation(fields: [propertyId], references: [id], onDelete: SetNull)
   agencyId      String
   agency        Agency       @relation(fields: [agencyId], references: [id])
+  /// Частное объявление: собственник вместо агентства.
+  ownerId       String?
+  owner         User?        @relation("ListingOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   projectId     String?
   project       Project?     @relation(fields: [projectId], references: [id])
   favorites     Favorite[]
   leads         Lead[]
+  promotions    Promotion[]
+  stats         ListingStat[]
   publishedAt   DateTime     @default(now())
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@unique([agencyId, externalId])
+  @@index([propertyId, price])
   @@index([kind, deal, price])
   @@index([seaView])
   @@index([lat, lng])
@@ -281,6 +391,10 @@ model User {
   favorites Favorite[]
   leads     Lead[]
   agencies  AgencyMember[]
+  assignedLeads Lead[]  @relation("LeadAssignee")
+  leadNotes LeadNote[]
+  /// Собственник-частник ведёт свои объявления без агентства.
+  ownedListings Listing[] @relation("ListingOwner")
   createdAt DateTime   @default(now())
 }
 
@@ -299,6 +413,19 @@ model Lead {
   id        String     @id @default(cuid())
   kind      LeadKind
   status    LeadStatus @default(NEW)
+  /// Агентство или собственник, которому адресован отклик.
+  agencyId  String?
+  agency    Agency?    @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  /// Кто ведёт отклик внутри агентства.
+  assigneeId String?
+  assignee   User?     @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  notes      LeadNote[]
+  /// Бюджет и сроки покупателя — их видно агентству вместо анонимного запроса.
+  budget     Int?
+  needsMortgage Boolean?
+  /// Когда с покупателем связались и когда запланирован следующий шаг.
+  contactedAt DateTime?
+  nextStepAt  DateTime?
   name      String?
   email     String?
   phone     String?
@@ -312,6 +439,20 @@ model Lead {
   createdAt DateTime   @default(now())
 
   @@index([kind, status])
+  @@index([agencyId, status])
+}
+
+/// Запись в истории отклика — вся переписка менеджера внутри CRM.
+model LeadNote {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([leadId, createdAt])
 }
 
 /// Сохранённый расчёт автоматической оценки.

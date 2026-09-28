@@ -4,6 +4,9 @@ import { api, safe } from '@/lib/api';
 
 const SITE = 'https://casaya.es';
 
+// Карта сайта тянет живой список объектов, поэтому строится на запрос.
+export const dynamic = 'force-dynamic';
+
 /** Статические разделы портала — у каждого своя версия на каждом языке. */
 const SECTIONS = ['', 'search', 'new', 'mortgage', 'services', 'value', 'pro', 'post'];
 
