@@ -54,6 +54,8 @@ const sv: Dictionary = {
     offersLead: 'Vi har slagit ihop dubbletterna till ett kort. Nedan varje erbjudande med sitt pris.',
     spread: 'Prisskillnad',
     cheapest: 'Billigast',
+    photoCredit: 'Foto: {agency}',
+    photosFrom: 'Bilder från {n} mäklare',
     nearbyTitle: 'Liknande bostäder i närheten',
     distanceAway: '{d} m bort',
     ad: 'Destacado',

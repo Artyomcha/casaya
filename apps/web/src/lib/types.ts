@@ -34,6 +34,8 @@ export interface Listing {
   features: string[];
   coverImage: string;
   gallery: string[];
+  /** Агентство, чьи снимки показаны в карточке. */
+  photoCredit?: string;
   lat: number | null;
   lng: number | null;
   videoTour: boolean;
@@ -59,7 +61,17 @@ export interface Offer {
   agency: Agency;
 }
 
+export interface PropertyMedia {
+  coverImage: string | null;
+  gallery: string[];
+  /** Агентство, чей набор признан лучшим. */
+  source: string | null;
+  /** Каждый кадр с указанием автора. */
+  credits: { url: string; agencyName: string }[];
+}
+
 export interface PropertyOffers {
+  media: PropertyMedia;
   property: { id: string; slug: string; address: string; area: number; bedrooms: number };
   offers: Offer[];
   count: number;

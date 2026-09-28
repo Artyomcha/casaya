@@ -53,7 +53,10 @@ export class CatalogService {
 
     const found = await this.prisma.listing.findMany({
       where,
-      include: { ...this.listingInclude, property: { select: { id: true, slug: true } } },
+      include: {
+        ...this.listingInclude,
+        property: { select: { id: true, slug: true, coverImage: true, photoSource: true } },
+      },
       orderBy: { publishedAt: 'desc' },
       take: 300,
     });
@@ -104,6 +107,11 @@ export class CatalogService {
         const promoted = promotedIds.has(l.id);
         return {
           ...l,
+          /// В оплаченной копии — фотографии самого агентства: это его показ.
+          /// В обычной карточке — лучший набор по объекту, чтобы слабая
+          /// съёмка одного агентства не топила объект для всех.
+          coverImage: promoted ? l.coverImage : (l.property?.coverImage ?? l.coverImage),
+          photoCredit: promoted ? l.agency.name : (l.property?.photoSource ?? l.agency.name),
           /// Оплаченный показ — витрина обязана пометить его как рекламу.
           promoted,
           /// Сколько агентств продают этот же объект.

@@ -56,6 +56,8 @@ const ru = {
     offersLead: 'Мы схлопнули дубли в одну карточку. Ниже — все предложения с ценами.',
     spread: 'Разброс цен',
     cheapest: 'Дешевле всех',
+    photoCredit: 'Фото: {agency}',
+    photosFrom: 'Снимки {n} агентств',
     nearbyTitle: 'Похожие объекты рядом',
     distanceAway: 'в {d} м',
     ad: 'Destacado',

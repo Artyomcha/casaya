@@ -54,6 +54,8 @@ const de: Dictionary = {
     offersLead: 'Wir haben die Doppelinserate zu einer Karte zusammengefasst. Unten jedes Angebot mit seinem Preis.',
     spread: 'Preisspanne',
     cheapest: 'Günstigstes',
+    photoCredit: 'Foto: {agency}',
+    photosFrom: 'Fotos von {n} Maklern',
     nearbyTitle: 'Ähnliche Objekte in der Nähe',
     distanceAway: '{d} m entfernt',
     ad: 'Destacado',

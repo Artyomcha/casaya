@@ -54,6 +54,8 @@ const en: Dictionary = {
     offersLead: 'We merged the duplicates into one card. Here is every offer with its price.',
     spread: 'Price spread',
     cheapest: 'Cheapest',
+    photoCredit: 'Photo: {agency}',
+    photosFrom: 'Photos from {n} agencies',
     nearbyTitle: 'Similar properties nearby',
     distanceAway: '{d} m away',
     ad: 'Destacado',

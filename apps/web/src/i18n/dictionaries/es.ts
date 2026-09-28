@@ -54,6 +54,8 @@ const es: Dictionary = {
     offersLead: 'Hemos unido los duplicados en una sola ficha. Abajo, todas las ofertas con sus precios.',
     spread: 'Diferencia de precio',
     cheapest: 'El más barato',
+    photoCredit: 'Foto: {agency}',
+    photosFrom: 'Fotos de {n} agencias',
     nearbyTitle: 'Inmuebles similares cerca',
     distanceAway: 'a {d} m',
     ad: 'Destacado',

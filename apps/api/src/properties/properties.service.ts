@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { Prisma, Property } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { canonicalMedia, type PhotoSet } from './media';
 import {
   geoCell,
   matchKey,
@@ -95,6 +96,45 @@ export class PropertiesService {
     return this.prisma.property.findMany({ where: { OR: where }, take: 50 });
   }
 
+  /**
+   * Пересобирает фотографии объекта после изменения набора предложений.
+   * Вызывается импортом фида: новое агентство могло снять лучше прежнего.
+   */
+  async refreshMedia(propertyId: string) {
+    const listings = await this.prisma.listing.findMany({
+      where: { propertyId, status: 'PUBLISHED' },
+      select: {
+        id: true,
+        coverImage: true,
+        gallery: true,
+        verified: true,
+        videoTour: true,
+        agency: { select: { name: true } },
+      },
+    });
+
+    const sets: PhotoSet[] = listings.map((l) => ({
+      listingId: l.id,
+      agencyName: l.agency.name,
+      coverImage: l.coverImage,
+      gallery: l.gallery,
+      verified: l.verified,
+      videoTour: l.videoTour,
+    }));
+
+    const media = canonicalMedia(sets);
+    await this.prisma.property.update({
+      where: { id: propertyId },
+      data: {
+        coverImage: media.coverImage,
+        gallery: media.gallery,
+        photoSource: media.source,
+      },
+    });
+
+    return media;
+  }
+
   /** Все предложения агентств по объекту — от самого дешёвого. */
   async offers(propertyId: string) {
     const property = await this.prisma.property.findUnique({
@@ -127,8 +167,21 @@ export class PropertiesService {
     // видеть полную картину цен. Оплаченные показы помечены.
     const prices = all.map((l) => l.price);
 
+    // Кто какой кадр снял — подпись авторства в галерее.
+    const media = canonicalMedia(
+      all.map((l) => ({
+        listingId: l.id,
+        agencyName: l.agency.name,
+        coverImage: l.coverImage,
+        gallery: l.gallery,
+        verified: l.verified,
+        videoTour: l.videoTour,
+      })),
+    );
+
     return {
       property,
+      media,
       offers: all,
       count: all.length,
       promotedCount: all.filter((l) => l.promoted).length,

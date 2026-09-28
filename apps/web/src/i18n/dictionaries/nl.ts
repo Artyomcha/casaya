@@ -54,6 +54,8 @@ const nl: Dictionary = {
     offersLead: 'We hebben de dubbele advertenties samengevoegd. Hieronder elk aanbod met zijn prijs.',
     spread: 'Prijsverschil',
     cheapest: 'Goedkoopste',
+    photoCredit: 'Foto: {agency}',
+    photosFrom: 'Foto’s van {n} makelaars',
     nearbyTitle: 'Vergelijkbare woningen in de buurt',
     distanceAway: '{d} m verderop',
     ad: 'Destacado',

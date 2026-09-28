@@ -54,6 +54,8 @@ const pl: Dictionary = {
     offersLead: 'Połączyliśmy duplikaty w jedną kartę. Poniżej każda oferta ze swoją ceną.',
     spread: 'Rozrzut cen',
     cheapest: 'Najtańsza',
+    photoCredit: 'Zdjęcie: {agency}',
+    photosFrom: 'Zdjęcia od {n} biur',
     nearbyTitle: 'Podobne nieruchomości w okolicy',
     distanceAway: '{d} m stąd',
     ad: 'Destacado',

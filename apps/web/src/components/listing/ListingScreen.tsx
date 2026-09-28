@@ -53,7 +53,15 @@ export function ListingScreen({
 
   const verifyItems = [dict.listing.verify1, dict.listing.verify2, dict.listing.verify3, dict.listing.verify4];
 
-  const gallery = [listing.coverImage, ...listing.gallery];
+  // Объединённая галерея объекта: снимки всех агентств. Если объект новый
+  // и канонический набор ещё не собран, показываем набор этого объявления.
+  const credits = offers?.media.credits ?? [];
+  const gallery = credits.length
+    ? credits.map((c) => c.url)
+    : [listing.coverImage, ...listing.gallery];
+
+  const creditByUrl = new Map(credits.map((c) => [c.url, c.agencyName]));
+  const agenciesInGallery = new Set(credits.map((c) => c.agencyName)).size;
 
   return (
     <main>
@@ -112,6 +120,13 @@ export function ListingScreen({
           </div>
         </div>
 
+        {creditByUrl.size > 0 && (
+          <div style={{ fontSize: 13, color: c.grey }}>
+            {dict.common.photoCredit.replace('{agency}', offers?.media.source ?? listing.agency.name)}
+            {agenciesInGallery > 1 && ` · ${dict.common.photosFrom.replace('{n}', String(agenciesInGallery))}`}
+          </div>
+        )}
+
         <div
           style={{
             display: 'grid',
@@ -138,9 +153,13 @@ export function ListingScreen({
                 placeItems: 'center',
                 fontSize: 15,
                 fontWeight: 600,
+                textAlign: 'center',
+                padding: 12,
               }}
             >
-              {dict.listing.morePhotos}
+              {agenciesInGallery > 1
+                ? dict.common.photosFrom.replace('{n}', String(agenciesInGallery))
+                : dict.listing.morePhotos}
             </span>
           </div>
         </div>

@@ -39,6 +39,7 @@ export class FeedImportService {
       const { items, skipped, format } = await this.fetcher.fetchAndParse(feed.url, feed.format);
       const stats = await this.upsertAll(feed, items);
       const archived = await this.archiveMissing(feed, items.map((i) => i.externalId));
+      await this.refreshTouchedMedia(feed.id);
 
       await this.prisma.$transaction([
         this.prisma.feedRun.update({
@@ -83,6 +84,24 @@ export class FeedImportService {
       ]);
       this.logger.error(`Фид ${feed.id} упал: ${err.message}`);
       throw err;
+    }
+  }
+
+  /**
+   * После загрузки пересобирает фото у затронутых объектов: новое агентство
+   * могло снять лучше прежнего, и обложка в общей выдаче должна обновиться.
+   */
+  private async refreshTouchedMedia(feedId: string) {
+    const rows = await this.prisma.listing.findMany({
+      where: { feedId, propertyId: { not: null } },
+      select: { propertyId: true },
+      distinct: ['propertyId'],
+    });
+
+    for (const row of rows) {
+      await this.properties.refreshMedia(row.propertyId!).catch((e) =>
+        this.logger.warn(`Не удалось пересобрать фото объекта ${row.propertyId}: ${e.message}`),
+      );
     }
   }
 

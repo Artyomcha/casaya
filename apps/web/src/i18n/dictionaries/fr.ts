@@ -54,6 +54,8 @@ const fr: Dictionary = {
     offersLead: 'Nous avons fusionné les doublons en une seule fiche. Voici chaque offre avec son prix.',
     spread: 'Écart de prix',
     cheapest: 'Le moins cher',
+    photoCredit: 'Photo : {agency}',
+    photosFrom: 'Photos de {n} agences',
     nearbyTitle: 'Biens similaires à proximité',
     distanceAway: 'à {d} m',
     ad: 'Destacado',

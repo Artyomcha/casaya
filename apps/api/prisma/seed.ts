@@ -1,4 +1,5 @@
 import { PrismaClient, Placement, PromotionTier, PropertyKind, ServiceScope } from '@prisma/client';
+import { canonicalMedia } from '../src/properties/media';
 
 const prisma = new PrismaClient();
 
@@ -104,11 +105,13 @@ const DUPLICATE_OFFERS: {
   /** Насколько цена отличается от первого предложения. */
   priceDelta: number;
   title: string;
+  /** Своя съёмка: каждое агентство снимает квартиру по-своему. */
+  photos: number[];
 }[] = [
-  { of: 'l3', agencyId: 'ag-costa-living', externalId: 'CL-8841', priceDelta: 6000, title: 'Апартаменты у моря, Сан-Хуан' },
-  { of: 'l3', agencyId: 'ag-casa-norte', externalId: 'CN-2210', priceDelta: -4000, title: 'Квартира с террасой, Playa de San Juan' },
-  { of: 'l5', agencyId: 'ag-mediterra', externalId: 'MH-5517', priceDelta: 3000, title: 'Светлая квартира, центр Аликанте' },
-  { of: 'l1', agencyId: 'ag-sol', externalId: 'SI-7702', priceDelta: 15000, title: 'Вилла в Altea Hills с бассейном' },
+  { of: 'l3', agencyId: 'ag-costa-living', externalId: 'CL-8841', priceDelta: 6000, title: 'Апартаменты у моря, Сан-Хуан', photos: [13114931, 34672275] },
+  { of: 'l3', agencyId: 'ag-casa-norte', externalId: 'CN-2210', priceDelta: -4000, title: 'Квартира с террасой, Playa de San Juan', photos: [10135442, 15172873, 18264393] },
+  { of: 'l5', agencyId: 'ag-mediterra', externalId: 'MH-5517', priceDelta: 3000, title: 'Светлая квартира, центр Аликанте', photos: [15994062, 31817156] },
+  { of: 'l1', agencyId: 'ag-sol', externalId: 'SI-7702', priceDelta: 15000, title: 'Вилла в Altea Hills с бассейном', photos: [20200291, 6180674] },
 ];
 
 const PIPELINE_SEED: { status: 'NEW' | 'CONTACTED' | 'VIEWING' | 'NEGOTIATION' | 'WON' | 'LOST'; name: string; budget: number; listing: string }[] = [
@@ -245,8 +248,9 @@ async function main() {
         verified: false,
         description: base.description,
         features: base.features,
-        coverImage: base.coverImage,
-        gallery: base.gallery,
+        // Каждое агентство снимает по-своему: у дубля собственный набор кадров.
+        coverImage: img(dup.photos[0]),
+        gallery: dup.photos.slice(1).map(img),
         lat: origin.lat,
         lng: origin.lng,
         agencyId: dup.agencyId,
@@ -255,6 +259,33 @@ async function main() {
         propertyId: base.propertyId,
         publishedAt: new Date(Date.now() - (i + 1) * 5 * 3600_000),
       },
+    });
+  }
+
+  // --- Канонические фото объектов: выбираем лучший набор среди агентств.
+  for (const property of await prisma.property.findMany({ select: { id: true } })) {
+    const listings = await prisma.listing.findMany({
+      where: { propertyId: property.id, status: 'PUBLISHED' },
+      select: {
+        id: true, coverImage: true, gallery: true, verified: true, videoTour: true,
+        agency: { select: { name: true } },
+      },
+    });
+
+    const media = canonicalMedia(
+      listings.map((l) => ({
+        listingId: l.id,
+        agencyName: l.agency.name,
+        coverImage: l.coverImage,
+        gallery: l.gallery,
+        verified: l.verified,
+        videoTour: l.videoTour,
+      })),
+    );
+
+    await prisma.property.update({
+      where: { id: property.id },
+      data: { coverImage: media.coverImage, gallery: media.gallery, photoSource: media.source },
     });
   }
 
