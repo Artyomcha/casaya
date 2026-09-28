@@ -100,14 +100,20 @@ export class CatalogService {
     const page = [...promoted, ...sorted].slice(0, take);
 
     return {
-      items: page.map((l) => ({
-        ...l,
-        /// Оплаченный показ — витрина обязана пометить его как рекламу.
-        promoted: promotedIds.has(l.id),
-        /// Сколько агентств продают этот же объект.
-        offersCount: l.propertyId ? (counts.get(l.propertyId) ?? 1) : 1,
-        rank: query.debug === 'true' ? scores.get(l.id) : undefined,
-      })),
+      items: page.map((l) => {
+        const promoted = promotedIds.has(l.id);
+        return {
+          ...l,
+          /// Оплаченный показ — витрина обязана пометить его как рекламу.
+          promoted,
+          /// Сколько агентств продают этот же объект.
+          ///
+          /// В оплаченной карточке всегда единица: агентство купило рекламу
+          /// своего предложения и не обязано зазывать к конкурентам.
+          offersCount: promoted || !l.propertyId ? 1 : (counts.get(l.propertyId) ?? 1),
+          rank: query.debug === 'true' ? scores.get(l.id) : undefined,
+        };
+      }),
       total: promoted.length + organic.length,
       promotedCount: promoted.length,
       /// Сколько карточек-дублей схлопнуто в органической выдаче.
@@ -154,10 +160,26 @@ export class CatalogService {
   async listing(idOrSlug: string) {
     const listing = await this.prisma.listing.findFirst({
       where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
-      include: { ...this.listingInclude, project: true },
+      include: {
+        ...this.listingInclude,
+        project: true,
+        promotions: {
+          where: { status: 'ACTIVE', startsAt: { lte: new Date() }, endsAt: { gte: new Date() } },
+          select: { tier: true, endsAt: true },
+          take: 1,
+        },
+      },
     });
     if (!listing) throw new NotFoundException(`Объект ${idOrSlug} не найден`);
-    return listing;
+
+    const { promotions, ...rest } = listing;
+    return {
+      ...rest,
+      /// Страница оплаченного объявления — это реклама конкретного агентства.
+      /// Сравнение с другими предложениями на ней не показывается.
+      promoted: promotions.length > 0,
+      promotionTier: promotions[0]?.tier ?? 'NONE',
+    };
   }
 
   /**

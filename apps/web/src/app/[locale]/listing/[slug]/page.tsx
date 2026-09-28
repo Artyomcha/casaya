@@ -50,10 +50,13 @@ export default async function Page({
   const [dict, listing] = await Promise.all([getDictionary(locale), load(slug)]);
   if (!listing) notFound();
 
-  // Предложения других агентств и рекомендации рядом — оба блока не критичны,
-  // страница обязана открыться даже если они не пришли.
+  // Страница оплаченного объявления — реклама конкретного агентства:
+  // сравнение с конкурентами на ней не показывается.
+  const showOffers = !listing.promoted && listing.propertyId;
+
+  // Оба блока не критичны — страница обязана открыться даже без них.
   const [offers, nearby] = await Promise.all([
-    listing.propertyId ? safe(api.offers(listing.propertyId), null) : Promise.resolve(null),
+    showOffers ? safe(api.offers(listing.propertyId!), null) : Promise.resolve(null),
     safe(api.similar(slug), []),
   ]);
 

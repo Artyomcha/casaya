@@ -113,6 +113,24 @@ describe('продвижение', () => {
     expect(organic?.verified).toBe(true);
   });
 
+  it('оплаченная карточка не зазывает к конкурентам', async () => {
+    if (!alive) return;
+    const d = await get<{ items: { promoted: boolean; offersCount: number }[] }>('/listings');
+    // У рекламы счётчик агентств всегда единица, даже если объект продают трое.
+    expect(d.items.filter((i) => i.promoted).every((i) => i.offersCount === 1)).toBe(true);
+    // В обычной выдаче счётчик честный.
+    expect(d.items.some((i) => !i.promoted && i.offersCount > 1)).toBe(true);
+  });
+
+  it('объявление знает, что оно оплачено', async () => {
+    if (!alive) return;
+    const paid = await get<{ promoted: boolean; promotionTier: string }>('/listings/l3-dup-1');
+    const free = await get<{ promoted: boolean }>('/listings/l3');
+    expect(paid.promoted).toBe(true);
+    expect(paid.promotionTier).toBe('FEATURED');
+    expect(free.promoted).toBe(false);
+  });
+
   it('на странице объекта видны все предложения, оплаченные помечены', async () => {
     if (!alive) return;
     const listing = await get<{ propertyId: string }>('/listings/l3');
