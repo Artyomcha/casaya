@@ -134,6 +134,20 @@ export function OffersCompare({
                     {dict.common.verified}
                   </span>
                 )}
+                {offer.promoted && (
+                  <span
+                    style={{
+                      background: c.surfaceAlt,
+                      color: c.muted,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '4px 8px',
+                      borderRadius: 999,
+                    }}
+                  >
+                    {dict.common.ad}
+                  </span>
+                )}
                 {isCheapest && data.spread > 0 && (
                   <span
                     style={{

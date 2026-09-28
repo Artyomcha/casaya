@@ -39,6 +39,8 @@ export interface Listing {
   propertyId: string | null;
   /** Сколько агентств продают этот же объект, включая текущее. */
   offersCount?: number;
+  /** Оплаченный показ — витрина обязана пометить его как рекламу. */
+  promoted?: boolean;
   promotionTier?: PromotionTier;
 }
 
@@ -50,6 +52,8 @@ export interface Offer {
   title: string;
   price: number;
   verified: boolean;
+  /** Это предложение оплачено как реклама. */
+  promoted: boolean;
   agency: Agency;
 }
 
@@ -57,6 +61,7 @@ export interface PropertyOffers {
   property: { id: string; slug: string; address: string; area: number; bedrooms: number };
   offers: Offer[];
   count: number;
+  promotedCount: number;
   minPrice: number | null;
   maxPrice: number | null;
   /** Разброс цен между агентствами — то, чего на обычных порталах не видно. */
@@ -77,6 +82,7 @@ export interface ListingCard extends Listing {
   agentInitials: string;
   dateLabel: string;
   offersCount: number;
+  promoted: boolean;
 }
 
 export interface MapPin {

@@ -50,6 +50,7 @@ export function toCard(l: Listing, mode: Mode, locale: Locale, dict: Dictionary)
     dateLabel: dict.common.today,
     badge: mode === 'rent' ? null : l.badge,
     offersCount: l.offersCount ?? 1,
+    promoted: l.promoted ?? false,
   };
 }
 

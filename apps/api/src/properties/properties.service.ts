@@ -9,6 +9,7 @@ import {
   type MatchCandidate,
 } from './match';
 
+
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -103,6 +104,11 @@ export class PropertiesService {
           where: { status: 'PUBLISHED' },
           include: {
             agency: { select: { id: true, name: true, initials: true, brandColor: true, verified: true, replyTime: true } },
+            promotions: {
+              where: { status: 'ACTIVE', endsAt: { gte: new Date() } },
+              select: { tier: true },
+              take: 1,
+            },
           },
           orderBy: { price: 'asc' },
         },
@@ -110,14 +116,25 @@ export class PropertiesService {
     });
     if (!property) throw new NotFoundException('Объект не найден');
 
-    const prices = property.listings.map((l) => l.price);
+    const all = property.listings.map((l) => ({
+      ...l,
+      promotionTier: l.promotions[0]?.tier ?? ('NONE' as const),
+      promoted: l.promotions.length > 0,
+      promotions: undefined,
+    }));
+
+    // Здесь видны все предложения: покупатель, дошедший до объекта, должен
+    // видеть полную картину цен. Оплаченные показы помечены.
+    const prices = all.map((l) => l.price);
+
     return {
       property,
-      offers: property.listings,
-      count: property.listings.length,
+      offers: all,
+      count: all.length,
+      promotedCount: all.filter((l) => l.promoted).length,
       minPrice: prices.length ? Math.min(...prices) : null,
       maxPrice: prices.length ? Math.max(...prices) : null,
-      /// Разброс цен между агентствами — то, чего на обычных порталах не видно.
+      /// Разброс цен между видимыми агентствами.
       spread: prices.length > 1 ? Math.max(...prices) - Math.min(...prices) : 0,
     };
   }

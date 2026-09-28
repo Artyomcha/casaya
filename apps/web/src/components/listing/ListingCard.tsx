@@ -33,6 +33,21 @@ export function ListingCard({
         {!compact && (
           <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none', flexWrap: 'wrap' }}>
             {item.verified && <VerifiedBadge label={dict.common.verified} />}
+            {item.promoted && (
+              <span
+                style={{
+                  background: c.white,
+                  color: c.muted,
+                  border: `1px solid ${c.lineStrong}`,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '4px 9px',
+                  borderRadius: 999,
+                }}
+              >
+                {dict.common.ad}
+              </span>
+            )}
             {item.offersCount > 1 && (
               <span
                 style={{

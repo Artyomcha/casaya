@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, ServiceScope } from '@prisma/client';
+import { Prisma, PromotionTier, ServiceScope } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { PropertiesService } from '../properties/properties.service';
+import { promotedSlots, representativeOffer, type OfferLike } from '../properties/visibility';
 import { RankingService } from '../ranking/ranking.service';
 import { ListingQueryDto } from './dto';
 
@@ -57,37 +58,70 @@ export class CatalogService {
       take: 300,
     });
 
-    // Одну квартиру продают несколько агентств — в выдаче это одна карточка.
-    const deduped = query.showDuplicates === 'true' ? found : this.collapseDuplicates(found);
+    const tiers = await this.ranking.activePromotions(found.map((l) => l.id));
+    const withTier = found.map((l) => ({ ...l, promotionTier: tiers.get(l.id) ?? ('NONE' as const) }));
 
-    const { sorted, scores } = await this.ranking.rank(deduped, query.area);
+    if (query.showDuplicates === 'true') {
+      const { sorted, scores } = await this.ranking.rank(withTier, query.area);
+      return {
+        items: sorted.slice(0, query.take ?? 48).map((l) => ({
+          ...l,
+          promoted: l.promotionTier !== 'NONE',
+          offersCount: 1,
+          rank: query.debug === 'true' ? scores.get(l.id) : undefined,
+        })),
+        total: withTier.length,
+        promotedCount: withTier.filter((l) => l.promotionTier !== 'NONE').length,
+        collapsed: 0,
+      };
+    }
+
+    // Оплаченные показы — отдельные слоты наверху выдачи. Купили два
+    // агентства по одному объекту — наверху две карточки с разными ценами.
+    const promoted = promotedSlots(withTier);
+    const promotedIds = new Set(promoted.map((l) => l.id));
+
+    // Ниже — обычная выдача: одна карточка на объект, лучшая для покупателя.
+    // Если она же и оплачена, второй раз её не показываем.
+    const organic = this.collapseDuplicates(withTier).filter((l) => !promotedIds.has(l.id));
+
+    const counts = this.offerCounts(withTier);
+    const { sorted, scores } = await this.ranking.rank(organic, query.area);
+
+    // Оплаченные слоты не сортируются по весу — их порядок задаёт уровень
+    // покупки. Но разбор им тоже считаем: агентство вправе знать, как
+    // выглядит его объявление по качеству.
+    if (query.debug === 'true' && promoted.length) {
+      const { scores: promotedScores } = await this.ranking.rank(promoted, query.area);
+      for (const [id, score] of promotedScores) scores.set(id, score);
+    }
+
     const take = query.take ?? 48;
-    const page = sorted.slice(0, take);
-
-    const offerCounts = await this.offerCounts(page.map((l) => l.propertyId));
+    const page = [...promoted, ...sorted].slice(0, take);
 
     return {
       items: page.map((l) => ({
         ...l,
-        /// Сколько агентств продают этот же объект, включая текущее.
-        offersCount: l.propertyId ? (offerCounts.get(l.propertyId) ?? 1) : 1,
+        /// Оплаченный показ — витрина обязана пометить его как рекламу.
+        promoted: promotedIds.has(l.id),
+        /// Сколько агентств продают этот же объект.
+        offersCount: l.propertyId ? (counts.get(l.propertyId) ?? 1) : 1,
         rank: query.debug === 'true' ? scores.get(l.id) : undefined,
       })),
-      total: deduped.length,
-      /// Сколько карточек-дублей посетитель не увидел.
-      collapsed: found.length - deduped.length,
+      total: promoted.length + organic.length,
+      promotedCount: promoted.length,
+      /// Сколько карточек-дублей схлопнуто в органической выдаче.
+      collapsed: withTier.length - promoted.length - organic.length,
     };
   }
 
   /**
-   * Из нескольких предложений по одному объекту оставляем одно.
-   * Побеждает проверенное, при равенстве — самое дешёвое: покупателю
-   * важнее цена, а агентству — что его объект вообще виден.
+   * Из нескольких предложений по одному объекту оставляем одно —
+   * лучшее для покупателя. Оплаченные показы к этому отношения не имеют,
+   * они живут отдельными слотами наверху.
    */
-  private collapseDuplicates<T extends { id: string; propertyId: string | null; price: number; verified: boolean }>(
-    listings: T[],
-  ): T[] {
-    const best = new Map<string, T>();
+  private collapseDuplicates<T extends OfferLike & { propertyId: string | null }>(listings: T[]): T[] {
+    const byProperty = new Map<string, T[]>();
     const singles: T[] = [];
 
     for (const l of listings) {
@@ -95,30 +129,26 @@ export class CatalogService {
         singles.push(l);
         continue;
       }
-      const current = best.get(l.propertyId);
-      if (
-        !current ||
-        (l.verified && !current.verified) ||
-        (l.verified === current.verified && l.price < current.price)
-      ) {
-        best.set(l.propertyId, l);
-      }
+      const group = byProperty.get(l.propertyId) ?? [];
+      group.push(l);
+      byProperty.set(l.propertyId, group);
     }
 
-    return [...best.values(), ...singles];
+    const chosen = [...byProperty.values()]
+      .map((group) => representativeOffer(group))
+      .filter((l): l is T => !!l);
+
+    return [...chosen, ...singles];
   }
 
-  private async offerCounts(propertyIds: (string | null)[]): Promise<Map<string, number>> {
-    const ids = propertyIds.filter((id): id is string => !!id);
-    if (!ids.length) return new Map();
-
-    const grouped = await this.prisma.listing.groupBy({
-      by: ['propertyId'],
-      where: { propertyId: { in: ids }, status: 'PUBLISHED' },
-      _count: { _all: true },
-    });
-
-    return new Map(grouped.map((g) => [g.propertyId!, g._count._all]));
+  /** Сколько агентств продают каждый объект. */
+  private offerCounts<T extends { propertyId: string | null }>(listings: T[]): Map<string, number> {
+    const counts = new Map<string, number>();
+    for (const l of listings) {
+      if (!l.propertyId) continue;
+      counts.set(l.propertyId, (counts.get(l.propertyId) ?? 0) + 1);
+    }
+    return counts;
   }
 
   async listing(idOrSlug: string) {

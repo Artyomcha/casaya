@@ -20,15 +20,16 @@ beforeAll(async () => {
 });
 
 describe.skipIf(!process.env.CI && false)('каталог', () => {
-  it('отдаёт выдачу со схлопнутыми дублями', async () => {
+  it('в обычной выдаче каждый объект встречается один раз', async () => {
     if (!alive) return;
-    const d = await get<{ items: any[]; total: number; collapsed: number }>('/listings');
+    const d = await get<{ items: { propertyId: string; promoted: boolean }[]; collapsed: number }>('/listings');
     expect(d.items.length).toBeGreaterThan(0);
-    // Схлопнутых карточек должно быть столько же, сколько лишних предложений.
-    expect(d.collapsed).toBeGreaterThanOrEqual(0);
+    expect(d.collapsed).toBeGreaterThan(0);
 
-    const ids = d.items.map((i) => i.propertyId).filter(Boolean);
-    expect(new Set(ids).size).toBe(ids.length);
+    // Оплаченные слоты стоят отдельно, поэтому уникальность проверяем
+    // внутри органической части.
+    const organic = d.items.filter((i) => !i.promoted).map((i) => i.propertyId).filter(Boolean);
+    expect(new Set(organic).size).toBe(organic.length);
   });
 
   it('показывает, сколько агентств продают один объект', async () => {
@@ -55,16 +56,72 @@ describe.skipIf(!process.env.CI && false)('каталог', () => {
     const d = await get<{ items: { rank?: { score: number; breakdown: Record<string, number> } }[] }>(
       '/listings?debug=true&take=3',
     );
-    const rank = d.items[0]?.rank;
-    expect(rank?.score).toBeGreaterThan(0);
-    expect(rank?.breakdown).toHaveProperty('quality');
+    // Разбор приходит для каждой карточки, включая оплаченные слоты.
+    expect(d.items.every((i) => (i.rank?.score ?? 0) > 0)).toBe(true);
+    expect(d.items[0]?.rank?.breakdown).toHaveProperty('quality');
   });
 
-  it('сортирует по убыванию веса', async () => {
+  it('сортирует обычную выдачу по убыванию веса', async () => {
     if (!alive) return;
-    const d = await get<{ items: { rank?: { score: number } }[] }>('/listings?debug=true');
-    const scores = d.items.map((i) => i.rank!.score);
+    const d = await get<{ items: { promoted: boolean; rank?: { score: number } }[] }>('/listings?debug=true');
+    // Порядок оплаченных слотов задаёт уровень покупки, а не вес.
+    const scores = d.items.filter((i) => !i.promoted).map((i) => i.rank!.score);
     expect([...scores].sort((a, b) => b - a)).toEqual(scores);
+  });
+});
+
+describe('продвижение', () => {
+  // Оплаченный показ — это дополнительная копия карточки наверху выдачи,
+  // с ценой и условиями того агентства, которое заплатило.
+  it('оплаченные слоты стоят выше обычной выдачи', async () => {
+    if (!alive) return;
+    const d = await get<{ items: { promoted: boolean }[]; promotedCount: number }>('/listings');
+    expect(d.promotedCount).toBeGreaterThan(0);
+
+    const firstOrganic = d.items.findIndex((i) => !i.promoted);
+    expect(d.items.slice(0, firstOrganic).every((i) => i.promoted)).toBe(true);
+    expect(d.items.slice(firstOrganic).every((i) => !i.promoted)).toBe(true);
+  });
+
+  it('в копии — цена и агентство того, кто заплатил', async () => {
+    if (!alive) return;
+    const d = await get<{ items: { id: string; promoted: boolean; price: number; agency: { name: string } }[] }>(
+      '/listings',
+    );
+    const paid = d.items.find((i) => i.id === 'l3-dup-1');
+    expect(paid?.promoted).toBe(true);
+    expect(paid?.agency.name).toBe('Costa Living');
+    expect(paid?.price).toBe(295_000);
+  });
+
+  it('объект остаётся и в обычной выдаче — копия его не заменяет', async () => {
+    if (!alive) return;
+    const listing = await get<{ propertyId: string }>('/listings/l3-dup-1');
+    const d = await get<{ items: { id: string; propertyId: string; promoted: boolean }[] }>('/listings');
+
+    const sameProperty = d.items.filter((i) => i.propertyId === listing.propertyId);
+    expect(sameProperty.some((i) => i.promoted)).toBe(true);
+    expect(sameProperty.some((i) => !i.promoted)).toBe(true);
+  });
+
+  it('органическая карточка — лучшая для покупателя, а не оплаченная', async () => {
+    if (!alive) return;
+    const listing = await get<{ propertyId: string }>('/listings/l3-dup-1');
+    const d = await get<{ items: { propertyId: string; promoted: boolean; verified: boolean }[] }>('/listings');
+
+    const organic = d.items.find((i) => i.propertyId === listing.propertyId && !i.promoted);
+    expect(organic?.verified).toBe(true);
+  });
+
+  it('на странице объекта видны все предложения, оплаченные помечены', async () => {
+    if (!alive) return;
+    const listing = await get<{ propertyId: string }>('/listings/l3');
+    const d = await get<{ count: number; promotedCount: number; offers: { promoted: boolean }[] }>(
+      `/properties/${listing.propertyId}/offers`,
+    );
+    expect(d.count).toBe(3);
+    expect(d.promotedCount).toBe(1);
+    expect(d.offers.filter((o) => o.promoted)).toHaveLength(1);
   });
 });
 

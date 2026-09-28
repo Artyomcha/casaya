@@ -56,6 +56,7 @@ const pl: Dictionary = {
     cheapest: 'Najtańsza',
     nearbyTitle: 'Podobne nieruchomości w okolicy',
     distanceAway: '{d} m stąd',
+    ad: 'Reklama',
     promoted: 'Promowane',
     noDuplicates: 'Sprawdzone: bez duplikatów',
     retry: 'Spróbuj ponownie',

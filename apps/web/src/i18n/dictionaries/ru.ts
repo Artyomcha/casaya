@@ -58,6 +58,7 @@ const ru = {
     cheapest: 'Дешевле всех',
     nearbyTitle: 'Похожие объекты рядом',
     distanceAway: 'в {d} м',
+    ad: 'Реклама',
     promoted: 'Продвигается',
     noDuplicates: 'Проверено: дублей нет',
     retry: 'Повторить',

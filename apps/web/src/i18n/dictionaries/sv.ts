@@ -56,6 +56,7 @@ const sv: Dictionary = {
     cheapest: 'Billigast',
     nearbyTitle: 'Liknande bostäder i närheten',
     distanceAway: '{d} m bort',
+    ad: 'Annons',
     promoted: 'Utvald',
     noDuplicates: 'Kontrollerat: inga dubbletter',
     retry: 'Försök igen',

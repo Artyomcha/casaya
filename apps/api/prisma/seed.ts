@@ -247,6 +247,9 @@ async function main() {
   const promoted: [string, PromotionTier, number][] = [
     ['l4', 'FEATURED', 1990],
     ['l6', 'TOP_AREA', 3990],
+    // Продвижение купило агентство, чьё предложение дороже и в карточку
+    // не попадает: проверяем, что буст всё равно поднимает объект.
+    ['l3-dup-1', 'FEATURED', 1990],
   ];
   for (const [listingId, tier, cents] of promoted) {
     await prisma.promotion.create({

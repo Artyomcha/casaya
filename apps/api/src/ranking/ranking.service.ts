@@ -62,9 +62,21 @@ export class RankingService {
     };
   }
 
-  /** Сортирует выдачу по итоговому весу. */
-  async rank(listings: WithAgency[], area?: string | null): Promise<{ sorted: WithAgency[]; scores: Map<string, RankResult> }> {
-    const tiers = await this.activePromotions(listings.map((l) => l.id));
+  /**
+   * Сортирует выдачу по итоговому весу.
+   *
+   * `overrideTiers` подставляет уровень продвижения, посчитанный по всем
+   * предложениям объекта: при дублях платит одно агентство, а в выдаче
+   * может стоять карточка другого.
+   */
+  async rank<T extends WithAgency>(
+    listings: T[],
+    area?: string | null,
+    overrideTiers?: Map<string, PromotionTier>,
+  ): Promise<{ sorted: T[]; scores: Map<string, RankResult> }> {
+    const tiers = overrideTiers?.size
+      ? overrideTiers
+      : await this.activePromotions(listings.map((l) => l.id));
     const median = medianPricePerM2(listings);
     const now = new Date();
 

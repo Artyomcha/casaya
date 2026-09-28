@@ -37,6 +37,21 @@ export function ListingRow({
         <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         <span style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {item.verified && <VerifiedBadge compact label={dict.common.verified} />}
+          {item.promoted && (
+            <span
+              style={{
+                background: c.white,
+                color: c.muted,
+                border: `1px solid ${c.lineStrong}`,
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '4px 9px',
+                borderRadius: 999,
+              }}
+            >
+              {dict.common.ad}
+            </span>
+          )}
           {item.offersCount > 1 && (
             <span
               style={{

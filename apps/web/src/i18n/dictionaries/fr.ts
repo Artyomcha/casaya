@@ -56,6 +56,7 @@ const fr: Dictionary = {
     cheapest: 'Le moins cher',
     nearbyTitle: 'Biens similaires à proximité',
     distanceAway: 'à {d} m',
+    ad: 'Annonce',
     promoted: 'Mis en avant',
     noDuplicates: 'Vérifié : aucun doublon',
     retry: 'Réessayer',

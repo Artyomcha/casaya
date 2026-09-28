@@ -56,6 +56,7 @@ const nl: Dictionary = {
     cheapest: 'Goedkoopste',
     nearbyTitle: 'Vergelijkbare woningen in de buurt',
     distanceAway: '{d} m verderop',
+    ad: 'Advertentie',
     promoted: 'Uitgelicht',
     noDuplicates: 'Gecontroleerd: geen dubbele advertenties',
     retry: 'Opnieuw proberen',
