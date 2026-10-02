@@ -247,6 +247,7 @@ export function ListingScreen({
               <div style={{ height: 340, borderRadius: 24, overflow: 'hidden', border: `1px solid ${c.line}` }}>
                 <PropertyMap
                   variant="single"
+                  propertyId={listing.propertyId}
                   mode="buy"
                   dict={dict}
                   locale={locale}

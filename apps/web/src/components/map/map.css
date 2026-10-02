@@ -83,3 +83,12 @@
 .maplibregl-popup-tip {
   border-top-color: #ffffff !important;
 }
+
+/* Цена внутри метки Google 3D: та же типографика, что у пинов на векторной карте. */
+.casaya-pin-glyph {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}

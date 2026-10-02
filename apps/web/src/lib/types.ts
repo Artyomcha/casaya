@@ -114,6 +114,18 @@ export interface MapPin {
   verified: boolean;
 }
 
+/** Контур дома из испанского кадастра — им рисуется 3D-подсветка. */
+export interface Footprint {
+  found: boolean;
+  parcelRef: string | null;
+  cadastralAddress: string | null;
+  floorsAbove: number | null;
+  heightMeters: number | null;
+  center: [number, number] | null;
+  geojson: unknown | null;
+  source: string | null;
+}
+
 export interface Project {
   id: string;
   slug: string;

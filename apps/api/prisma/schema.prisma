@@ -253,6 +253,10 @@ model Property {
   gallery      String[]
   /// Чей набор признан лучшим — нужно для подписи авторства.
   photoSource  String?
+  /// Контур дома и этажность из испанского кадастра — им рисуется 3D.
+  /// Кэш, а не источник истины: кадастр медленный и иногда недоступен.
+  footprint    Json?
+  footprintAt  DateTime?
   listings     Listing[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { LngLatBoundsLike, Map as MlMap, Marker, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -8,9 +8,26 @@ import './map.css';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { money } from '@/i18n/format';
 import type { Locale } from '@/i18n/locales';
+import { propertyFootprint } from '@/lib/api';
+import { Google3DMap } from './Google3DMap';
+import { GOOGLE_KEY } from './googleMaps';
 import { pinLabel, specsOf } from '@/lib/format';
-import type { MapPin, Mode } from '@/lib/types';
-import { ATTRIBUTION, BASEMAP_STYLE, COSTA_BLANCA, WORKER_URL } from './mapStyle';
+import type { Footprint, MapPin, Mode } from '@/lib/types';
+import {
+  ATTRIBUTION,
+  BASEMAP_STYLE,
+  CAMERA,
+  COSTA_BLANCA,
+  FOOTPRINT_ATTRIBUTION,
+  FOOTPRINT_SOURCE,
+  SKY,
+  TERRAIN_SOURCE,
+  WORKER_URL,
+  buildingLayer,
+  footprintLayer,
+  footprintOutlineLayer,
+  terrainSource,
+} from './mapStyle';
 
 // Воркер тайлов отдаём статикой из public: бандлер его не эмитит,
 // и без этого карта остаётся пустой (см. scripts/copy-maplibre-worker.mjs).
@@ -27,6 +44,8 @@ interface Props {
   favorites?: string[];
   /** single — одна метка без попапа и без автоподгонки границ. */
   variant?: 'search' | 'single';
+  /** Объект в базе: по нему подтягивается контур дома из кадастра. */
+  propertyId?: string | null;
   height?: string | number;
 }
 
@@ -69,7 +88,49 @@ function popupHtml(pin: MapPin, mode: Mode, dict: Dictionary, locale: Locale): s
     </a>`;
 }
 
-export function PropertyMap({
+/**
+ * Объём добавляется после load: в готовом стиле OpenFreeMap нужно встать
+ * ниже подписей, иначе названия улиц уезжают под дома.
+ */
+function addVolume(instance: MlMap) {
+  if (!instance.getSource(TERRAIN_SOURCE)) {
+    instance.addSource(TERRAIN_SOURCE, terrainSource);
+  }
+  // exaggeration 1 — реальный рельеф: на Коста-Бланке горы и так выразительные.
+  instance.setTerrain({ source: TERRAIN_SOURCE, exaggeration: 1 });
+  instance.setSky(SKY);
+
+  const firstLabel = instance.getStyle().layers?.find((l) => l.type === 'symbol')?.id;
+  if (!instance.getLayer(buildingLayer.id)) {
+    instance.addLayer(buildingLayer as never, firstLabel);
+  }
+}
+
+/**
+ * Карта объектов. Если задан ключ Google — показываем фотореалистичный 3D-город
+ * из Photorealistic 3D Tiles; без ключа портал работает на бесплатной
+ * векторной подложке с теми же объёмными домами и теми же метками.
+ */
+export function PropertyMap(props: Props) {
+  const [googleFailed, setGoogleFailed] = useState(false);
+  if (GOOGLE_KEY && !googleFailed && props.pins.length) {
+    return (
+      <Google3DMap
+        pins={props.pins}
+        mode={props.mode}
+        locale={props.locale}
+        variant={props.variant}
+        selectedId={props.selectedId}
+        onSelect={props.onSelect}
+        height={props.height}
+        onFail={() => setGoogleFailed(true)}
+      />
+    );
+  }
+  return <VectorMap {...props} />;
+}
+
+function VectorMap({
   pins,
   mode,
   dict,
@@ -78,6 +139,7 @@ export function PropertyMap({
   onSelect,
   favorites = [],
   variant = 'search',
+  propertyId = null,
   height = '100%',
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
@@ -87,15 +149,20 @@ export function PropertyMap({
   // Колбэк в ref, чтобы пересоздание функции в родителе не перестраивало метки.
   const selectRef = useRef(onSelect);
   selectRef.current = onSelect;
+  const [footprint, setFootprint] = useState<Footprint | null>(null);
 
   useEffect(() => {
     if (!container.current || map.current) return;
+    const camera = variant === 'single' ? CAMERA.single : CAMERA.search;
 
     const instance = new maplibregl.Map({
       container: container.current,
       style: BASEMAP_STYLE,
       center: pins[0] ? [pins[0].lng, pins[0].lat] : COSTA_BLANCA.center,
-      zoom: variant === 'single' ? 14 : COSTA_BLANCA.zoom,
+      zoom: variant === 'single' ? CAMERA.single.zoom : COSTA_BLANCA.zoom,
+      pitch: camera.pitch,
+      bearing: camera.bearing,
+      maxPitch: 80,
       attributionControl: false,
       // Скролл страницы важнее зума: карта приближается только с Cmd/Ctrl.
       cooperativeGestures: variant === 'search',
@@ -103,7 +170,14 @@ export function PropertyMap({
 
     // Падение тайлов не должно быть тихим: без подложки карта выглядит сломанной.
     instance.on('error', (e) => console.error('[casaya:map]', e.error?.message ?? e));
-    instance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    // style.load, а не load: объём нужен сразу после разбора стиля,
+    // а load ждёт загрузки всех тайлов и на плотном городе приходит поздно.
+    instance.on('style.load', () => addVolume(instance));
+    // visualizePitch — компас показывает наклон и одним кликом возвращает вид сверху.
+    instance.addControl(
+      new maplibregl.NavigationControl({ showCompass: true, visualizePitch: true }),
+      'top-right',
+    );
     instance.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: ATTRIBUTION }));
     instance.on('click', () => selectRef.current?.(null));
 
@@ -114,6 +188,55 @@ export function PropertyMap({
       markers.current.clear();
     };
   }, [variant, pins]);
+
+  // Контур дома из кадастра — только для карточки объекта, один запрос на объект.
+  useEffect(() => {
+    if (variant !== 'single' || !propertyId) {
+      setFootprint(null);
+      return;
+    }
+    let alive = true;
+    propertyFootprint(propertyId)
+      .then((data) => alive && setFootprint(data.found ? data : null))
+      .catch(() => alive && setFootprint(null));
+    return () => {
+      alive = false;
+    };
+  }, [variant, propertyId]);
+
+  // Подсветка дома: источник добавляется, когда контур пришёл, и снимается с ним же.
+  useEffect(() => {
+    const instance = map.current;
+    if (!instance) return;
+
+    const apply = () => {
+      const geojson = footprint?.geojson;
+      if (!geojson) {
+        for (const id of [footprintLayer.id, footprintOutlineLayer.id]) {
+          if (instance.getLayer(id)) instance.removeLayer(id);
+        }
+        if (instance.getSource(FOOTPRINT_SOURCE)) instance.removeSource(FOOTPRINT_SOURCE);
+        return;
+      }
+      const source = instance.getSource(FOOTPRINT_SOURCE);
+      if (source) {
+        (source as maplibregl.GeoJSONSource).setData(geojson as never);
+      } else {
+        instance.addSource(FOOTPRINT_SOURCE, {
+          type: 'geojson',
+          data: geojson as never,
+          attribution: FOOTPRINT_ATTRIBUTION,
+        });
+      }
+      if (!instance.getLayer(footprintLayer.id)) instance.addLayer(footprintLayer as never);
+      if (!instance.getLayer(footprintOutlineLayer.id)) instance.addLayer(footprintOutlineLayer as never);
+      // Координаты объявления указывают на район, кадастр — на дом: верим кадастру.
+      if (footprint?.center) instance.easeTo({ center: footprint.center, duration: 600 });
+    };
+
+    if (instance.isStyleLoaded()) apply();
+    else instance.once('style.load', apply);
+  }, [footprint]);
 
   // Метки перестраиваются при смене набора объектов или режима (цена другая).
   useEffect(() => {
@@ -160,7 +283,13 @@ export function PropertyMap({
         (acc, p) => acc.extend([p.lng, p.lat]),
         new maplibregl.LngLatBounds([pins[0].lng, pins[0].lat], [pins[0].lng, pins[0].lat]),
       );
-      instance.fitBounds(bounds as LngLatBoundsLike, { padding: 72, maxZoom: 12.5, duration: 0 });
+      instance.fitBounds(bounds as LngLatBoundsLike, {
+        padding: 72,
+        maxZoom: CAMERA.search.maxZoom,
+        pitch: CAMERA.search.pitch,
+        bearing: CAMERA.search.bearing,
+        duration: 0,
+      });
     }
   }, [pins, mode, variant, dict, locale]);
 

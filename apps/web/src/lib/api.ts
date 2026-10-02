@@ -11,6 +11,7 @@ import type {
   Listing,
   ListingFilter,
   MapPin,
+  Footprint,
   Plan,
   Project,
   ServiceOffer,
@@ -115,3 +116,7 @@ export async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
     return fallback;
   }
 }
+
+/** Контур дома из кадастра для 3D-вида. Пустой ответ — дом не нашёлся. */
+export const propertyFootprint = (id: string) =>
+  request<Footprint>(`/properties/${encodeURIComponent(id)}/footprint`);
