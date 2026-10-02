@@ -10,6 +10,12 @@ export interface Agency {
   replyTime: number;
 }
 
+/** Экономия против рыночной цены: в евро и в процентах. */
+export interface Savings {
+  amount: number;
+  percent: number;
+}
+
 export interface Listing {
   id: string;
   slug: string;
@@ -18,6 +24,10 @@ export interface Listing {
   city: string;
   kind: PropertyKind;
   price: number;
+  /** Рыночная цена объекта — её указывает агентство вместе со своей. */
+  marketPrice?: number | null;
+  /** Насколько дешевле рынка. null — объекта в выдаче быть не должно. */
+  savings?: Savings | null;
   area: number;
   bedrooms: number;
   bathrooms: number;

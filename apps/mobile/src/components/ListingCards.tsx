@@ -3,9 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FavoriteButton } from './FavoriteButton';
 import { PlayIcon } from './Icon';
+import { PriceWithMarket, SavingsBadge } from './SavingsBadge';
 import { VerifiedBadge } from './VerifiedBadge';
 import { imageUrl } from '@/api';
-import { perM2Label, priceLabel, specsOf } from '@/format';
+import { fmt, perM2Label, priceLabel, specsOf } from '@/format';
 import { c } from '@/theme';
 import type { Listing, Mode } from '@/types';
 
@@ -22,11 +23,10 @@ export function ListingTile({ item, mode }: { item: Listing; mode: Mode }) {
     <Pressable onPress={open} style={styles.tile}>
       <View style={styles.tileMedia}>
         <Image source={{ uri: imageUrl(item.coverImage) }} style={styles.image} />
-        {item.verified && (
-          <View style={styles.badgeTopLeft}>
-            <VerifiedBadge size="sm" />
-          </View>
-        )}
+        <View style={styles.badgeTopLeft}>
+          {item.savings && mode === 'buy' && <SavingsBadge savings={item.savings} />}
+          {item.verified && <VerifiedBadge size="sm" />}
+        </View>
         <FavoriteButton listingId={item.id} size={17} />
       </View>
       <View>
@@ -46,11 +46,10 @@ export function ListingCard({ item, mode }: { item: Listing; mode: Mode }) {
     <Pressable onPress={open} style={styles.card}>
       <View style={styles.cardMedia}>
         <Image source={{ uri: imageUrl(item.coverImage) }} style={styles.image} />
-        {item.verified && (
-          <View style={styles.badgeTopLeftLarge}>
-            <VerifiedBadge size="md" />
-          </View>
-        )}
+        <View style={styles.badgeTopLeftLarge}>
+          {item.savings && mode === 'buy' && <SavingsBadge savings={item.savings} />}
+          {item.verified && <VerifiedBadge size="md" />}
+        </View>
         <FavoriteButton listingId={item.id} size={18} />
         {item.videoTour && (
           <View style={styles.videoTag}>
@@ -61,7 +60,11 @@ export function ListingCard({ item, mode }: { item: Listing; mode: Mode }) {
       </View>
       <View style={styles.cardFooter}>
         <View style={styles.cardFooterMain}>
-          <Text style={styles.cardPrice}>{priceLabel(item.price, mode)}</Text>
+          <PriceWithMarket
+            price={priceLabel(item.price, mode)}
+            marketPrice={mode === 'buy' && item.marketPrice ? fmt(item.marketPrice) : null}
+            priceStyle={styles.cardPrice}
+          />
           <Text style={styles.specsLarge}>{specsOf(item)}</Text>
           <Text style={styles.addressLarge}>{item.address}</Text>
         </View>
@@ -80,7 +83,11 @@ export function ListingRow({ item, mode }: { item: Listing; mode: Mode }) {
       <Image source={{ uri: imageUrl(item.coverImage) }} style={styles.rowImage} />
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
-          <Text style={styles.rowPrice}>{priceLabel(item.price, mode)}</Text>
+          <PriceWithMarket
+            price={priceLabel(item.price, mode)}
+            marketPrice={mode === 'buy' && item.marketPrice ? fmt(item.marketPrice) : null}
+            priceStyle={styles.rowPrice}
+          />
           <FavoriteButton listingId={item.id} variant="plain" size={20} />
         </View>
         <Text style={styles.specs}>{specsOf(item)}</Text>
@@ -108,8 +115,8 @@ const styles = StyleSheet.create({
   cardFooterMain: { flex: 1 },
   cardPrice: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: c.ink },
 
-  badgeTopLeft: { position: 'absolute', top: 10, left: 10 },
-  badgeTopLeftLarge: { position: 'absolute', top: 12, left: 12 },
+  badgeTopLeft: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', gap: 5, alignItems: 'center' },
+  badgeTopLeftLarge: { position: 'absolute', top: 12, left: 12, flexDirection: 'row', gap: 6, alignItems: 'center' },
 
   videoTag: {
     position: 'absolute',

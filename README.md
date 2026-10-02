@@ -328,10 +328,12 @@ HTTP-referrer и по списку API: он уходит в браузер и �
 Координаты объектов приходят из фидов агентств (`lat`/`lng` в выгрузке CRM).
 Объекты без координат на карту просто не попадают.
 
-В приложении — тот же MapLibre и тот же стиль CARTO через
-`@maplibre/maplibre-react-native`. Apple Maps и Google Maps отпали сразу:
-подложку Apple Maps нельзя перекрасить под макет, а Google Maps требует ключ
-и выглядит на iOS и Android по-разному.
+В приложении — тот же MapLibre и та же подложка OpenFreeMap через
+`@maplibre/maplibre-react-native`, с тем же объёмом домов и теми же метками.
+Фотореалистичных тайлов Google там нет: `Map3DElement` живёт только в вебе, а
+тащить ради него нативный SDK Google Maps означало бы вторую карту с другим
+поведением на iOS и Android. Apple Maps отпал раньше: его подложку нельзя
+перекрасить под макет.
 
 Воркер тайлов MapLibre копируется в `public/vendor/maplibre/` скриптом
 `apps/web/scripts/copy-maplibre-worker.mjs` перед `dev` и `build`: бандлер его

@@ -73,7 +73,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle}>Свежие проверенные</Text>
+          <Text style={styles.sectionTitle}>Дешевле рынка</Text>
           <Pressable onPress={() => router.push('/results')} hitSlop={8}>
             <Text style={styles.sectionLink}>Все</Text>
           </Pressable>

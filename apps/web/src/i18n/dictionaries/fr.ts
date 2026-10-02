@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const fr: Dictionary = {
   meta: {
-    title: 'Casaya — immobilier en Espagne, sans annonces fictives ni doublons',
+    title: 'Casaya — immobilier en Espagne sous le prix du marché',
     description:
-      'Biens vérifiés sur la Costa Blanca : visite vidéo, nota simple, propriétaire confirmé. Prêt immobilier, NIE, avocat et acompte sécurisé au même endroit.',
+      "Un bien reste publié tant qu'il est sous le prix du marché. Vous voyez les deux prix et votre économie. Prêt immobilier, NIE, avocat et acompte sécurisé au même endroit.",
   },
 
   nav: {
@@ -70,8 +70,8 @@ const fr: Dictionary = {
   },
 
   home: {
-    badge: '12 480 biens vérifiés sur la Costa Blanca',
-    title: 'Immobilier en Espagne sans annonces fictives ni doublons',
+    badge: '12 480 biens sous le prix du marché',
+    title: 'Immobilier en Espagne sous le prix du marché',
     searchWhere: 'Où cherchez-vous',
     searchPlaceholder: 'Ville, quartier ou rue',
     type: 'Type',
@@ -454,7 +454,7 @@ const fr: Dictionary = {
   },
 
   footer: {
-    tagline: 'Plateforme de biens vérifiés sur la Costa Blanca.',
+    tagline: 'Uniquement ce qui est sous le marché. Costa Blanca.',
     buyers: 'Acheteurs',
     professionals: 'Professionnels',
     services: 'Services',

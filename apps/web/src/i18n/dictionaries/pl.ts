@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const pl: Dictionary = {
   meta: {
-    title: 'Casaya — nieruchomości w Hiszpanii bez fałszywych i powielonych ogłoszeń',
+    title: 'Casaya — nieruchomości w Hiszpanii poniżej rynku',
     description:
-      'Sprawdzone nieruchomości na Costa Blanca: wideoprezentacja, nota simple, potwierdzony właściciel. Kredyt, NIE, prawnik i zabezpieczony zadatek w jednym miejscu.',
+      'Nieruchomość pozostaje w wynikach tylko dopóki jest tańsza niż rynek. Widzisz obie ceny i swoją oszczędność. Kredyt, NIE, prawnik i zabezpieczony zadatek w jednym miejscu.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const pl: Dictionary = {
   },
 
   home: {
-    badge: '12 480 sprawdzonych nieruchomości na Costa Blanca',
-    title: 'Nieruchomości w Hiszpanii bez fałszywek i duplikatów',
+    badge: '12 480 nieruchomości poniżej ceny rynkowej',
+    title: 'Nieruchomości w Hiszpanii poniżej ceny rynkowej',
     searchWhere: 'Gdzie szukasz',
     searchPlaceholder: 'Miasto, dzielnica lub ulica',
     type: 'Typ',
@@ -454,7 +454,7 @@ const pl: Dictionary = {
   },
 
   footer: {
-    tagline: 'Platforma sprawdzonych nieruchomości na Costa Blanca.',
+    tagline: 'Tylko to, co poniżej rynku. Costa Blanca.',
     buyers: 'Dla kupujących',
     professionals: 'Dla profesjonalistów',
     services: 'Usługi',

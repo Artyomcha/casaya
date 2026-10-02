@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const es: Dictionary = {
   meta: {
-    title: 'Casaya — pisos reales en España, sin anuncios falsos ni duplicados',
+    title: 'Casaya — vivienda en España por debajo de mercado',
     description:
-      'Inmuebles verificados en la Costa Blanca: vídeo-tour, nota simple y propietario confirmado. Hipoteca, NIE, abogado y arras protegidas en un solo sitio.',
+      'El inmueble sigue publicado solo mientras está por debajo de mercado. Ve ambos precios y tu ahorro. Hipoteca, NIE, abogado y arras protegidas en un solo sitio.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const es: Dictionary = {
   },
 
   home: {
-    badge: '12 480 inmuebles verificados en la Costa Blanca',
-    title: 'Vivienda en España sin anuncios falsos ni duplicados',
+    badge: '12 480 inmuebles por debajo de mercado',
+    title: 'Vivienda en España por debajo de mercado',
     searchWhere: 'Dónde buscas',
     searchPlaceholder: 'Ciudad, zona o calle',
     type: 'Tipo',
@@ -454,7 +454,7 @@ const es: Dictionary = {
   },
 
   footer: {
-    tagline: 'Plataforma de vivienda verificada en la Costa Blanca.',
+    tagline: 'Aquí solo lo que está por debajo de mercado. Costa Blanca.',
     buyers: 'Compradores',
     professionals: 'Profesionales',
     services: 'Servicios',

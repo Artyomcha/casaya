@@ -1,4 +1,4 @@
-import type { Listing, Mode } from './types';
+import type { Listing, Mode, Savings } from './types';
 
 export const RENT_RATIO = 0.0045;
 
@@ -21,6 +21,13 @@ export const priceLabel = (price: number, mode: Mode): string =>
 
 export const perM2Label = (l: Listing, mode: Mode): string =>
   mode === 'rent' ? 'без комиссии' : `${groupDigits(l.price / l.area)} €/м²`;
+
+/**
+ * «−11%» — короткая метка выгоды. Процент округляется до целого: десятые
+ * в бейдже не читаются, а точную разницу видно рядом двумя ценами.
+ * Минус типографский, не дефис.
+ */
+export const discountLabel = (savings: Savings): string => `−${Math.round(savings.percent)}%`;
 
 /** Короткая подпись на пине карты: «485 тыс» / «1,25 млн». */
 export const pinLabel = (price: number, mode: Mode): string => {

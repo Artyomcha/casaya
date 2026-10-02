@@ -5,9 +5,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FiltersSheet } from '@/components/FiltersSheet';
 import { Icon } from '@/components/Icon';
 import { PropertyMap, type Pinned, type PropertyMapHandle } from '@/components/PropertyMap';
+import { PriceWithMarket, SavingsBadge } from '@/components/SavingsBadge';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { imageUrl } from '@/api';
-import { countLabel, perM2Label, priceLabel, specsOf } from '@/format';
+import { countLabel, fmt, perM2Label, priceLabel, specsOf } from '@/format';
 import { useApp } from '@/state/AppState';
 import { c, ICON, TAB_BAR_SPACE } from '@/theme';
 import type { Listing } from '@/types';
@@ -68,8 +69,15 @@ export default function MapScreen() {
         >
           <Image source={{ uri: imageUrl(selected.coverImage) }} style={styles.cardImage} />
           <View style={styles.cardBody}>
-            {selected.verified && <VerifiedBadge size="sm" tinted />}
-            <Text style={styles.cardPrice}>{priceLabel(selected.price, mode)}</Text>
+            <View style={styles.cardBadges}>
+              {mode === 'buy' && selected.savings && <SavingsBadge savings={selected.savings} />}
+              {selected.verified && <VerifiedBadge size="sm" tinted />}
+            </View>
+            <PriceWithMarket
+              price={priceLabel(selected.price, mode)}
+              marketPrice={mode === 'buy' && selected.marketPrice ? fmt(selected.marketPrice) : null}
+              priceStyle={styles.cardPrice}
+            />
             <Text style={styles.cardSpecs}>{specsOf(selected)}</Text>
             <Text style={styles.cardAddress}>
               {selected.address} · {perM2Label(selected, mode)}
@@ -159,6 +167,7 @@ const styles = StyleSheet.create({
   },
   cardImage: { width: 112, height: 112, borderRadius: 16 },
   cardBody: { flex: 1, paddingVertical: 4, gap: 3 },
+  cardBadges: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   cardPrice: { fontSize: 19, fontWeight: '700', letterSpacing: -0.4, color: c.ink, marginTop: 4 },
   cardSpecs: { fontSize: 13, color: c.inkSoft },
   cardAddress: { fontSize: 13, color: c.grey },

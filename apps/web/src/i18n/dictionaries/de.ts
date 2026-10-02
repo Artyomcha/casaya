@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const de: Dictionary = {
   meta: {
-    title: 'Casaya — Immobilien in Spanien ohne Fake- und Doppelinserate',
+    title: 'Casaya — Immobilien in Spanien unter Marktwert',
     description:
-      'Geprüfte Objekte an der Costa Blanca: Videotour, Nota simple, bestätigter Eigentümer. Finanzierung, NIE, Anwalt und gesicherte Anzahlung an einem Ort.',
+      'Ein Objekt bleibt nur gelistet, solange es unter Marktwert liegt. Sie sehen beide Preise und Ihre Ersparnis. Finanzierung, NIE, Anwalt und gesicherte Anzahlung an einem Ort.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const de: Dictionary = {
   },
 
   home: {
-    badge: '12.480 geprüfte Objekte an der Costa Blanca',
-    title: 'Immobilien in Spanien ohne Fakes und Doppelinserate',
+    badge: '12.480 Objekte unter Marktwert',
+    title: 'Immobilien in Spanien unter Marktwert',
     searchWhere: 'Wo suchen Sie',
     searchPlaceholder: 'Stadt, Viertel oder Straße',
     type: 'Typ',
@@ -454,7 +454,7 @@ const de: Dictionary = {
   },
 
   footer: {
-    tagline: 'Plattform für geprüfte Immobilien an der Costa Blanca.',
+    tagline: 'Nur was unter Marktwert liegt. Costa Blanca.',
     buyers: 'Für Käufer',
     professionals: 'Für Profis',
     services: 'Services',

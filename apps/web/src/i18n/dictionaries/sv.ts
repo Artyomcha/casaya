@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const sv: Dictionary = {
   meta: {
-    title: 'Casaya — bostäder i Spanien utan falska eller dubblerade annonser',
+    title: 'Casaya — bostäder i Spanien under marknadspris',
     description:
-      'Kontrollerade bostäder på Costa Blanca: videovisning, nota simple, bekräftad ägare. Bolån, NIE, jurist och skyddad handpenning på ett och samma ställe.',
+      'Ett objekt ligger kvar i listan bara så länge det är under marknadspris. Du ser båda priserna och vad du sparar. Bolån, NIE, jurist och skyddad handpenning på ett ställe.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const sv: Dictionary = {
   },
 
   home: {
-    badge: '12 480 kontrollerade bostäder på Costa Blanca',
-    title: 'Bostäder i Spanien utan falska eller dubblerade annonser',
+    badge: '12 480 bostäder under marknadspris',
+    title: 'Bostäder i Spanien under marknadspris',
     searchWhere: 'Var söker du',
     searchPlaceholder: 'Stad, område eller gata',
     type: 'Typ',
@@ -454,7 +454,7 @@ const sv: Dictionary = {
   },
 
   footer: {
-    tagline: 'Plattform för kontrollerade bostäder på Costa Blanca.',
+    tagline: 'Bara det som ligger under marknadspris. Costa Blanca.',
     buyers: 'För köpare',
     professionals: 'För proffs',
     services: 'Tjänster',

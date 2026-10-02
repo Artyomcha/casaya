@@ -1,7 +1,7 @@
-import { Camera, type CameraRef, Map, Marker } from '@maplibre/maplibre-react-native';
+import { Camera, type CameraRef, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
 import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { BASEMAP_STYLE, COSTA_BLANCA } from './mapStyle';
+import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_BLANCA } from './mapStyle';
 import { pinLabel } from '@/format';
 import { c } from '@/theme';
 import type { Listing, Mode } from '@/types';
@@ -64,17 +64,28 @@ export const PropertyMap = forwardRef<PropertyMapHandle, Props>(function Propert
       dragPan={!compact}
       touchZoom={!compact}
       doubleTapZoom={!compact}
-      touchRotate={false}
-      touchPitch={false}
+      touchRotate={!compact}
+      touchPitch={!compact}
     >
+      {/* Объём добавляется поверх готового стиля: в нём уже есть источник
+          openmaptiles с высотами домов, своего грузить не надо. */}
+      <Layer {...BUILDINGS_3D} />
+
       <Camera
         ref={camera}
         initialViewState={
           bounds && !compact
-            ? { bounds, padding: { top: 150, right: 40, bottom: 250, left: 40 } }
+            ? {
+                bounds,
+                padding: { top: 150, right: 40, bottom: 250, left: 40 },
+                pitch: CAMERA.search.pitch,
+                bearing: CAMERA.search.bearing,
+              }
             : {
                 center: first ? [first.lng, first.lat] : COSTA_BLANCA.center,
-                zoom: compact ? 13.5 : COSTA_BLANCA.zoom,
+                zoom: compact ? CAMERA.single.zoom : COSTA_BLANCA.zoom,
+                pitch: compact ? CAMERA.single.pitch : CAMERA.search.pitch,
+                bearing: compact ? CAMERA.single.bearing : CAMERA.search.bearing,
               }
         }
       />

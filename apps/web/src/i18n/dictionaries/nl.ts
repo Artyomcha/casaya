@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const nl: Dictionary = {
   meta: {
-    title: 'Casaya — huizen in Spanje zonder nepadvertenties en dubbele aanbiedingen',
+    title: 'Casaya — woningen in Spanje onder de marktprijs',
     description:
-      'Gecontroleerde woningen aan de Costa Blanca: videotour, nota simple, bevestigde eigenaar. Hypotheek, NIE, advocaat en beschermde aanbetaling op één plek.',
+      'Een woning blijft in de lijst zolang die onder de marktprijs ligt. U ziet beide prijzen en uw voordeel. Hypotheek, NIE, advocaat en beschermde aanbetaling op één plek.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const nl: Dictionary = {
   },
 
   home: {
-    badge: '12.480 gecontroleerde woningen aan de Costa Blanca',
-    title: 'Huizen in Spanje zonder nep en dubbele advertenties',
+    badge: '12 480 woningen onder de marktprijs',
+    title: 'Woningen in Spanje onder de marktprijs',
     searchWhere: 'Waar zoekt u',
     searchPlaceholder: 'Plaats, wijk of straat',
     type: 'Type',
@@ -454,7 +454,7 @@ const nl: Dictionary = {
   },
 
   footer: {
-    tagline: 'Platform voor gecontroleerde woningen aan de Costa Blanca.',
+    tagline: 'Alleen wat onder de marktprijs ligt. Costa Blanca.',
     buyers: 'Voor kopers',
     professionals: 'Voor professionals',
     services: 'Diensten',

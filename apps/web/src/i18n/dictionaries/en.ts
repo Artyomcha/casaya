@@ -2,9 +2,9 @@ import type { Dictionary } from './ru';
 
 const en: Dictionary = {
   meta: {
-    title: 'Casaya — Spanish property with no fake or duplicate listings',
+    title: 'Casaya — Spanish property below market price',
     description:
-      'Verified homes on the Costa Blanca: video tour, nota simple, confirmed owner. Mortgage, NIE, lawyer and protected deposit in one place.',
+      'A home stays listed only while it is below the market price. You see both prices and what you save. Mortgage, NIE, lawyer and protected deposit in one place.',
   },
 
   nav: {
@@ -70,8 +70,8 @@ const en: Dictionary = {
   },
 
   home: {
-    badge: '12,480 verified properties on the Costa Blanca',
-    title: 'Spanish property with no fakes and no duplicates',
+    badge: '12,480 homes below the market price',
+    title: 'Spanish property below the market price',
     searchWhere: 'Where',
     searchPlaceholder: 'City, area or street',
     type: 'Type',
@@ -454,7 +454,7 @@ const en: Dictionary = {
   },
 
   footer: {
-    tagline: 'Verified property on the Costa Blanca.',
+    tagline: 'Only what is below market. Costa Blanca.',
     buyers: 'For buyers',
     professionals: 'For professionals',
     services: 'Services',

@@ -6,9 +6,10 @@ import Svg, { Path } from 'react-native-svg';
 import { Icon, PlayIcon } from '@/components/Icon';
 import { PropertyMap, type Pinned } from '@/components/PropertyMap';
 import { Sheet } from '@/components/Sheet';
+import { SavingsBadge } from '@/components/SavingsBadge';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { api, imageUrl } from '@/api';
-import { fmt, initialsOf, monthlyPayment, perM2Label, priceLabel } from '@/format';
+import { discountLabel, fmt, initialsOf, monthlyPayment, perM2Label, priceLabel } from '@/format';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 import type { Listing } from '@/types';
@@ -55,6 +56,8 @@ export default function ListingScreen() {
 
   const fav = isFavorite(listing.id);
   const { monthly } = monthlyPayment(listing.price, 30, 25);
+  // В аренде экономия не показывается: рыночная цена задана для продажи.
+  const savings = mode === 'buy' ? (listing.savings ?? null) : null;
   const facts = [
     { value: String(listing.area), label: 'м²' },
     { value: String(listing.bedrooms), label: 'спальни' },
@@ -116,11 +119,39 @@ export default function ListingScreen() {
         <View style={styles.sheet}>
           <View style={styles.priceRow}>
             <View>
-              <Text style={styles.price}>{priceLabel(listing.price, mode)}</Text>
+              <View style={styles.priceLine}>
+                <Text style={styles.price}>{priceLabel(listing.price, mode)}</Text>
+                {savings && <SavingsBadge savings={savings} size="md" />}
+              </View>
               <Text style={styles.perM2}>{perM2Label(listing, mode)}</Text>
             </View>
             {listing.verified && <VerifiedBadge size="lg" tinted />}
           </View>
+
+          {/* Три строки вместо лозунга: обе цены и разница между ними.
+              Обещание «дешевле рынка» должно быть проверяемым прямо здесь. */}
+          {savings && listing.marketPrice && (
+            <View style={styles.savings}>
+              <View style={styles.savingsRow}>
+                <Text style={styles.savingsLabel}>На Casaya</Text>
+                <Text style={styles.savingsStrong}>{fmt(listing.price)}</Text>
+              </View>
+              <View style={styles.savingsRow}>
+                <Text style={styles.savingsLabel}>Рыночная цена</Text>
+                <Text style={styles.savingsMarket}>{fmt(listing.marketPrice)}</Text>
+              </View>
+              <View style={styles.savingsLine} />
+              <View style={styles.savingsRow}>
+                <Text style={styles.savingsAccentLabel}>Экономия</Text>
+                <Text style={styles.savingsAccent}>
+                  {fmt(savings.amount)} · {discountLabel(savings)}
+                </Text>
+              </View>
+              <Text style={styles.savingsNote}>
+                На Casaya объект держится в выдаче, только пока он дешевле рынка.
+              </Text>
+            </View>
+          )}
 
           <View>
             <Text style={styles.title}>{listing.title}</Text>
@@ -286,6 +317,17 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+  priceLine: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
+
+  savings: { borderWidth: 1, borderColor: c.line, borderRadius: 16, padding: 14, gap: 8 },
+  savingsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 },
+  savingsLabel: { fontSize: 14, color: c.grey },
+  savingsStrong: { fontSize: 17, fontWeight: '700', color: c.ink },
+  savingsMarket: { fontSize: 15, color: c.grey, textDecorationLine: 'line-through' },
+  savingsLine: { height: 1, backgroundColor: c.lineSoft },
+  savingsAccentLabel: { fontSize: 14, color: c.greenText },
+  savingsAccent: { fontSize: 17, fontWeight: '700', color: c.greenText },
+  savingsNote: { fontSize: 12, color: c.grey, lineHeight: 17 },
   price: { fontSize: 28, fontWeight: '700', letterSpacing: -1.1, color: c.ink },
   perM2: { fontSize: 14, color: c.grey, marginTop: 2 },
   title: { fontSize: 19, fontWeight: '600', letterSpacing: -0.4, color: c.ink },
