@@ -156,7 +156,7 @@ export default function ListingScreen() {
           <View>
             <Text style={styles.title}>{listing.title}</Text>
             <Text style={styles.address}>
-              {listing.address}, {listing.city}
+              {fullAddress(listing.address, listing.city)}
             </Text>
           </View>
 
@@ -423,3 +423,11 @@ const styles = StyleSheet.create({
   cancelBtn: { backgroundColor: c.surfaceAlt, borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
   cancelBtnText: { color: c.ink, fontSize: 16, fontWeight: '600' },
 });
+
+/**
+ * Адрес объекта уже содержит город («Centro, Марбелья»), и дописывать его
+ * второй раз не нужно — выходило «Centro, Марбелья, Марбелья».
+ */
+function fullAddress(address: string, city: string): string {
+  return address.toLowerCase().includes(city.toLowerCase()) ? address : `${address}, ${city}`;
+}

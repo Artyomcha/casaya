@@ -16,6 +16,14 @@ struct Pin3D: Identifiable, Decodable {
 struct PricePill: View {
   let text: String
 
+  /**
+   * Снимок вида карта кладёт на экран пиксель в пункт: на Retina метка
+   * выходит втрое крупнее задуманного. Поэтому рисуем её уменьшенной ровно
+   * во столько раз, во сколько плотный экран, — после растеризации получается
+   * нужный размер.
+   */
+  private var snapshotScale: CGFloat { 1 / max(UIScreen.main.scale, 1) }
+
   private static let purple = Color(red: 0.427, green: 0.231, blue: 0.961)
   private static let ink = Color(red: 0.090, green: 0.067, blue: 0.169)
   private static let hairline = Color(red: 0.937, green: 0.925, blue: 0.957)
@@ -51,6 +59,7 @@ struct PricePill: View {
         .overlay(Circle().stroke(Color.white, lineWidth: 2))
         .frame(width: 9, height: 9)
     }
+    .scaleEffect(snapshotScale)
   }
 }
 
