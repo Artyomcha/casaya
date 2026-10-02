@@ -16,6 +16,9 @@ class CasayaMaps3dModule : Module() {
       Prop("pins") { view: CasayaMaps3dView, value: String ->
         view.setPins(value)
       }
+      Prop("camera") { view: CasayaMaps3dView, value: String ->
+        view.setCamera(value)
+      }
       Prop("variant") { view: CasayaMaps3dView, value: String ->
         view.setVariant(value)
       }

@@ -1,4 +1,28 @@
+import GoogleMaps3D
 import SwiftUI
+
+/** Камера: центр, наклон, азимут и охват — всё посчитано в JS. */
+struct Camera3D: Decodable {
+  let lat: Double
+  let lng: Double
+  let altitude: Double
+  let heading: Double
+  let tilt: Double
+  let range: Double
+  /// ground — высота от земли, иначе от уровня моря.
+  let altitudeMode: String
+
+  var camera: Camera {
+    Camera(
+      center: .init(latitude: lat, longitude: lng, altitude: altitude),
+      heading: heading,
+      tilt: tilt,
+      roll: 0,
+      range: range,
+      altitudeMode: altitudeMode == "ground" ? .relativeToGround : .absolute,
+    )
+  }
+}
 
 /** Метка с ценой: ровно то, что приходит из JS. */
 struct Pin3D: Identifiable, Decodable {

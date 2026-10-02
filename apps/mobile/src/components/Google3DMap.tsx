@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { CasayaMaps3dView } from '../../modules/casaya-maps3d';
+import { cameraFor } from './cameraFit';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
 import type { Mode } from '@/types';
@@ -27,10 +28,23 @@ export const Google3DMap = forwardRef<PropertyMapHandle, Props>(function Google3
   ref,
 ) {
   const [variant] = useState<'search' | 'single'>(compact ? 'single' : 'search');
+  // Пропорции нужны для охвата выдачи: на узком экране по горизонтали
+  // помещается меньше, чем по вертикали.
+  const [aspect, setAspect] = useState(1);
 
-  // Камеру под набор меток считает нативная сторона — там же, где рисуется
-  // карта, иначе пришлось бы гонять границы туда-обратно на каждый кадр.
+  // Камеру считает JS и отдаёт готовой: так формула одна на обе платформы
+  // и подбирается перезагрузкой, а не пересборкой.
   useImperativeHandle(ref, () => ({ fit: () => undefined }));
+
+  const camera = useMemo(
+    () => JSON.stringify(cameraFor(pins, variant, aspect)),
+    [pins, variant, aspect],
+  );
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (height > 0) setAspect(width / height);
+  };
 
   const payload = useMemo(
     () =>
@@ -46,11 +60,12 @@ export const Google3DMap = forwardRef<PropertyMapHandle, Props>(function Google3
   );
 
   return (
-    <View style={StyleSheet.absoluteFill}>
+    <View style={StyleSheet.absoluteFill} onLayout={onLayout}>
       <CasayaMaps3dView
         style={styles.map}
         apiKey={GOOGLE_KEY}
         pins={payload}
+        camera={camera}
         variant={variant}
         onSelectPin={(event) => onSelect?.(event.nativeEvent.id)}
       />

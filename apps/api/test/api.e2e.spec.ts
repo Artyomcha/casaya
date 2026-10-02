@@ -85,13 +85,26 @@ describe('продвижение', () => {
 
   it('в копии — цена и агентство того, кто заплатил', async () => {
     if (!alive) return;
-    const d = await get<{ items: { id: string; promoted: boolean; price: number; agency: { name: string } }[] }>(
-      '/listings',
-    );
+    const d = await get<{
+      items: { id: string; propertyId: string | null; promoted: boolean; price: number; agency: { name: string } }[];
+    }>('/listings');
+
     const paid = d.items.find((i) => i.id === 'l3-dup-1');
     expect(paid?.promoted).toBe(true);
     expect(paid?.agency.name).toBe('Costa Living');
-    expect(paid?.price).toBe(295_000);
+
+    // Цену не задаём числом: она зависит от сида и ломает тест при любой
+    // правке данных. Важно другое — в оплаченной копии стоит цена самого
+    // плательщика, а не та, что показана в общей карточке объекта.
+    const offers = await get<{ offers: { id: string; price: number }[] }>(
+      `/properties/${paid!.propertyId}/offers`,
+    );
+    const own = offers.offers.find((o) => o.id === 'l3-dup-1');
+    expect(own).toBeDefined();
+    expect(paid?.price).toBe(own?.price);
+
+    const organic = d.items.find((i) => i.propertyId === paid?.propertyId && !i.promoted);
+    expect(organic?.price).not.toBe(paid?.price);
   });
 
   it('объект остаётся и в обычной выдаче — копия его не заменяет', async () => {

@@ -13,6 +13,8 @@ export interface NativePin {
 export interface CasayaMaps3dViewProps {
   /** JSON с метками: одна форма данных на всех платформах. */
   pins: string;
+  /** JSON с камерой: центр, наклон, азимут и охват считает JS. */
+  camera: string;
   variant: 'search' | 'single';
   apiKey: string;
   onSelectPin?: (event: { nativeEvent: { id: string } }) => void;

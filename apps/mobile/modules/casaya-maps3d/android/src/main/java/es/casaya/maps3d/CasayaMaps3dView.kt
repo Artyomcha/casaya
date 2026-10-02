@@ -10,6 +10,7 @@ import com.google.android.gms.maps3d.Map3DView
 import com.google.android.gms.maps3d.OnMap3DClickListener
 import com.google.android.gms.maps3d.OnMap3DViewReadyCallback
 import com.google.android.gms.maps3d.model.AltitudeMode
+import com.google.android.gms.maps3d.model.Camera
 import com.google.android.gms.maps3d.model.CollisionBehavior
 import com.google.android.gms.maps3d.model.Glyph
 import com.google.android.gms.maps3d.model.Map3DMode
@@ -21,6 +22,7 @@ import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Нативная 3D-карта Google внутри React Native.
@@ -33,6 +35,9 @@ import org.json.JSONArray
  * принимает либо цвет с глифом, либо drawable из ресурсов, а цена у каждого
  * объекта своя и в ресурсы её не положишь.
  */
+/** Метка с ценой — ровно то, что приходит из JS. */
+data class Pin3D(val id: String, val label: String, val lat: Double, val lng: Double)
+
 class CasayaMaps3dView(context: Context, appContext: AppContext) :
   ExpoView(context, appContext), OnMap3DViewReadyCallback {
 
@@ -43,6 +48,7 @@ class CasayaMaps3dView(context: Context, appContext: AppContext) :
   private val markers = mutableListOf<Marker>()
 
   private var pins: List<Pin3D> = emptyList()
+  private var camera: Camera? = null
   private var variant = "search"
 
   /** Фирменный фиолетовый Casaya. */
@@ -90,6 +96,30 @@ class CasayaMaps3dView(context: Context, appContext: AppContext) :
     draw()
   }
 
+  /** Камеру считает JS: одна формула на обе платформы. */
+  fun setCamera(json: String) {
+    runCatching {
+      val o = JSONObject(json)
+      camera = Camera(
+        latLngAltitude {
+          latitude = o.getDouble("lat")
+          longitude = o.getDouble("lng")
+          altitude = o.getDouble("altitude")
+        },
+        o.getDouble("heading"),
+        o.getDouble("tilt"),
+        0.0,
+        o.getDouble("range"),
+        if (o.getString("altitudeMode") == "ground") {
+          AltitudeMode.RELATIVE_TO_GROUND
+        } else {
+          AltitudeMode.ABSOLUTE
+        },
+      )
+    }
+    draw()
+  }
+
   fun setVariant(value: String) {
     variant = value
     draw()
@@ -114,6 +144,7 @@ class CasayaMaps3dView(context: Context, appContext: AppContext) :
 
   private fun draw() {
     val googleMap3D = map ?: return
+    val view = camera ?: return
     if (pins.isEmpty() || width == 0 || height == 0) return
 
     val single = variant == "single"
@@ -125,7 +156,7 @@ class CasayaMaps3dView(context: Context, appContext: AppContext) :
     for (marker in markers) marker.remove()
     markers.clear()
 
-    googleMap3D.setCamera(CameraFit.camera(pins, variant, width.toDouble() / height))
+    googleMap3D.setCamera(view)
 
     for (pin in pins) {
       val marker = googleMap3D.addMarker(

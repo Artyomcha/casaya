@@ -12,6 +12,7 @@ public final class CasayaMaps3dView: ExpoView {
   let onSelectPin = EventDispatcher()
 
   private var pins: [Pin3D] = []
+  private var camera: Camera3D?
   private var variant = "search"
   private var host: UIHostingController<AnyView>?
 
@@ -36,6 +37,14 @@ public final class CasayaMaps3dView: ExpoView {
     render()
   }
 
+  func setCamera(_ json: String) {
+    guard let data = json.data(using: .utf8),
+      let parsed = try? JSONDecoder().decode(Camera3D.self, from: data)
+    else { return }
+    camera = parsed
+    render()
+  }
+
   func setVariant(_ value: String) {
     variant = value
     render()
@@ -48,15 +57,13 @@ public final class CasayaMaps3dView: ExpoView {
   }
 
   private func render() {
-    guard !pins.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
+    guard !pins.isEmpty, let camera, bounds.width > 0, bounds.height > 0 else { return }
 
-    let aspect = Double(bounds.width / bounds.height)
-    let camera = CameraFit.camera(for: pins, variant: variant, aspect: aspect)
     let single = variant == "single"
     let select: (String) -> Void = { [weak self] id in self?.onSelectPin(["id": id]) }
 
     let root = AnyView(
-      MapScene(pins: pins, camera: camera, single: single, onSelect: select)
+      MapScene(pins: pins, camera: camera.camera, single: single, onSelect: select)
         .ignoresSafeArea()
     )
 

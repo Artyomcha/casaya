@@ -23,6 +23,11 @@ interface Props {
 
 /** Карточка объекта — камера на уровне крыш, чуть сбоку. */
 const SINGLE_CAMERA = { range: 620, tilt: 46, heading: 25 };
+/**
+ * Насколько отодвинуть точку обзора от камеры, в долях range.
+ * Доля, а не метры: при другом охвате смещение должно меняться вместе с ним.
+ */
+const SINGLE_CENTER_SHIFT = 0.24;
 /** Выдача — вид сверху под небольшим наклоном, чтобы читались берег и горы. */
 const SEARCH_CAMERA = { tilt: 35, heading: 0 };
 /** Запас вокруг крайних объектов, иначе метки прижимаются к краю кадра. */
@@ -45,6 +50,33 @@ const PIN_PLACEMENT = {
 
 const EARTH_RADIUS_M = 6_371_000;
 const toRad = (deg: number) => (deg * Math.PI) / 180;
+const toDeg = (rad: number) => (rad * 180) / Math.PI;
+
+/**
+ * Сдвиг точки на заданное расстояние по азимуту.
+ *
+ * Нужен, чтобы объект оказался в середине кадра. Камера смотрит на center,
+ * но при наклоне точка обзора уходит в верхнюю часть окна: чем сильнее
+ * наклон, тем выше. Отодвигаем точку обзора от камеры — объект, который
+ * теперь ближе неё, опускается к центру.
+ */
+function offsetPoint(lat: number, lng: number, bearingDeg: number, meters: number) {
+  const angular = meters / EARTH_RADIUS_M;
+  const bearing = toRad(bearingDeg);
+  const lat1 = toRad(lat);
+  const lng1 = toRad(lng);
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(angular) + Math.cos(lat1) * Math.sin(angular) * Math.cos(bearing),
+  );
+  const lng2 =
+    lng1 +
+    Math.atan2(
+      Math.sin(bearing) * Math.sin(angular) * Math.cos(lat1),
+      Math.cos(angular) - Math.sin(lat1) * Math.sin(lat2),
+    );
+  return { lat: toDeg(lat2), lng: toDeg(lng2) };
+}
 
 /** Расстояние по большому кругу — им считаем, какой охват нужен камере. */
 function distanceMeters(a: [number, number], b: [number, number]): number {
@@ -119,7 +151,13 @@ export function Google3DMap({
 
         const camera =
           variant === 'single'
-            ? { center: { lat: pins[0].lat, lng: pins[0].lng, altitude: 0 }, ...SINGLE_CAMERA }
+            ? {
+                center: {
+                  ...offsetPoint(pins[0].lat, pins[0].lng, SINGLE_CAMERA.heading, SINGLE_CAMERA.range * SINGLE_CENTER_SHIFT),
+                  altitude: 0,
+                },
+                ...SINGLE_CAMERA,
+              }
             : fitCamera(pins, container.clientWidth / Math.max(container.clientHeight, 1));
 
         const map = new maps3d.Map3DElement({
