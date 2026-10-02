@@ -1,7 +1,7 @@
 import { Camera, type CameraRef, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { GOOGLE_3D, Google3DMap } from './Google3DMap';
+import { GOOGLE_KEY, Google3DMap } from './Google3DMap';
 import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_BLANCA } from './mapStyle';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
@@ -20,10 +20,10 @@ interface Props {
 export type { Pinned, PropertyMapHandle } from './mapTypes';
 
 /**
- * Карта объектов. По умолчанию — фотореалистичный 3D Google, как на портале.
- * Если он не загрузился (нет сети, нет ключа, кончилась квота), экран молча
- * переходит на бесплатную векторную подложку с теми же объёмными домами и
- * теми же метками: без карты приложение выглядит сломанным.
+ * Карта объектов. По умолчанию — фотореалистичный 3D Google через нативный
+ * Maps 3D SDK. Без ключа (или если карта не поднялась) экран молча переходит
+ * на бесплатную векторную подложку с теми же объёмными домами и теми же
+ * метками: без карты приложение выглядит сломанным.
  */
 export const PropertyMap = forwardRef<PropertyMapHandle, Props>(function PropertyMap(
   props,
@@ -31,7 +31,7 @@ export const PropertyMap = forwardRef<PropertyMapHandle, Props>(function Propert
 ) {
   const [googleFailed, setGoogleFailed] = useState(false);
 
-  if (GOOGLE_3D && !googleFailed && props.pins.length) {
+  if (GOOGLE_KEY && !googleFailed && props.pins.length) {
     return (
       <Google3DMap
         ref={ref}

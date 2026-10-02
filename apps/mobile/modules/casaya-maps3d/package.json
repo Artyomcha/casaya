@@ -1,0 +1,7 @@
+{
+  "name": "casaya-maps3d",
+  "version": "1.0.0",
+  "description": "Фотореалистичная 3D-карта Google нативно: Maps 3D SDK для iOS и Android",
+  "main": "index.ts",
+  "private": true
+}

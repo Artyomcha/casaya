@@ -29,8 +29,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Статика, картинки и служебные пути языкового префикса не получают.
-  // embed — карта для WebView приложения, язык ей приходит параметром.
-  matcher: ['/((?!_next|api|embed|img|vendor|favicon.ico|robots.txt|sitemap.xml).*)'],
+  matcher: ['/((?!_next|api|img|vendor|favicon.ico|robots.txt|sitemap.xml).*)'],
 };
 
 export { DEFAULT_LOCALE, LOCALE_COOKIE };

@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group = 'es.casaya.maps3d'
+version = '1.0.0'
+
+android {
+  namespace 'es.casaya.maps3d'
+  compileSdk 36
+
+  defaultConfig {
+    // Maps 3D SDK ниже Android 8 не собирается.
+    minSdk 26
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+
+  kotlinOptions {
+    jvmTarget = '17'
+    // play-services-maps3d собран Kotlin 2.3, а Expo 54 держит 2.1.
+    // Проверку версии метаданных снимаем только для своего модуля:
+    // публичный API SDK совместим, ломается лишь формальная сверка.
+    freeCompilerArgs += ['-Xskip-metadata-version-check']
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+dependencies {
+  implementation project(':expo-modules-core')
+  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+  implementation 'com.google.android.gms:play-services-maps3d:0.2.2'
+}

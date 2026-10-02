@@ -17,3 +17,8 @@ Casaya App.html
 
 # Загруженные пользователями файлы
 apps/api/public/uploads/
+
+# xcframework Maps 3D SDK качается скриптом, в репозиторий не кладём (49 МБ)
+apps/mobile/modules/casaya-maps3d/ios/Frameworks/
+apps/mobile/modules/*/android/build/
+apps/mobile/android/local.properties

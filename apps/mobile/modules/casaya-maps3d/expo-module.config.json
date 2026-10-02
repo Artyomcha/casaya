@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["CasayaMaps3dModule"] },
+  "android": { "modules": ["es.casaya.maps3d.CasayaMaps3dModule"] }
+}

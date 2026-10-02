@@ -1,0 +1,1 @@
+https://dl.google.com/geosdk/maps3d/0.2.1/GoogleMaps3d_3p.xcframework.zip

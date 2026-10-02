@@ -1,23 +1,16 @@
-import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { CasayaMaps3dView } from '../../modules/casaya-maps3d';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
+import { pinLabel } from '@/format';
 import type { Mode } from '@/types';
 
 /**
- * Фотореалистичный 3D Google. Рисует его страница портала /embed/map3d,
- * а приложение показывает её в WebView.
- *
- * Своей копии карты здесь нет нарочно: Map3DElement — веб-компонент Maps
- * JavaScript API, нативного аналога у него нет, а второй реализацией на
- * нативном SDK мы получили бы две разные карты на iOS и Android. Заодно
- * ключ Google остаётся на нашем домене: он ограничивается по HTTP-referrer,
- * а у локального html внутри WebView нужного referrer нет.
+ * Фотореалистичная 3D-карта Google, нативно: Maps 3D SDK для iOS и Android
+ * через собственный модуль modules/casaya-maps3d. Метки там свои — та же
+ * белая таблетка с ценой, что на портале, а не стандартная капля Google.
  */
-export const EMBED_URL = process.env.EXPO_PUBLIC_EMBED_URL ?? 'http://localhost:3100/embed/map3d';
-
-/** Выключатель на случай оффлайн-сборки или кончившейся квоты Google. */
-export const GOOGLE_3D = process.env.EXPO_PUBLIC_GOOGLE_3D !== '0';
+export const GOOGLE_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY ?? '';
 
 interface Props {
   pins: Pinned[];
@@ -29,79 +22,42 @@ interface Props {
   onFail?: () => void;
 }
 
-/** В адрес уезжает только то, что карте нужно: метка, цена и координаты. */
-const toPayload = (pins: Pinned[]) =>
-  pins.map((p) => ({
-    id: p.id,
-    slug: p.slug,
-    title: p.title,
-    address: p.address,
-    price: p.price,
-    lat: p.lat,
-    lng: p.lng,
-    kind: p.kind,
-    bedrooms: p.bedrooms,
-    area: p.area,
-    coverImage: '',
-    verified: p.verified,
-  }));
-
 export const Google3DMap = forwardRef<PropertyMapHandle, Props>(function Google3DMap(
-  { pins, mode, onSelect, compact = false, onFail },
+  { pins, mode, onSelect, compact = false },
   ref,
 ) {
-  const web = useRef<WebView>(null);
-  const [failed, setFailed] = useState(false);
+  const [variant] = useState<'search' | 'single'>(compact ? 'single' : 'search');
 
-  // Подгонку камеры делает сама страница по набору меток, поэтому ручке
-  // здесь делать нечего — но экран карты вызывает fit() вслепую.
+  // Камеру под набор меток считает нативная сторона — там же, где рисуется
+  // карта, иначе пришлось бы гонять границы туда-обратно на каждый кадр.
   useImperativeHandle(ref, () => ({ fit: () => undefined }));
 
-  const uri = useMemo(() => {
-    const query = new URLSearchParams({
-      variant: compact ? 'single' : 'search',
-      mode,
-      locale: 'ru',
-      pins: JSON.stringify(toPayload(pins)),
-    });
-    return `${EMBED_URL}?${query.toString()}`;
-  }, [pins, mode, compact]);
-
-  function onMessage(event: WebViewMessageEvent) {
-    try {
-      const data = JSON.parse(event.nativeEvent.data) as { type?: string; id?: string | null };
-      if (data.type === 'select' && data.id) onSelect?.(data.id);
-    } catch {
-      /* чужое сообщение из страницы — игнорируем */
-    }
-  }
-
-  if (failed) return null;
+  const payload = useMemo(
+    () =>
+      JSON.stringify(
+        pins.map((p) => ({
+          id: p.id,
+          label: pinLabel(p.price, mode),
+          lat: p.lat,
+          lng: p.lng,
+        })),
+      ),
+    [pins, mode],
+  );
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      <WebView
-        ref={web}
-        source={{ uri }}
-        style={styles.web}
-        // Карта рисуется в WebGL и держит собственный жестовый слой.
-        scrollEnabled={false}
-        bounces={false}
-        originWhitelist={['https://*', 'http://*']}
-        onMessage={onMessage}
-        onError={() => {
-          setFailed(true);
-          onFail?.();
-        }}
-        onHttpError={() => {
-          setFailed(true);
-          onFail?.();
-        }}
+      <CasayaMaps3dView
+        style={styles.map}
+        apiKey={GOOGLE_KEY}
+        pins={payload}
+        variant={variant}
+        onSelectPin={(event) => onSelect?.(event.nativeEvent.id)}
       />
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  web: { flex: 1, backgroundColor: '#EEF0F4' },
+  map: { flex: 1, backgroundColor: '#EEF0F4' },
 });
