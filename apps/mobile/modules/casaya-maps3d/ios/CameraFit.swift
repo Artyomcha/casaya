@@ -28,8 +28,10 @@ enum CameraFit {
   }
 
   static func camera(for pins: [Pin3D], variant: String, aspect: Double) -> Camera {
+    // Без меток показываем Коста-дель-Соль целиком: Эстепона — Эльвирия
+    // укладываются примерно в 45 км, дальше смотреть не на что.
     guard let first = pins.first else {
-      return Camera(center: .init(latitude: 38.4, longitude: -0.4), heading: 0, tilt: 45, range: 200_000)
+      return Camera(center: .init(latitude: 36.5, longitude: -4.95), heading: 0, tilt: 45, range: 120_000)
     }
 
     if variant == "single" {

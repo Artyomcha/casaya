@@ -41,11 +41,13 @@ object CameraFit {
 
   fun camera(pins: List<Pin3D>, variant: String, aspect: Double): Camera {
     val first = pins.firstOrNull()
+      // Без меток показываем Коста-дель-Соль целиком: Эстепона — Эльвирия
+      // укладываются примерно в 45 км, дальше смотреть не на что.
       ?: return camera {
-        center = latLngAltitude { latitude = 38.4; longitude = -0.4; altitude = 0.0 }
+        center = latLngAltitude { latitude = 36.5; longitude = -4.95; altitude = 0.0 }
         heading = 0.0
         tilt = 45.0
-        range = 200_000.0
+        range = 120_000.0
       }
 
     if (variant == "single") {
