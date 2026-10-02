@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MAX_DISCOUNT_PERCENT,
-  MIN_DISCOUNT_PERCENT,
+  SUSPICIOUS_DISCOUNT_PERCENT,
   belowMarket,
   pricingProblem,
   savingsOf,
+  suspiciousDiscount,
 } from '../src/pricing/below-market';
 
 describe('экономия', () => {
@@ -44,23 +44,18 @@ describe('правило выдачи', () => {
     expect(belowMarket(258_000, 258_000)).toBe(false);
   });
 
-  it('порог ровно на границе засчитывается', () => {
-    const market = 100_000;
-    const price = market * (1 - MIN_DISCOUNT_PERCENT / 100);
-    expect(savingsOf(price, market)?.percent).toBe(MIN_DISCOUNT_PERCENT);
-    expect(belowMarket(price, market)).toBe(true);
-    // Порог сверяется с тем же числом, которое видит покупатель, —
-    // с процентом, округлённым до десятых. Поэтому лишний евро границу
-    // не сдвигает, а сотня уже уводит показатель ниже порога.
-    expect(belowMarket(price + 1, market)).toBe(true);
-    expect(savingsOf(price + 100, market)?.percent).toBe(2.9);
-    expect(belowMarket(price + 100, market)).toBe(false);
+  it('порога нет: любая цена ниже рынка проходит', () => {
+    // Насколько именно ниже — дело агентства, оно платит за показ.
+    expect(belowMarket(99_999, 100_000)).toBe(true);
+    expect(belowMarket(50_000, 100_000)).toBe(true);
+    expect(belowMarket(100_000, 100_000)).toBe(false);
   });
 
-  it('объект выпадает, как только агент поднял цену', () => {
+  it('объект выпадает, как только агент догнал рынок', () => {
     const market = 258_000;
     expect(belowMarket(230_000, market)).toBe(true);
-    expect(belowMarket(252_000, market)).toBe(false);
+    expect(belowMarket(252_000, market)).toBe(true);
+    expect(belowMarket(258_000, market)).toBe(false);
   });
 });
 
@@ -74,12 +69,23 @@ describe('разбор проблемы для кабинета', () => {
     expect(pricingProblem(260_000, 258_000)).toBe('not-below-market');
   });
 
-  it('скидка меньше порога — отдельная причина, её агент может исправить', () => {
-    expect(pricingProblem(256_000, 258_000)).toBe('too-small');
+  it('крошечная скидка — не проблема: порога у витрины нет', () => {
+    expect(pricingProblem(256_000, 258_000)).toBeNull();
+  });
+});
+
+describe('подозрительная скидка', () => {
+  it('больше половины — похоже на лишний ноль', () => {
+    expect(suspiciousDiscount(23_000, 258_000)).toBe(true);
+    expect(SUSPICIOUS_DISCOUNT_PERCENT).toBe(50);
   });
 
-  it('скидка больше половины — предупреждение об опечатке в нулях', () => {
-    expect(pricingProblem(23_000, 258_000)).toBe('too-big');
-    expect(MAX_DISCOUNT_PERCENT).toBeGreaterThan(MIN_DISCOUNT_PERCENT);
+  it('обычная скидка подозрений не вызывает', () => {
+    expect(suspiciousDiscount(230_000, 258_000)).toBe(false);
+  });
+
+  it('предупреждение объект не прячет', () => {
+    expect(belowMarket(23_000, 258_000)).toBe(true);
+    expect(pricingProblem(23_000, 258_000)).toBeNull();
   });
 });

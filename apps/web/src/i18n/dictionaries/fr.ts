@@ -427,7 +427,6 @@ const fr: Dictionary = {
     pricingHidden: 'Non publié',
     pricingNoMarket: 'Prix du marché manquant',
     pricingNotBelow: "Le prix n'est pas sous le marché",
-    pricingTooSmall: 'Remise inférieure à 3% — trop faible',
     pricingTooBig: 'Remise supérieure à 50% — vérifiez les zéros',
     feedPending: 'Premier import',
     feedPaused: 'En pause',

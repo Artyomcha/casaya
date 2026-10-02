@@ -245,7 +245,7 @@ export interface FeedPreview {
 }
 
 /** Причина, по которой объект не попадёт в выдачу. null — всё в порядке. */
-export type PricingProblem = 'no-market-price' | 'not-below-market' | 'too-small' | 'too-big';
+export type PricingProblem = 'no-market-price' | 'not-below-market';
 
 /** Строка кабинета: объект агентства с обеими ценами и состоянием витрины. */
 export interface AgencyListing {
@@ -258,6 +258,8 @@ export interface AgencyListing {
   status: string;
   savings: Savings | null;
   pricingProblem: PricingProblem | null;
+  /** Скидка больше половины — похоже на лишний ноль. Объект при этом показывается. */
+  suspiciousDiscount: boolean;
   visible: boolean;
 }
 

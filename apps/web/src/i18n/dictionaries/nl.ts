@@ -427,7 +427,6 @@ const nl: Dictionary = {
     pricingHidden: 'Niet in de lijst',
     pricingNoMarket: 'Marktprijs ontbreekt',
     pricingNotBelow: 'Prijs ligt niet onder de markt',
-    pricingTooSmall: 'Korting onder 3% — te klein',
     pricingTooBig: 'Korting boven 50% — controleer de nullen',
     feedPending: 'Eerste import',
     feedPaused: 'Gepauzeerd',

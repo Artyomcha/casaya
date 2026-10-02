@@ -429,7 +429,6 @@ const ru = {
     pricingHidden: 'Не в выдаче',
     pricingNoMarket: 'Не указана рыночная цена',
     pricingNotBelow: 'Цена не ниже рыночной',
-    pricingTooSmall: 'Скидка меньше 3% — слишком мала для витрины',
     pricingTooBig: 'Скидка больше 50% — проверьте нули',
     feedPending: 'Первая загрузка',
     feedPaused: 'На паузе',

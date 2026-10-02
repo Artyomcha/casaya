@@ -60,8 +60,6 @@ export function PricingTable({
   const problemText: Record<PricingProblem, string> = {
     'no-market-price': dict.cabinet.pricingNoMarket,
     'not-below-market': dict.cabinet.pricingNotBelow,
-    'too-small': dict.cabinet.pricingTooSmall,
-    'too-big': dict.cabinet.pricingTooBig,
   };
 
   async function save(row: AgencyListing) {
@@ -162,6 +160,12 @@ export function PricingTable({
                 {row.pricingProblem && (
                   <span style={{ fontSize: 12, color: c.grey, lineHeight: 1.35 }}>
                     {problemText[row.pricingProblem]}
+                  </span>
+                )}
+                {/* Объект показывается, но лишний ноль ударит по агентству. */}
+                {row.suspiciousDiscount && (
+                  <span style={{ fontSize: 12, color: c.coralDark, lineHeight: 1.35 }}>
+                    {dict.cabinet.pricingTooBig}
                   </span>
                 )}
               </div>

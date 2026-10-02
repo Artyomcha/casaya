@@ -427,7 +427,6 @@ const sv: Dictionary = {
     pricingHidden: 'Inte i listan',
     pricingNoMarket: 'Marknadspris saknas',
     pricingNotBelow: 'Priset är inte under marknadspris',
-    pricingTooSmall: 'Rabatt under 3% — för liten',
     pricingTooBig: 'Rabatt över 50% — kontrollera nollorna',
     feedPending: 'Första importen',
     feedPaused: 'Pausat',

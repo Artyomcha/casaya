@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { pricingProblem, savingsOf } from '../pricing/below-market';
+import { pricingProblem, savingsOf, suspiciousDiscount } from '../pricing/below-market';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterAgencyDto, UpdatePricingDto } from './dto';
 
@@ -135,6 +135,9 @@ export class AgencyService {
       savings: savingsOf(price, marketPrice),
       /// Причина, по которой объект не попадёт в выдачу. null — всё в порядке.
       pricingProblem: problem,
+      /// Скидка подозрительно большая — похоже на лишний ноль. Объект при этом
+      /// показывается: насколько ниже рынка — дело агентства, а не витрины.
+      suspiciousDiscount: suspiciousDiscount(price, marketPrice),
       visible: problem === null,
     };
   }

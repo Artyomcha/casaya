@@ -8,14 +8,14 @@
  */
 
 /**
- * Минимальная скидка, с которой объект считается выгодным.
- * Меньше трёх процентов — это торг и округление, а не «дешевле рынка»:
- * на 250 000 € три процента дают 7 500 €, вот о такой разнице и речь.
+ * Насколько именно ниже — дело агентства: оно платит за показ и само решает,
+ * чем привлекать покупателя. Порога у витрины нет, правило одно: ниже рынка.
+ *
+ * Скидка больше половины — почти всегда опечатка в нулях. Объект из-за неё
+ * не прячется, но кабинет про неё предупреждает: цена с лишним нулём ударит
+ * по агентству сильнее, чем по нам.
  */
-export const MIN_DISCOUNT_PERCENT = 3;
-
-/** Скидка больше половины — почти всегда опечатка в нулях, а не подарок. */
-export const MAX_DISCOUNT_PERCENT = 50;
+export const SUSPICIOUS_DISCOUNT_PERCENT = 50;
 
 export interface Savings {
   /** Сколько покупатель экономит в евро. */
@@ -41,11 +41,10 @@ export function savingsOf(price: number, marketPrice: number | null | undefined)
  * при заливке: поднял агент цену до рыночной — объект уходит сам.
  */
 export function belowMarket(price: number, marketPrice: number | null | undefined): boolean {
-  const savings = savingsOf(price, marketPrice);
-  return savings != null && savings.percent >= MIN_DISCOUNT_PERCENT;
+  return savingsOf(price, marketPrice) != null;
 }
 
-export type PricingProblem = 'no-market-price' | 'not-below-market' | 'too-small' | 'too-big';
+export type PricingProblem = 'no-market-price' | 'not-below-market';
 
 /**
  * Почему объект не попадёт в выдачу — для кабинета агентства.
@@ -56,9 +55,14 @@ export function pricingProblem(
   marketPrice: number | null | undefined,
 ): PricingProblem | null {
   if (marketPrice == null) return 'no-market-price';
+  return savingsOf(price, marketPrice) ? null : 'not-below-market';
+}
+
+/** Похоже на опечатку в нулях: объект не прячем, но кабинет предупреждает. */
+export function suspiciousDiscount(
+  price: number,
+  marketPrice: number | null | undefined,
+): boolean {
   const savings = savingsOf(price, marketPrice);
-  if (!savings) return 'not-below-market';
-  if (savings.percent < MIN_DISCOUNT_PERCENT) return 'too-small';
-  if (savings.percent > MAX_DISCOUNT_PERCENT) return 'too-big';
-  return null;
+  return savings != null && savings.percent > SUSPICIOUS_DISCOUNT_PERCENT;
 }
