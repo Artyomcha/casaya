@@ -1,17 +1,12 @@
 import { Camera, type CameraRef, Layer, Map, Marker } from '@maplibre/maplibre-react-native';
-import { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { GOOGLE_3D, Google3DMap } from './Google3DMap';
 import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_BLANCA } from './mapStyle';
+import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
 import { c } from '@/theme';
-import type { Listing, Mode } from '@/types';
-
-export type Pinned = Listing & { lat: number; lng: number };
-
-export interface PropertyMapHandle {
-  /** Подогнать камеру под все метки: [top, right, bottom, left] в точках. */
-  fit: (padding: [number, number, number, number]) => void;
-}
+import type { Mode } from '@/types';
 
 interface Props {
   pins: Pinned[];
@@ -22,7 +17,36 @@ interface Props {
   compact?: boolean;
 }
 
+export type { Pinned, PropertyMapHandle } from './mapTypes';
+
+/**
+ * Карта объектов. По умолчанию — фотореалистичный 3D Google, как на портале.
+ * Если он не загрузился (нет сети, нет ключа, кончилась квота), экран молча
+ * переходит на бесплатную векторную подложку с теми же объёмными домами и
+ * теми же метками: без карты приложение выглядит сломанным.
+ */
 export const PropertyMap = forwardRef<PropertyMapHandle, Props>(function PropertyMap(
+  props,
+  ref,
+) {
+  const [googleFailed, setGoogleFailed] = useState(false);
+
+  if (GOOGLE_3D && !googleFailed && props.pins.length) {
+    return (
+      <Google3DMap
+        ref={ref}
+        pins={props.pins}
+        mode={props.mode}
+        onSelect={props.onSelect}
+        compact={props.compact}
+        onFail={() => setGoogleFailed(true)}
+      />
+    );
+  }
+  return <VectorMap ref={ref} {...props} />;
+});
+
+const VectorMap = forwardRef<PropertyMapHandle, Props>(function VectorMap(
   { pins, mode, selectedId, onSelect, compact = false },
   ref,
 ) {

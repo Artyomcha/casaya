@@ -371,7 +371,8 @@ const styles = StyleSheet.create({
   feature: { borderWidth: 1, borderColor: c.lineStrong, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 },
   featureText: { fontSize: 14, color: c.ink },
 
-  mapBox: { height: 180, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: c.line },
+  // 220, а не 180: на фотореалистичной карте нужно видеть и дом, и квартал.
+  mapBox: { height: 220, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: c.line },
   pin: {
     backgroundColor: c.violet,
     borderRadius: 10,

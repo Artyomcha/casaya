@@ -4,8 +4,8 @@
  */
 export const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? '';
 
-/** Фотореалистичные 3D-тайлы пока живут в канале alpha. */
-const VERSION = 'alpha';
+/** Канал beta: в alpha Google рисует поверх карты баннер «только для разработки». */
+const VERSION = 'beta';
 
 /** Библиотеки перечислены в адресе, поэтому importLibrary не нужен. */
 const LIBRARIES = 'maps3d,marker';
