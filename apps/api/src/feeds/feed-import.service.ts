@@ -175,6 +175,7 @@ export class FeedImportService {
       city: item.city || 'Аликанте',
       kind: item.kind,
       price: item.price,
+      marketPrice: item.marketPrice,
       area: item.area,
       bedrooms: item.bedrooms,
       bathrooms: item.bathrooms,

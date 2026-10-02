@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, PromotionTier, ServiceScope } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { belowMarket, savingsOf } from '../pricing/below-market';
 import { PropertiesService } from '../properties/properties.service';
 import { promotedSlots, representativeOffer, type OfferLike } from '../properties/visibility';
 import { RankingService } from '../ranking/ranking.service';
@@ -61,8 +62,13 @@ export class CatalogService {
       take: 300,
     });
 
-    const tiers = await this.ranking.activePromotions(found.map((l) => l.id));
-    const withTier = found.map((l) => ({ ...l, promotionTier: tiers.get(l.id) ?? ('NONE' as const) }));
+    // Главное правило витрины: в выдаче только то, что заметно ниже рынка.
+    // Проверяется на каждом показе, а не один раз при заливке: поднял агент
+    // цену до рыночной — объект уходит сам, без ручной модерации.
+    const offers = found.filter((l) => belowMarket(l.price, l.marketPrice));
+
+    const tiers = await this.ranking.activePromotions(offers.map((l) => l.id));
+    const withTier = offers.map((l) => ({ ...l, promotionTier: tiers.get(l.id) ?? ('NONE' as const) }));
 
     if (query.showDuplicates === 'true') {
       const { sorted, scores } = await this.ranking.rank(withTier, query.area);
@@ -71,6 +77,7 @@ export class CatalogService {
           ...l,
           promoted: l.promotionTier !== 'NONE',
           offersCount: 1,
+          savings: savingsOf(l.price, l.marketPrice),
           rank: query.debug === 'true' ? scores.get(l.id) : undefined,
         })),
         total: withTier.length,
@@ -119,6 +126,8 @@ export class CatalogService {
           /// В оплаченной карточке всегда единица: агентство купило рекламу
           /// своего предложения и не обязано зазывать к конкурентам.
           offersCount: promoted || !l.propertyId ? 1 : (counts.get(l.propertyId) ?? 1),
+          /// Сколько покупатель экономит против рыночной цены.
+          savings: savingsOf(l.price, l.marketPrice),
           rank: query.debug === 'true' ? scores.get(l.id) : undefined,
         };
       }),
@@ -183,6 +192,8 @@ export class CatalogService {
     const { promotions, ...rest } = listing;
     return {
       ...rest,
+      /// Экономия против рыночной цены — то, ради чего покупатель и пришёл.
+      savings: savingsOf(listing.price, listing.marketPrice),
       /// Страница оплаченного объявления — это реклама конкретного агентства.
       /// Сравнение с другими предложениями на ней не показывается.
       promoted: promotions.length > 0,
@@ -198,8 +209,13 @@ export class CatalogService {
     const base = await this.listing(idOrSlug);
     const scored = await this.ranking.similar(base.id, take);
 
-    return scored.map((s) => ({
+    return scored
+      // Подборка «рядом» — та же витрина: предлагать объект вровень с рынком
+      // нельзя, иначе обещание «здесь всё дешевле» ломается на второй странице.
+      .filter((s) => belowMarket(s.listing.price, s.listing.marketPrice))
+      .map((s) => ({
       ...s.listing,
+      savings: savingsOf(s.listing.price, s.listing.marketPrice),
       similarity: Number(s.score.toFixed(3)),
       distanceMeters: s.distance == null ? null : Math.round(s.distance),
       promotionTier: s.promotionTier,
@@ -217,16 +233,23 @@ export class CatalogService {
   }
 
   /** Пины на карте поиска — по всем объектам, без учёта фильтра, как в дизайне. */
-  mapPins() {
-    return this.prisma.listing.findMany({
+  async mapPins() {
+    const pins = await this.prisma.listing.findMany({
       where: { status: 'PUBLISHED', lat: { not: null }, lng: { not: null } },
       select: {
         id: true, slug: true, title: true, address: true, price: true,
+        marketPrice: true,
         lat: true, lng: true, kind: true, bedrooms: true, area: true,
         coverImage: true, verified: true,
       },
       orderBy: { publishedAt: 'desc' },
     });
+
+    // На карте то же правило, что в списке: иначе пин вёл бы на объект,
+    // которого в выдаче уже нет.
+    return pins
+      .filter((p) => belowMarket(p.price, p.marketPrice))
+      .map(({ marketPrice, ...pin }) => ({ ...pin, savings: savingsOf(pin.price, marketPrice) }));
   }
 
   projects(year?: string) {

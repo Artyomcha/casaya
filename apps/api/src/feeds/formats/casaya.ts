@@ -20,6 +20,7 @@ export function parseCasaya(doc: any): NormalizedListing[] {
       city,
       kind,
       price: Math.round(num(pick(p, 'price'))),
+      marketPrice: Math.round(num(pick(p, 'marketPrice', 'market_price', 'oldPrice', 'old_price', 'precioMercado', 'precio_mercado'))) || null,
       area: Math.round(num(pick(p, 'area', 'm2'))),
       bedrooms: beds,
       bathrooms: Math.round(num(pick(p, 'bathrooms', 'baths'))),

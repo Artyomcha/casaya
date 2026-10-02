@@ -24,12 +24,16 @@ export class FeedsService {
       format,
       total: items.length + skipped.length,
       importable: items.length,
+      /// Объекты без рыночной цены импортируются, но в выдачу не попадут:
+      /// подтвердить «дешевле рынка» нечем. Агентство дозаполнит их в кабинете.
+      withoutMarketPrice: items.filter((i) => i.marketPrice == null).length,
       skipped: skipped.slice(0, 20),
       sample: items.slice(0, 5).map((i) => ({
         externalId: i.externalId,
         title: i.title,
         address: i.address,
         price: i.price,
+        marketPrice: i.marketPrice,
         area: i.area,
         bedrooms: i.bedrooms,
         bathrooms: i.bathrooms,

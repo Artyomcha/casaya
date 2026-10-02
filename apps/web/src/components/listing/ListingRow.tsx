@@ -3,6 +3,7 @@ import { VerifiedBadge } from '@/components/layout/Header';
 import { AD_CARD, AdBadge } from '@/components/listing/AdBadge';
 import { AgencyAvatar } from '@/components/ui/AgencyAvatar';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
+import { SavingsBadge } from '@/components/listing/SavingsBadge';
 import type { Dictionary } from '@/i18n/getDictionary';
 import type { ListingCard as Card } from '@/lib/types';
 import { c } from '@/lib/theme';
@@ -75,6 +76,12 @@ export function ListingRow({
           <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>
             {item.priceLabel}
           </span>
+          {item.marketLabel && (
+            <span style={{ fontSize: 15, color: c.grey, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+              {item.marketLabel}
+            </span>
+          )}
+          {item.savings && <SavingsBadge savings={item.savings} dict={dict} />}
           <span style={{ fontSize: 13, color: c.grey, fontVariantNumeric: 'tabular-nums' }}>{item.subLabel}</span>
         </div>
 

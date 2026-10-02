@@ -32,6 +32,8 @@ export function parseInmovilla(doc: any): NormalizedListing[] {
       city,
       kind,
       price: Math.round(num(pick(p, 'precioinmo', 'precio_venta', 'precio', 'price'))),
+      // precioantiguo — цена до скидки в Inmovilla, её и берём за рыночную.
+      marketPrice: Math.round(num(pick(p, 'precioantiguo', 'precio_mercado', 'precio_anterior'))) || null,
       area: Math.round(num(pick(p, 'm_cons', 'superficie', 'm2', 'metros'))),
       bedrooms: beds,
       bathrooms: Math.round(num(pick(p, 'banyos', 'banos', 'baths'))),

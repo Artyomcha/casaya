@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { VerifiedBadge } from '@/components/layout/Header';
 import { AD_CARD, AdBadge } from '@/components/listing/AdBadge';
 import { FavoriteButton } from '@/components/listing/FavoriteButton';
+import { SavingsBadge } from '@/components/listing/SavingsBadge';
 import { Play } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
 import type { ListingCard as Card } from '@/lib/types';
@@ -41,6 +42,7 @@ export function ListingCard({
 
         {!compact && (
           <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 6, pointerEvents: 'none', flexWrap: 'wrap' }}>
+            {item.savings && <SavingsBadge savings={item.savings} dict={dict} />}
             {item.verified && <VerifiedBadge label={dict.common.verified} />}
             {item.promoted && <AdBadge label={dict.common.ad} />}
             {item.offersCount > 1 && (
@@ -93,8 +95,15 @@ export function ListingCard({
 
       {compact ? (
         <div>
-          <div style={{ fontSize: 21, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>
-            {item.priceLabel}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 21, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>
+              {item.priceLabel}
+            </span>
+            {item.marketLabel && (
+              <span style={{ fontSize: 14, color: c.grey, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+                {item.marketLabel}
+              </span>
+            )}
           </div>
           <div style={{ fontSize: 14, color: c.inkSoft, marginTop: 4 }}>{item.specs}</div>
           <div style={{ fontSize: 14, color: c.grey, marginTop: 2 }}>{item.address}</div>
@@ -105,6 +114,12 @@ export function ListingCard({
             <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>
               {item.priceLabel}
             </span>
+            {/* Рыночная цена рядом и зачёркнутой: разницу видно без расчётов. */}
+            {item.marketLabel && (
+              <span style={{ fontSize: 15, color: c.grey, textDecoration: 'line-through', fontVariantNumeric: 'tabular-nums' }}>
+                {item.marketLabel}
+              </span>
+            )}
             <span style={{ fontSize: 13, color: c.grey, fontVariantNumeric: 'tabular-nums' }}>{item.subLabel}</span>
           </div>
           <div style={{ fontSize: 15, color: c.ink }}>{item.specs}</div>

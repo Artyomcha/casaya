@@ -5,6 +5,7 @@ import type {
   SimilarListing,
   AgencyDashboard,
   AgencyFeed,
+  AgencyListing,
   Bank,
   City,
   FeedPreview,
@@ -99,6 +100,13 @@ export const api = {
 
   registerAgency: (body: Record<string, unknown>) => post<{ id: string; name: string }>('/agencies/register', body),
   agencyDashboard: (id: string) => request<AgencyDashboard>(`/agencies/${id}/dashboard`),
+  agencyListings: (id: string) => request<AgencyListing[]>(`/agencies/${id}/listings`),
+  /** Две цены объекта: рыночная и на Casaya. Разницу считает сервер. */
+  updatePricing: (agencyId: string, listingId: string, body: { price: number; marketPrice: number | null }) =>
+    request<AgencyListing>(`/agencies/${agencyId}/listings/${listingId}/pricing`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
 
   previewFeed: (body: { url: string; format?: string }) => post<FeedPreview>('/feeds/preview', body),
   connectFeed: (body: { agencyId: string; url: string; format?: string; intervalMin?: number }) =>

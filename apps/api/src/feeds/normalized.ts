@@ -9,6 +9,9 @@ export interface NormalizedListing {
   city: string;
   kind: PropertyKind;
   price: number;
+  /// Рыночная цена из фида. Без неё объект в выдачу не попадёт: обещание
+  /// «дешевле рынка» нечем подтвердить.
+  marketPrice: number | null;
   area: number;
   bedrooms: number;
   bathrooms: number;

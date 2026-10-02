@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { pricingProblem, savingsOf } from '../pricing/below-market';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterAgencyDto } from './dto';
+import { RegisterAgencyDto, UpdatePricingDto } from './dto';
 
 const initialsOf = (name: string) =>
   name
@@ -99,11 +100,42 @@ export class AgencyService {
     };
   }
 
-  listings(id: string) {
-    return this.prisma.listing.findMany({
+  async listings(id: string) {
+    const listings = await this.prisma.listing.findMany({
       where: { agencyId: id },
       orderBy: [{ status: 'asc' }, { publishedAt: 'desc' }],
       take: 500,
     });
+    return listings.map((l) => ({ ...l, ...this.pricingState(l.price, l.marketPrice) }));
+  }
+
+  /**
+   * Агент указывает две цены: рыночную и свою. Разницу считаем мы.
+   * Цена не ниже рынка сохраняется, но объект уходит из выдачи — агентство
+   * должно видеть свой инвентарь целиком, а не терять объект из кабинета.
+   */
+  async updatePricing(agencyId: string, listingId: string, dto: UpdatePricingDto) {
+    const listing = await this.prisma.listing.findFirst({
+      where: { id: listingId, agencyId },
+      select: { id: true },
+    });
+    if (!listing) throw new NotFoundException('Объект не найден у этого агентства');
+
+    const updated = await this.prisma.listing.update({
+      where: { id: listingId },
+      data: { price: dto.price, marketPrice: dto.marketPrice ?? null },
+      select: { id: true, slug: true, title: true, price: true, marketPrice: true },
+    });
+    return { ...updated, ...this.pricingState(updated.price, updated.marketPrice) };
+  }
+
+  private pricingState(price: number, marketPrice: number | null) {
+    const problem = pricingProblem(price, marketPrice);
+    return {
+      savings: savingsOf(price, marketPrice),
+      /// Причина, по которой объект не попадёт в выдачу. null — всё в порядке.
+      pricingProblem: problem,
+      visible: problem === null,
+    };
   }
 }

@@ -274,6 +274,10 @@ model Listing {
   kind          PropertyKind
   deal          DealType     @default(SALE)
   price         Int
+  /// Рыночная цена этого объекта — её указывает агент сам, вместе с ценой
+  /// на Casaya. Витрина держит объект в выдаче, только пока price заметно
+  /// ниже; поднялась цена до рыночной — объект выпадает.
+  marketPrice   Int?
   area          Int
   bedrooms      Int
   bathrooms     Int

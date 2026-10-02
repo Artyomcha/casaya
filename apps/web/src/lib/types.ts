@@ -13,6 +13,12 @@ export interface Agency {
   replyTime: number;
 }
 
+/** Экономия против рыночной цены: в евро и в процентах. */
+export interface Savings {
+  amount: number;
+  percent: number;
+}
+
 export interface Listing {
   id: string;
   slug: string;
@@ -21,6 +27,10 @@ export interface Listing {
   city: string;
   kind: PropertyKind;
   price: number;
+  /** Рыночная цена объекта — её указывает агентство вместе со своей. */
+  marketPrice?: number | null;
+  /** Насколько дешевле рынка. null — объекта в выдаче быть не должно. */
+  savings?: Savings | null;
   area: number;
   bedrooms: number;
   bathrooms: number;
@@ -91,6 +101,8 @@ export interface SimilarListing extends Listing {
 export interface ListingCard extends Listing {
   href: string;
   priceLabel: string;
+  /** Рыночная цена готовой строкой — её показываем зачёркнутой рядом с ценой. */
+  marketLabel: string | null;
   subLabel: string;
   specs: string;
   agentInitials: string;
@@ -230,6 +242,23 @@ export interface FeedPreview {
     images: number;
     cover: string | null;
   }[];
+}
+
+/** Причина, по которой объект не попадёт в выдачу. null — всё в порядке. */
+export type PricingProblem = 'no-market-price' | 'not-below-market' | 'too-small' | 'too-big';
+
+/** Строка кабинета: объект агентства с обеими ценами и состоянием витрины. */
+export interface AgencyListing {
+  id: string;
+  slug: string;
+  title: string;
+  address: string;
+  price: number;
+  marketPrice: number | null;
+  status: string;
+  savings: Savings | null;
+  pricingProblem: PricingProblem | null;
+  visible: boolean;
 }
 
 export interface AgencyDashboard {

@@ -6,12 +6,13 @@ import { monthlyPayment } from '@/components/home/MortgageCalculator';
 import { NearbyListings } from '@/components/listing/NearbyListings';
 import { OffersCompare } from '@/components/listing/OffersCompare';
 import { PropertyMap } from '@/components/map/PropertyMap';
+import { SavingsBadge } from '@/components/listing/SavingsBadge';
 import { AgencyAvatar } from '@/components/ui/AgencyAvatar';
 import { Check, Heart, MapPinIcon, Shield } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { money } from '@/i18n/format';
 import { LOCALE_TAGS, localePath, type Locale } from '@/i18n/locales';
-import { toCard } from '@/lib/format';
+import { discountLabel, toCard } from '@/lib/format';
 import type { Listing, PropertyOffers, SimilarListing } from '@/lib/types';
 import { c } from '@/lib/theme';
 
@@ -287,9 +288,41 @@ export function ListingScreen({
             }}
           >
             <div>
-              <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums' }}>{item.priceLabel}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums' }}>
+                  {item.priceLabel}
+                </span>
+                {item.savings && <SavingsBadge savings={item.savings} dict={dict} />}
+              </div>
               <div style={{ fontSize: 14, color: c.grey, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{item.subLabel}</div>
             </div>
+
+            {/* Три строки вместо лозунга: обе цены и разница между ними.
+                Обещание «дешевле рынка» должно быть проверяемым прямо здесь. */}
+            {item.savings && item.marketLabel && (
+              <div
+                style={{
+                  border: `1px solid ${c.line}`,
+                  borderRadius: 16,
+                  padding: '14px 16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                }}
+              >
+                <Row label={dict.common.onCasaya} value={item.priceLabel} strong />
+                <Row label={dict.common.marketPrice} value={item.marketLabel} strike />
+                <div style={{ height: 1, background: c.lineSoft, margin: '2px 0' }} />
+                <Row
+                  label={dict.common.youSave}
+                  value={`${money(item.savings.amount, locale)} · ${discountLabel(item.savings)}`}
+                  accent
+                />
+                <p style={{ fontSize: 12, color: c.grey, margin: 0, lineHeight: 1.45 }}>
+                  {dict.common.belowMarketLead}
+                </p>
+              </div>
+            )}
 
             <div style={{ background: c.greenTint, borderRadius: 14, padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 14, color: c.greenMid }}>{dict.listing.mortgageFrom}</span>
@@ -362,5 +395,37 @@ export function ListingScreen({
         </aside>
       </div>
     </main>
+  );
+}
+
+/** Строка блока «сколько экономит покупатель»: подпись слева, число справа. */
+function Row({
+  label,
+  value,
+  strong = false,
+  strike = false,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  strike?: boolean;
+  accent?: boolean;
+}) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+      <span style={{ fontSize: 14, color: accent ? c.greenText : c.grey }}>{label}</span>
+      <span
+        style={{
+          fontSize: strong || accent ? 17 : 15,
+          fontWeight: strong || accent ? 700 : 500,
+          color: accent ? c.greenText : strike ? c.grey : c.ink,
+          textDecoration: strike ? 'line-through' : undefined,
+          fontVariantNumeric: 'tabular-nums',
+        }}
+      >
+        {value}
+      </span>
+    </div>
   );
 }

@@ -33,6 +33,8 @@ export function parseKyero(doc: any): NormalizedListing[] {
       city,
       kind,
       price: Math.round(num(pick(p, 'price', 'price_sale'))),
+      // Kyero не описывает рыночную цену, но выгрузки её кладут рядом с ценой.
+      marketPrice: Math.round(num(pick(p, 'price_market', 'price_original', 'price_old'))) || null,
       area: Math.round(num(pick(p, 'surface_area.built', 'built', 'surface_area', 'size'))),
       bedrooms: beds,
       bathrooms: Math.round(num(pick(p, 'baths', 'bathrooms'))),

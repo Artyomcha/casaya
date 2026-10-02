@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FeedConnect } from '@/components/pro/FeedConnect';
 import { LogoUpload } from '@/components/pro/LogoUpload';
+import { PricingTable } from '@/components/pro/PricingTable';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { LOCALE_TAGS, type Locale } from '@/i18n/locales';
 import { api } from '@/lib/api';
@@ -215,6 +216,10 @@ export function CabinetScreen({ dict, locale }: { dict: Dictionary; locale: Loca
             {lastRun.error && <span style={{ color: c.coralDark }}> · {lastRun.error}</span>}
           </div>
         )}
+      </section>
+
+      <section style={{ maxWidth: 1360, margin: '0 auto', padding: '32px 32px 0' }}>
+        <PricingTable agencyId={agencyId} dict={dict} locale={locale} />
       </section>
 
       <section
