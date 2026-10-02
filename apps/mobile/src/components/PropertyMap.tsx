@@ -2,7 +2,7 @@ import { Camera, type CameraRef, Layer, Map, Marker } from '@maplibre/maplibre-r
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GOOGLE_KEY, Google3DMap } from './Google3DMap';
-import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_BLANCA } from './mapStyle';
+import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_DEL_SOL } from './mapStyle';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
 import { c } from '@/theme';
@@ -106,8 +106,8 @@ const VectorMap = forwardRef<PropertyMapHandle, Props>(function VectorMap(
                 bearing: CAMERA.search.bearing,
               }
             : {
-                center: first ? [first.lng, first.lat] : COSTA_BLANCA.center,
-                zoom: compact ? CAMERA.single.zoom : COSTA_BLANCA.zoom,
+                center: first ? [first.lng, first.lat] : COSTA_DEL_SOL.center,
+                zoom: compact ? CAMERA.single.zoom : COSTA_DEL_SOL.zoom,
                 pitch: compact ? CAMERA.single.pitch : CAMERA.search.pitch,
                 bearing: compact ? CAMERA.single.bearing : CAMERA.search.bearing,
               }

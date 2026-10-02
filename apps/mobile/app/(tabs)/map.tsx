@@ -51,7 +51,7 @@ export default function MapScreen() {
       <View style={[styles.topBar, { top: insets.top + 6 }]}>
         <Pressable onPress={() => router.push('/results')} style={styles.searchBar}>
           <Icon d={ICON.search} size={18} color={c.muted} width={2} />
-          <Text style={styles.searchText}>Аликанте · {mode === 'rent' ? 'снять' : 'купить'}</Text>
+          <Text style={styles.searchText}>Марбелья · {mode === 'rent' ? 'снять' : 'купить'}</Text>
         </Pressable>
         <Pressable onPress={() => setFiltersOpen(true)} style={styles.filterBtn}>
           <Icon d={ICON.sliders} size={20} width={2} />

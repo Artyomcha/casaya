@@ -45,7 +45,7 @@ const sv: Dictionary = {
     perSqm: '€/m²',
     objects: 'bostäder',
     projects: 'projekt',
-    city: 'Alicante',
+    city: 'Marbella',
     favoriteAdd: 'Spara bostaden',
     favoriteRemove: 'Ta bort från sparade',
     offers: '{n} mäklare säljer den',
@@ -144,8 +144,8 @@ const sv: Dictionary = {
   search: {
     sale: 'Till salu',
     rent: 'Uthyres',
-    titleBuy: 'Bostäder till salu i Alicante',
-    titleRent: 'Bostäder uthyres i Alicante',
+    titleBuy: 'Bostäder till salu i Marbella',
+    titleRent: 'Bostäder uthyres i Marbella',
     filterPrice: 'Pris',
     filterBedrooms: 'Sovrum',
     filterArea: 'Yta',
@@ -286,7 +286,7 @@ const sv: Dictionary = {
 
   projects: {
     brand: 'Obra nueva',
-    title: 'Nyproduktion på Costa Blanca',
+    title: 'Nyproduktion på Costa del Sol',
     filterAll: 'Alla',
     filterYear: 'Inflyttning',
     developer: 'Byggherre:',
@@ -454,7 +454,7 @@ const sv: Dictionary = {
   },
 
   footer: {
-    tagline: 'Bara det som ligger under marknadspris. Costa Blanca.',
+    tagline: 'Bara det som ligger under marknadspris. Costa del Sol.',
     buyers: 'För köpare',
     professionals: 'För proffs',
     services: 'Tjänster',
@@ -464,7 +464,7 @@ const sv: Dictionary = {
     turnkey: 'Hela köpet ordnat',
     plus: 'Casaya+',
     videoViewing: 'Videovisning',
-    rights: '© 2026 Casaya. Alicante, Spanien.',
+    rights: '© 2026 Casaya. Marbella, Spanien.',
   },
 
   errors: {

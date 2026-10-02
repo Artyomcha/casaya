@@ -3,7 +3,7 @@ import { canonicalMedia, photoSetScore, type PhotoSet } from '../src/properties/
 
 const set = (over: Partial<PhotoSet> = {}): PhotoSet => ({
   listingId: 'l1',
-  agencyName: 'Alicante Prime',
+  agencyName: 'Marbella Prime',
   coverImage: '/img/a-cover.jpg',
   gallery: ['/img/a-1.jpg', '/img/a-2.jpg', '/img/a-3.jpg'],
   verified: true,
@@ -44,7 +44,7 @@ describe('качество набора фотографий', () => {
 describe('фотографии объекта из наборов трёх агентств', () => {
   const prime = set({
     listingId: 'l3',
-    agencyName: 'Alicante Prime',
+    agencyName: 'Marbella Prime',
     coverImage: '/img/prime-cover.jpg',
     gallery: ['/img/prime-1.jpg', '/img/prime-2.jpg'],
     verified: true,
@@ -71,7 +71,7 @@ describe('фотографии объекта из наборов трёх аг�
   it('обложку берёт у лучшего набора', () => {
     const media = canonicalMedia([norte, costa, prime]);
     expect(media.coverImage).toBe('/img/prime-cover.jpg');
-    expect(media.source).toBe('Alicante Prime');
+    expect(media.source).toBe('Marbella Prime');
   });
 
   it('обложка и галерея не перемешиваются между агентствами в начале', () => {
@@ -89,7 +89,7 @@ describe('фотографии объекта из наборов трёх аг�
   it('у каждого кадра известен автор', () => {
     const media = canonicalMedia([norte, costa, prime]);
     const byUrl = new Map(media.credits.map((c) => [c.url, c.agencyName]));
-    expect(byUrl.get('/img/prime-cover.jpg')).toBe('Alicante Prime');
+    expect(byUrl.get('/img/prime-cover.jpg')).toBe('Marbella Prime');
     expect(byUrl.get('/img/norte-1.jpg')).toBe('Casa Norte');
     expect(byUrl.get('/img/costa-2.jpg')).toBe('Costa Living');
   });

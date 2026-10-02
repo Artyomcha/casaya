@@ -5,10 +5,10 @@
  */
 export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 
-/** Коста-Бланка целиком — начальный вид, если объектов на карте нет. */
-export const COSTA_BLANCA: { center: [number, number]; zoom: number } = {
-  center: [-0.4, 38.4],
-  zoom: 8.4,
+/** Коста-дель-Соль целиком — начальный вид, если объектов на карте нет. */
+export const COSTA_DEL_SOL: { center: [number, number]; zoom: number } = {
+  center: [-4.95, 36.5],
+  zoom: 10.2,
 };
 
 /** Камера: выдача смотрит почти сверху, карточка объекта — с высоты человека. */
@@ -20,7 +20,7 @@ export const CAMERA = {
 /** Копируется из node_modules скриптом scripts/copy-maplibre-worker.mjs. */
 export const WORKER_URL = '/vendor/maplibre/maplibre-gl-worker.mjs';
 
-/** Рельеф Коста-Бланки — открытые тайлы AWS Terrain, кодировка terrarium. */
+/** Рельеф Коста-дель-Соль — открытые тайлы AWS Terrain, кодировка terrarium. */
 export const TERRAIN_SOURCE = 'casaya-terrain';
 const TERRAIN_TILES = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 

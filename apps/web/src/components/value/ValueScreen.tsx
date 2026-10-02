@@ -50,7 +50,7 @@ export function ValueScreen({
   const calculate = async () => {
     setBusy(true);
     try {
-      setResult(await api.valuation({ address: address || 'Alicante', kind, area, bedrooms }));
+      setResult(await api.valuation({ address: address || 'Marbella', kind, area, bedrooms }));
     } catch (e) {
       console.error(e);
     } finally {

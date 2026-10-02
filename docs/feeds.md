@@ -75,8 +75,8 @@
     <externalId>A-1042</externalId>
     <title>Вилла с бассейном</title>
     <description>…</description>
-    <address>Altea Hills, Альтея</address>
-    <city>Альтея</city>
+    <address>Sierra Blanca, Марбелья</address>
+    <city>Марбелья</city>
     <kind>house</kind>
     <price>485000</price>
     <area>170</area>

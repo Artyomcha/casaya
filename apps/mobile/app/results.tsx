@@ -26,7 +26,7 @@ export default function ResultsScreen() {
           </Pressable>
           <View style={styles.searchBar}>
             <Icon d={ICON.search} size={18} color={c.muted} width={2} />
-            <Text style={styles.searchText}>Аликанте · {mode === 'rent' ? 'снять' : 'купить'}</Text>
+            <Text style={styles.searchText}>Марбелья · {mode === 'rent' ? 'снять' : 'купить'}</Text>
           </View>
         </View>
 

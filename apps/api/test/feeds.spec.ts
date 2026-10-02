@@ -19,7 +19,7 @@ const KYERO = `<?xml version="1.0"?>
     <price>389000</price>
     <type>Villa</type>
     <town>Calpe</town>
-    <province>Alicante</province>
+    <province>Málaga</province>
     <beds>3</beds><baths>2</baths>
     <surface_area><built>165</built></surface_area>
     <location><latitude>38.6447</latitude><longitude>0.0450</longitude></location>
@@ -34,7 +34,7 @@ const INMOVILLA = `<?xml version="1.0"?>
   <propiedad>
     <cod_ofer>7781</cod_ofer>
     <tipo>Piso</tipo>
-    <ciudad>Alicante</ciudad>
+    <ciudad>Marbella</ciudad>
     <zona>Playa de San Juan</zona>
     <calle>Avenida de Niza 14</calle>
     <precioinmo>259.000</precioinmo>
@@ -129,7 +129,7 @@ describe('Kyero', () => {
   });
 
   it('собирает адрес из города и провинции', () => {
-    expect(item.address).toBe('Calpe, Alicante');
+    expect(item.address).toBe('Calpe, Málaga');
   });
 
   it('берёт координаты', () => {
@@ -156,7 +156,7 @@ describe('Inmovilla', () => {
   });
 
   it('склеивает улицу, город и зону', () => {
-    expect(item.address).toBe('Avenida de Niza 14, Alicante, Playa de San Juan');
+    expect(item.address).toBe('Avenida de Niza 14, Marbella, Playa de San Juan');
   });
 
   it('придумывает заголовок, если CRM его не отдала', () => {

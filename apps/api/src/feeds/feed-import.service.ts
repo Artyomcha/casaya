@@ -131,7 +131,7 @@ export class FeedImportService {
       // есть — значит, его продаёт ещё одно агентство, и это дубль.
       const match = await this.properties.findOrCreate({
         address: item.address,
-        city: item.city || 'Alicante',
+        city: item.city || 'Marbella',
         lat: item.lat,
         lng: item.lng,
         kind: item.kind,
@@ -172,7 +172,7 @@ export class FeedImportService {
       title: item.title,
       description: item.description || item.title,
       address: item.address,
-      city: item.city || 'Аликанте',
+      city: item.city || 'Марбелья',
       kind: item.kind,
       price: item.price,
       marketPrice: item.marketPrice,

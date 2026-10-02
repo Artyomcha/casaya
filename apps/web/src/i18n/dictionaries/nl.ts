@@ -45,7 +45,7 @@ const nl: Dictionary = {
     perSqm: '€/m²',
     objects: 'woningen',
     projects: 'projecten',
-    city: 'Alicante',
+    city: 'Marbella',
     favoriteAdd: 'Woning opslaan',
     favoriteRemove: 'Verwijderen uit opgeslagen',
     offers: '{n} makelaars bieden dit aan',
@@ -144,8 +144,8 @@ const nl: Dictionary = {
   search: {
     sale: 'Koop',
     rent: 'Huur',
-    titleBuy: 'Woningen te koop in Alicante',
-    titleRent: 'Woningen te huur in Alicante',
+    titleBuy: 'Woningen te koop in Marbella',
+    titleRent: 'Woningen te huur in Marbella',
     filterPrice: 'Prijs',
     filterBedrooms: 'Slaapkamers',
     filterArea: 'Oppervlakte',
@@ -286,7 +286,7 @@ const nl: Dictionary = {
 
   projects: {
     brand: 'Obra nueva',
-    title: 'Nieuwbouw aan de Costa Blanca',
+    title: 'Nieuwbouw aan de Costa del Sol',
     filterAll: 'Alles',
     filterYear: 'Oplevering',
     developer: 'Ontwikkelaar:',
@@ -454,7 +454,7 @@ const nl: Dictionary = {
   },
 
   footer: {
-    tagline: 'Alleen wat onder de marktprijs ligt. Costa Blanca.',
+    tagline: 'Alleen wat onder de marktprijs ligt. Costa del Sol.',
     buyers: 'Voor kopers',
     professionals: 'Voor professionals',
     services: 'Diensten',
@@ -464,7 +464,7 @@ const nl: Dictionary = {
     turnkey: 'Alles geregeld',
     plus: 'Casaya+',
     videoViewing: 'Videobezichtiging',
-    rights: '© 2026 Casaya. Alicante, Spanje.',
+    rights: '© 2026 Casaya. Marbella, Spanje.',
   },
 
   errors: {

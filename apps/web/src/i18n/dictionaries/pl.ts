@@ -45,7 +45,7 @@ const pl: Dictionary = {
     perSqm: '€/m²',
     objects: 'nieruchomości',
     projects: 'inwestycji',
-    city: 'Alicante',
+    city: 'Marbella',
     favoriteAdd: 'Zapisz nieruchomość',
     favoriteRemove: 'Usuń z zapisanych',
     offers: 'Sprzedaje {n} biur',
@@ -144,8 +144,8 @@ const pl: Dictionary = {
   search: {
     sale: 'Sprzedaż',
     rent: 'Wynajem',
-    titleBuy: 'Kup nieruchomość w Alicante',
-    titleRent: 'Wynajmij mieszkanie w Alicante',
+    titleBuy: 'Kup nieruchomość w Marbelli',
+    titleRent: 'Wynajmij mieszkanie w Marbelli',
     filterPrice: 'Cena',
     filterBedrooms: 'Sypialnie',
     filterArea: 'Powierzchnia',
@@ -286,7 +286,7 @@ const pl: Dictionary = {
 
   projects: {
     brand: 'Obra nueva',
-    title: 'Nowe inwestycje na Costa Blanca',
+    title: 'Nowe inwestycje na Costa del Sol',
     filterAll: 'Wszystkie',
     filterYear: 'Oddanie',
     developer: 'Deweloper:',
@@ -454,7 +454,7 @@ const pl: Dictionary = {
   },
 
   footer: {
-    tagline: 'Tylko to, co poniżej rynku. Costa Blanca.',
+    tagline: 'Tylko to, co poniżej rynku. Costa del Sol.',
     buyers: 'Dla kupujących',
     professionals: 'Dla profesjonalistów',
     services: 'Usługi',
@@ -464,7 +464,7 @@ const pl: Dictionary = {
     turnkey: 'Zakup pod klucz',
     plus: 'Casaya+',
     videoViewing: 'Wideoprezentacja',
-    rights: '© 2026 Casaya. Alicante, Hiszpania.',
+    rights: '© 2026 Casaya. Marbella, Hiszpania.',
   },
 
   errors: {

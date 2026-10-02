@@ -11,10 +11,10 @@ import {
 
 /** Одна и та же квартира глазами двух разных агентств. */
 const base: MatchCandidate = {
-  address: 'Avenida de Niza 14, Playa de San Juan, Alicante',
-  city: 'Alicante',
-  lat: 38.3745,
-  lng: -0.418,
+  address: 'Avenida del Mar 14, Puerto Banús, Marbella',
+  city: 'Marbella',
+  lat: 36.4876,
+  lng: -4.9517,
   kind: 'FLAT',
   area: 80,
   bedrooms: 2,
@@ -23,21 +23,21 @@ const base: MatchCandidate = {
 
 describe('расстояние', () => {
   it('считает по большому кругу', () => {
-    // Аликанте — Бенидорм: 0,189° по широте (~21 км) и 0,3375° по долготе
-    // на широте 38,4° (~29,4 км) дают гипотенузу около 36,1 км.
-    const d = distanceMeters(38.3452, -0.481, 38.5342, -0.1435);
-    expect(d).toBeGreaterThan(35_500);
-    expect(d).toBeLessThan(36_800);
+    // Марбелья — Эстепона: 0,0825° по широте (~9,2 км) и 0,259° по долготе
+    // на широте 36,5° (~23,2 км) дают гипотенузу около 24,9 км.
+    const d = distanceMeters(36.5095, -4.888, 36.427, -5.147);
+    expect(d).toBeGreaterThan(24_400);
+    expect(d).toBeLessThan(25_400);
   });
 
   it('даёт ноль для одной точки', () => {
-    expect(distanceMeters(38.3, -0.4, 38.3, -0.4)).toBe(0);
+    expect(distanceMeters(36.5, -4.9, 36.5, -4.9)).toBe(0);
   });
 });
 
 describe('схожесть адресов', () => {
   it('видит общие слова, игнорируя регистр и пунктуацию', () => {
-    expect(addressSimilarity('Avenida de Niza 14, Alicante', 'AVDA. NIZA 14 — ALICANTE')).toBeGreaterThan(0.3);
+    expect(addressSimilarity('Avenida del Mar 14, Marbella', 'AVDA. DEL MAR 14 — MARBELLA')).toBeGreaterThan(0.3);
   });
 
   it('не путает разные улицы', () => {
@@ -45,7 +45,7 @@ describe('схожесть адресов', () => {
   });
 
   it('снимает диакритику', () => {
-    expect(addressSimilarity('Gran Vía, Alicante', 'Gran Via Alicante')).toBeGreaterThan(0.9);
+    expect(addressSimilarity('Ricardo Soriano, Marbella', 'Ricardo Soriano Marbella')).toBeGreaterThan(0.9);
   });
 });
 
@@ -60,7 +60,7 @@ describe('ключи отбора кандидатов', () => {
 
   it('без координат ячейки нет', () => {
     expect(geoCell(null, null)).toBeNull();
-    expect(geoCell(38.3745, -0.418)).toBe('38375:-418');
+    expect(geoCell(36.4876, -4.9517)).toBe('36488:-4952');
   });
 });
 
@@ -68,9 +68,9 @@ describe('сопоставление объектов', () => {
   it('склеивает одну квартиру из двух фидов', () => {
     const other: MatchCandidate = {
       ...base,
-      address: 'Avda. Niza 14, San Juan, Alicante',
-      lat: 38.3746,
-      lng: -0.4179,
+      address: 'Avda. del Mar 14, Banús, Marbella',
+      lat: 36.4877,
+      lng: -4.9516,
       area: 81,
     };
     const { score } = scoreMatch(base, other);
@@ -111,7 +111,7 @@ describe('сопоставление объектов', () => {
 
   it('без координат опирается на адрес и не склеивает разные улицы', () => {
     const a: MatchCandidate = { ...base, lat: null, lng: null };
-    const b: MatchCandidate = { ...base, lat: null, lng: null, address: 'Gran Vía 88, Alicante' };
+    const b: MatchCandidate = { ...base, lat: null, lng: null, address: 'Ricardo Soriano 88, Marbella' };
     expect(scoreMatch(a, b).score).toBeLessThan(MATCH_THRESHOLD);
   });
 

@@ -239,7 +239,7 @@ describe('CRM', () => {
   it('воронка разложена по стадиям', async () => {
     if (!alive) return;
     const agencies = await get<{ id: string; name: string }[]>('/agencies');
-    const agency = agencies.find((a) => a.name === 'Alicante Prime') ?? agencies[0];
+    const agency = agencies.find((a) => a.name === 'Marbella Prime') ?? agencies[0];
     const p = await get<{ columns: { status: string; leads: unknown[] }[]; total: number; conversion: number }>(
       `/crm/pipeline?agencyId=${agency.id}`,
     );

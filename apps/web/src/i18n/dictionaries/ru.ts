@@ -47,7 +47,7 @@ const ru = {
     perSqm: '€/м²',
     objects: 'объектов',
     projects: 'проектов',
-    city: 'Аликанте',
+    city: 'Марбелья',
     favoriteAdd: 'В избранное',
     favoriteRemove: 'Убрать из избранного',
     offers: 'Продают {n} агентства',
@@ -146,8 +146,8 @@ const ru = {
   search: {
     sale: 'Продажа',
     rent: 'Аренда',
-    titleBuy: 'Купить недвижимость в Аликанте',
-    titleRent: 'Снять жильё в Аликанте',
+    titleBuy: 'Купить недвижимость в Марбелье',
+    titleRent: 'Снять жильё в Марбелье',
     filterPrice: 'Цена',
     filterBedrooms: 'Спальни',
     filterArea: 'Площадь',
@@ -288,7 +288,7 @@ const ru = {
 
   projects: {
     brand: 'Obra nueva',
-    title: 'Новостройки на Коста-Бланке',
+    title: 'Новостройки на Коста-дель-Соль',
     filterAll: 'Все',
     filterYear: 'Сдача',
     developer: 'Застройщик:',
@@ -456,7 +456,7 @@ const ru = {
   },
 
   footer: {
-    tagline: 'Здесь только то, что дешевле рынка. Коста-Бланка.',
+    tagline: 'Здесь только то, что дешевле рынка. Коста-дель-Соль.',
     buyers: 'Покупателям',
     professionals: 'Профессионалам',
     services: 'Сервисы',
@@ -466,7 +466,7 @@ const ru = {
     turnkey: 'Сделка под ключ',
     plus: 'Casaya+',
     videoViewing: 'Видео-осмотр',
-    rights: '© 2026 Casaya. Аликанте, Испания.',
+    rights: '© 2026 Casaya. Марбелья, Испания.',
   },
 
   errors: {

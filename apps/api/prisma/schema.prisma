@@ -232,7 +232,7 @@ model Property {
   /// Если он есть в обоих фидах, дубль определяется без всякой эвристики.
   cadastralRef String?      @unique
   address      String
-  city         String       @default("Alicante")
+  city         String       @default("Marbella")
   lat          Float?
   lng          Float?
   kind         PropertyKind
@@ -270,7 +270,7 @@ model Listing {
   slug          String       @unique
   title         String
   address       String
-  city          String       @default("Аликанте")
+  city          String       @default("Марбелья")
   kind          PropertyKind
   deal          DealType     @default(SALE)
   price         Int

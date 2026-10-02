@@ -2,7 +2,7 @@ import { NormalizedListing } from '../normalized';
 import { arr, detectSeaView, fallbackTitle, num, pick, text, toKind } from './helpers';
 
 /**
- * Inmovilla — самая распространённая CRM у агентств Коста-Бланки.
+ * Inmovilla — самая распространённая CRM у испанских агентств.
  * Её выгрузка ближе к «плоской» схеме с испанскими именами полей.
  */
 export function parseInmovilla(doc: any): NormalizedListing[] {

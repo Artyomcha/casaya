@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { PropertyKind } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
-/** Базовая цена м² по типу объекта, Коста-Бланка. */
+/** Базовая цена м² по типу объекта, Коста-дель-Соль. */
 export const BASE_PRICE_PER_M2: Partial<Record<PropertyKind, number>> = {
-  FLAT: 2650,
-  HOUSE: 2400,
-  PENTHOUSE: 3300,
-  TOWNHOUSE: 2500,
-  COMMERCIAL: 1900,
+  FLAT: 4400,
+  STUDIO: 4000,
+  HOUSE: 3900,
+  VILLA: 5200,
+  PENTHOUSE: 5600,
+  TOWNHOUSE: 3700,
+  COMMERCIAL: 2900,
 };
 
 /** Каждая спальня сверх двух добавляет 3% к оценке. */

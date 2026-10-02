@@ -11,7 +11,7 @@ const AGENCIES: {
 }[] = [
   { id: 'ag-costa-living', name: 'Costa Living', initials: 'CL', brandColor: '#6D3BF5', crm: 'Inmovilla', planKey: 'pro', logoUrl: demoLogo('CL', '#6D3BF5') },
   { id: 'ag-mediterra', name: 'Mediterra Homes', initials: 'MH', brandColor: '#16A37A', crm: 'Witei', planKey: 'premium', logoUrl: demoLogo('MH', '#16A37A') },
-  { id: 'ag-alicante-prime', name: 'Alicante Prime', initials: 'AP', brandColor: '#FF5A3C', crm: 'Mobilia', planKey: 'pro' },
+  { id: 'ag-marbella-prime', name: 'Marbella Prime', initials: 'MP', brandColor: '#FF5A3C', crm: 'Mobilia', planKey: 'pro' },
   { id: 'ag-sol', name: 'Sol Inmobiliaria', initials: 'SI', brandColor: '#2F80ED', crm: 'Resales Online', planKey: 'start' },
   { id: 'ag-casa-norte', name: 'Casa Norte', initials: 'CN', brandColor: '#17112B', crm: 'Kyero XML', planKey: 'start' },
 ];
@@ -26,14 +26,14 @@ type Raw = {
 };
 
 const LISTINGS: Raw[] = [
-  { id: 'l1', slug: 'villa-s-basseynom-altea-hills', img: 29453302, gal: [5570222, 1428348, 20200291, 6180674], kind: 'VILLA', sea: true, price: 485000, market: 545000, m2: 170, bd: 4, ba: 3, title: 'Вилла с бассейном', addr: 'Altea Hills, Альтея', agencyId: 'ag-costa-living', badge: 'Новое', lat: 38.5906, lng: -0.0447 },
-  { id: 'l2', slug: 'villa-s-panoramnym-vidom-javea', img: 31817156, gal: [20390760, 6775268, 5570222, 1428348], kind: 'VILLA', sea: true, price: 1250000, market: 1390000, m2: 320, bd: 5, ba: 4, title: 'Вилла с панорамным видом', addr: 'Cumbre del Sol, Хавеа', agencyId: 'ag-mediterra', badge: null, lat: 38.7044, lng: 0.1656 },
-  { id: 'l3', slug: 'apartamenty-s-terrasoy-san-juan', img: 6775268, gal: [1428348, 6180674, 20390760, 5570222], kind: 'FLAT', sea: true, price: 289000, market: 319000, m2: 80, bd: 2, ba: 2, title: 'Апартаменты с террасой у моря', addr: 'Playa de San Juan, Аликанте', agencyId: 'ag-alicante-prime', badge: 'Новое', lat: 38.3745, lng: -0.418 },
-  { id: 'l4', slug: 'dom-s-sadom-la-mata', img: 20200291, gal: [5570222, 6180674, 1428348, 20390760], kind: 'HOUSE', sea: false, price: 345000, market: 379000, m2: 140, bd: 3, ba: 2, title: 'Дом с садом и бассейном', addr: 'La Mata, Торревьеха', agencyId: 'ag-sol', badge: null, lat: 38.0164, lng: -0.6664 },
-  { id: 'l5', slug: 'svetlaya-kvartira-centro', img: 1428348, gal: [6180674, 20390760, 5570222, 6775268], kind: 'FLAT', sea: false, price: 199000, market: 225000, m2: 68, bd: 2, ba: 1, title: 'Светлая квартира в центре', addr: 'Centro, Аликанте', agencyId: 'ag-alicante-prime', badge: '−5%', lat: 38.3452, lng: -0.481 },
-  { id: 'l6', slug: 'kvartira-posle-remonta-gran-via', img: 6180674, gal: [1428348, 5570222, 20390760, 6775268], kind: 'FLAT', sea: false, price: 239000, market: 262000, m2: 75, bd: 2, ba: 2, title: 'Квартира после ремонта', addr: 'Gran Vía, Аликанте', agencyId: 'ag-casa-norte', badge: null, lat: 38.3565, lng: -0.4905 },
-  { id: 'l7', slug: 'penthaus-s-solyariem-poniente', img: 5570222, gal: [20390760, 1428348, 6180674, 6775268], kind: 'PENTHOUSE', sea: true, price: 312000, market: 349000, m2: 95, bd: 3, ba: 2, title: 'Пентхаус с солярием', addr: 'Poniente, Бенидорм', agencyId: 'ag-mediterra', badge: 'Новое', lat: 38.5342, lng: -0.1435 },
-  { id: 'l8', slug: 'studiya-v-skandinavskom-stile', img: 20390760, gal: [5570222, 1428348, 6180674, 6775268], kind: 'STUDIO', sea: false, price: 178000, market: 189000, m2: 62, bd: 1, ba: 1, title: 'Студия в скандинавском стиле', addr: 'Santa Pola, Санта-Пола', agencyId: 'ag-casa-norte', badge: null, lat: 38.1908, lng: -0.562 },
+  { id: 'l1', slug: 'villa-v-sierra-blanca-marbella', img: 29453302, gal: [5570222, 1428348, 20200291, 6180674], kind: 'VILLA', sea: true, price: 1290000, market: 1450000, m2: 320, bd: 5, ba: 4, title: 'Вилла с видом на море', addr: 'Sierra Blanca, Марбелья', agencyId: 'ag-costa-living', badge: 'Новое', lat: 36.516, lng: -4.901 },
+  { id: 'l2', slug: 'villa-v-benahavis', img: 31817156, gal: [20390760, 6775268, 5570222, 1428348], kind: 'VILLA', sea: true, price: 2450000, market: 2750000, m2: 540, bd: 6, ba: 6, title: 'Вилла в закрытом посёлке', addr: 'Benahavís, Малага', agencyId: 'ag-mediterra', badge: null, lat: 36.519, lng: -5.046 },
+  { id: 'l3', slug: 'apartamenty-puerto-banus', img: 6775268, gal: [1428348, 6180674, 20390760, 5570222], kind: 'FLAT', sea: true, price: 595000, market: 660000, m2: 112, bd: 2, ba: 2, title: 'Апартаменты у порта', addr: 'Puerto Banús, Марбелья', agencyId: 'ag-marbella-prime', badge: 'Новое', lat: 36.4876, lng: -4.9517 },
+  { id: 'l4', slug: 'dom-s-sadom-elviria', img: 20200291, gal: [5570222, 6180674, 1428348, 20390760], kind: 'HOUSE', sea: false, price: 745000, market: 820000, m2: 210, bd: 4, ba: 3, title: 'Дом с садом и бассейном', addr: 'Elviria, Марбелья', agencyId: 'ag-sol', badge: null, lat: 36.4906, lng: -4.762 },
+  { id: 'l5', slug: 'svetlaya-kvartira-san-pedro', img: 1428348, gal: [6180674, 20390760, 5570222, 6775268], kind: 'FLAT', sea: false, price: 349000, market: 395000, m2: 92, bd: 2, ba: 2, title: 'Светлая квартира у бульвара', addr: 'San Pedro de Alcántara, Марбелья', agencyId: 'ag-marbella-prime', badge: '−5%', lat: 36.4852, lng: -4.9895 },
+  { id: 'l6', slug: 'kvartira-posle-remonta-marbella-centro', img: 6180674, gal: [1428348, 5570222, 20390760, 6775268], kind: 'FLAT', sea: false, price: 410000, market: 450000, m2: 98, bd: 3, ba: 2, title: 'Квартира после ремонта', addr: 'Centro, Марбелья', agencyId: 'ag-casa-norte', badge: null, lat: 36.5095, lng: -4.888 },
+  { id: 'l7', slug: 'penthaus-s-solyariem-estepona', img: 5570222, gal: [20390760, 1428348, 6180674, 6775268], kind: 'PENTHOUSE', sea: true, price: 520000, market: 580000, m2: 128, bd: 3, ba: 2, title: 'Пентхаус с солярием', addr: 'Centro, Эстепона', agencyId: 'ag-mediterra', badge: 'Новое', lat: 36.427, lng: -5.147 },
+  { id: 'l8', slug: 'studiya-nueva-andalucia', img: 20390760, gal: [5570222, 1428348, 6180674, 6775268], kind: 'STUDIO', sea: false, price: 235000, market: 249000, m2: 68, bd: 1, ba: 1, title: 'Студия у поля для гольфа', addr: 'Nueva Andalucía, Марбелья', agencyId: 'ag-casa-norte', badge: null, lat: 36.5053, lng: -4.9478 },
 ];
 
 /** У домов и вилл свой набор удобств. */
@@ -44,7 +44,7 @@ const FLAT_FEATURES = ['Терраса', 'Лифт', 'Общий бассейн'
 
 const describe = (l: Raw) =>
   `${l.title} в районе ${l.addr.split(',')[0]}. Объект полностью готов к проживанию, продаётся с мебелью и техникой. ` +
-  'Рядом пляж, супермаркеты, международная школа и остановка трамвая до центра Аликанте. Документы проверены, обременений нет.';
+  'Рядом пляж, супермаркеты, международная школа и выезд на AP-7 в сторону Малаги. Документы проверены, обременений нет.';
 
 const PLANS = [
   { key: 'start', name: 'Старт', price: '0 €', per: '12 месяцев', tag: null, sort: 0, cta: 'Начать бесплатно', items: ['Безлимитное размещение через фид', 'Отклики с профилями покупателей', 'Бейдж Verificado для объектов', 'Базовая статистика'] },
@@ -85,16 +85,16 @@ const SERVICES = [
 ];
 
 const PROJECTS = [
-  { slug: 'mar-azul-residences', name: 'Mar Azul Residences', address: 'La Mata, Торревьеха', priceFrom: 239000, deliveryLabel: 'Сдача II кв. 2027', deliveryYear: '2027', developer: 'Grupo Levante', units: '86 квартир', image: img(15994062), specs: [{ k: 'Спальни', v: '1–3' }, { k: 'Площадь', v: '64–118 м²' }, { k: 'До моря', v: '300 м' }], listing: 'l3' },
-  { slug: 'finestrat-hills', name: 'Finestrat Hills', address: 'Финестрат, Бенидорм', priceFrom: 420000, deliveryLabel: 'Сдача IV кв. 2026', deliveryYear: '2026', developer: 'Costa Build', units: '24 виллы', image: img(29453302), specs: [{ k: 'Спальни', v: '3–4' }, { k: 'Площадь', v: '160–210 м²' }, { k: 'Бассейн', v: 'частный' }], listing: 'l1' },
-  { slug: 'gran-via-living', name: 'Gran Vía Living', address: 'Gran Vía, Аликанте', priceFrom: 198000, deliveryLabel: 'Сдача I кв. 2027', deliveryYear: '2027', developer: 'Urbania', units: '120 квартир', image: img(10135442), specs: [{ k: 'Спальни', v: '1–2' }, { k: 'Площадь', v: '52–86 м²' }, { k: 'Трамвай', v: '200 м' }], listing: 'l6' },
-  { slug: 'altea-blue', name: 'Altea Blue', address: 'Альтея', priceFrom: 365000, deliveryLabel: 'Сдача III кв. 2028', deliveryYear: '2028', developer: 'Mediterra', units: '42 апартамента', image: img(18264393), specs: [{ k: 'Спальни', v: '2–3' }, { k: 'Площадь', v: '90–140 м²' }, { k: 'Вид', v: 'на море' }], listing: 'l7' },
+  { slug: 'banus-bay-residences', name: 'Banús Bay Residences', address: 'Puerto Banús, Марбелья', priceFrom: 549000, deliveryLabel: 'Сдача II кв. 2027', deliveryYear: '2027', developer: 'Grupo Sol', units: '86 квартир', image: img(15994062), specs: [{ k: 'Спальни', v: '1–3' }, { k: 'Площадь', v: '78–140 м²' }, { k: 'До моря', v: '300 м' }], listing: 'l3' },
+  { slug: 'benahavis-hills', name: 'Benahavís Hills', address: 'Benahavís, Малага', priceFrom: 980000, deliveryLabel: 'Сдача IV кв. 2026', deliveryYear: '2026', developer: 'Costa Build', units: '24 виллы', image: img(29453302), specs: [{ k: 'Спальни', v: '3–5' }, { k: 'Площадь', v: '240–380 м²' }, { k: 'Бассейн', v: 'частный' }], listing: 'l1' },
+  { slug: 'san-pedro-living', name: 'San Pedro Living', address: 'San Pedro de Alcántara, Марбелья', priceFrom: 338000, deliveryLabel: 'Сдача I кв. 2027', deliveryYear: '2027', developer: 'Urbania', units: '120 квартир', image: img(10135442), specs: [{ k: 'Спальни', v: '1–3' }, { k: 'Площадь', v: '68–112 м²' }, { k: 'Бульвар', v: '200 м' }], listing: 'l5' },
+  { slug: 'estepona-blue', name: 'Estepona Blue', address: 'Эстепона', priceFrom: 429000, deliveryLabel: 'Сдача III кв. 2028', deliveryYear: '2028', developer: 'Mediterra', units: '42 апартамента', image: img(18264393), specs: [{ k: 'Спальни', v: '2–3' }, { k: 'Площадь', v: '96–150 м²' }, { k: 'Вид', v: 'на море' }], listing: 'l7' },
 ];
 
 const CITIES = [
-  { slug: 'alicante', name: 'Аликанте', listingsCount: 4812, pricePerM2: 2610, image: img(34672275), sort: 0 },
-  { slug: 'benidorm', name: 'Бенидорм', listingsCount: 2306, pricePerM2: 3180, image: img(13114931), sort: 1 },
-  { slug: 'torrevieja', name: 'Торревьеха', listingsCount: 3044, pricePerM2: 1940, image: img(15172873), sort: 2 },
+  { slug: 'marbella', name: 'Марбелья', listingsCount: 5120, pricePerM2: 4380, image: img(34672275), sort: 0 },
+  { slug: 'estepona', name: 'Эстепона', listingsCount: 2740, pricePerM2: 3290, image: img(13114931), sort: 1 },
+  { slug: 'san-pedro-de-alcantara', name: 'San Pedro de Alcántara', listingsCount: 1860, pricePerM2: 3610, image: img(15172873), sort: 2 },
 ];
 
 /**
@@ -111,10 +111,10 @@ const DUPLICATE_OFFERS: {
   /** Своя съёмка: каждое агентство снимает квартиру по-своему. */
   photos: number[];
 }[] = [
-  { of: 'l3', agencyId: 'ag-costa-living', externalId: 'CL-8841', priceDelta: 6000, title: 'Апартаменты у моря, Сан-Хуан', photos: [13114931, 34672275] },
-  { of: 'l3', agencyId: 'ag-casa-norte', externalId: 'CN-2210', priceDelta: -4000, title: 'Квартира с террасой, Playa de San Juan', photos: [10135442, 15172873, 18264393] },
-  { of: 'l5', agencyId: 'ag-mediterra', externalId: 'MH-5517', priceDelta: 3000, title: 'Светлая квартира, центр Аликанте', photos: [15994062, 31817156] },
-  { of: 'l1', agencyId: 'ag-sol', externalId: 'SI-7702', priceDelta: 15000, title: 'Вилла в Altea Hills с бассейном', photos: [20200291, 6180674] },
+  { of: 'l3', agencyId: 'ag-costa-living', externalId: 'CL-8841', priceDelta: 6000, title: 'Апартаменты у порта, Банус', photos: [13114931, 34672275] },
+  { of: 'l3', agencyId: 'ag-casa-norte', externalId: 'CN-2210', priceDelta: -4000, title: 'Квартира с террасой, Puerto Banús', photos: [10135442, 15172873, 18264393] },
+  { of: 'l5', agencyId: 'ag-mediterra', externalId: 'MH-5517', priceDelta: 3000, title: 'Светлая квартира, Сан-Педро', photos: [15994062, 31817156] },
+  { of: 'l1', agencyId: 'ag-sol', externalId: 'SI-7702', priceDelta: 15000, title: 'Вилла в Sierra Blanca с бассейном', photos: [20200291, 6180674] },
 ];
 
 const PIPELINE_SEED: { status: 'NEW' | 'CONTACTED' | 'VIEWING' | 'NEGOTIATION' | 'WON' | 'LOST'; name: string; budget: number; listing: string }[] = [
@@ -213,7 +213,7 @@ async function main() {
       data: {
         slug: l.slug,
         address: l.addr,
-        city: 'Alicante',
+        city: 'Marbella',
         lat: l.lat,
         lng: l.lng,
         kind: l.kind,
@@ -222,7 +222,7 @@ async function main() {
         bathrooms: l.ba,
         seaView: l.sea,
         yearBuilt: HOUSE_KINDS.includes(l.kind) ? 2019 : 2008,
-        matchKey: ['alicante', l.kind, Math.round(l.m2 / 10), l.bd].join('|'),
+        matchKey: ['marbella', l.kind, Math.round(l.m2 / 10), l.bd].join('|'),
       },
     });
     await prisma.listing.update({ where: { id: l.id }, data: { propertyId: property.id } });

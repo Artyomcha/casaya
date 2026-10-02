@@ -9,10 +9,10 @@ export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 
 export const ATTRIBUTION = '© OpenFreeMap · © OpenMapTiles · © OpenStreetMap';
 
-/** Коста-Бланка целиком — вид, пока объекты не загрузились. */
-export const COSTA_BLANCA = {
-  center: [-0.4, 38.4] as [number, number],
-  zoom: 7.6,
+/** Коста-дель-Соль целиком — вид, пока объекты не загрузились. */
+export const COSTA_DEL_SOL = {
+  center: [-4.95, 36.5] as [number, number],
+  zoom: 9.4,
 };
 
 /** Выдача смотрит почти сверху, карточка объекта — с высоты крыш. */

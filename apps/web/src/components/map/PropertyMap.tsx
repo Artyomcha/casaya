@@ -17,7 +17,7 @@ import {
   ATTRIBUTION,
   BASEMAP_STYLE,
   CAMERA,
-  COSTA_BLANCA,
+  COSTA_DEL_SOL,
   FOOTPRINT_ATTRIBUTION,
   FOOTPRINT_SOURCE,
   SKY,
@@ -96,7 +96,7 @@ function addVolume(instance: MlMap) {
   if (!instance.getSource(TERRAIN_SOURCE)) {
     instance.addSource(TERRAIN_SOURCE, terrainSource);
   }
-  // exaggeration 1 — реальный рельеф: на Коста-Бланке горы и так выразительные.
+  // exaggeration 1 — реальный рельеф: на Коста-дель-Соль горы и так выразительные.
   instance.setTerrain({ source: TERRAIN_SOURCE, exaggeration: 1 });
   instance.setSky(SKY);
 
@@ -159,8 +159,8 @@ function VectorMap({
     const instance = new maplibregl.Map({
       container: container.current,
       style: BASEMAP_STYLE,
-      center: pins[0] ? [pins[0].lng, pins[0].lat] : COSTA_BLANCA.center,
-      zoom: variant === 'single' ? CAMERA.single.zoom : COSTA_BLANCA.zoom,
+      center: pins[0] ? [pins[0].lng, pins[0].lat] : COSTA_DEL_SOL.center,
+      zoom: variant === 'single' ? CAMERA.single.zoom : COSTA_DEL_SOL.zoom,
       pitch: camera.pitch,
       bearing: camera.bearing,
       maxPitch: 80,
