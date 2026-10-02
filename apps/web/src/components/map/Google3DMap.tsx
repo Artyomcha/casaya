@@ -6,6 +6,7 @@ import type { Locale } from '@/i18n/locales';
 import { pinLabel } from '@/lib/format';
 import type { MapPin, Mode } from '@/lib/types';
 import { loadGoogleMaps } from './googleMaps';
+import { pinGraphic } from './pinGraphic';
 import './map.css';
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
   variant?: 'search' | 'single';
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
+  favorites?: string[];
   height?: string | number;
   onFail?: () => void;
 }
@@ -75,6 +77,7 @@ export function Google3DMap({
   variant = 'search',
   selectedId,
   onSelect,
+  favorites = [],
   height = '100%',
   onFail,
 }: Props) {
@@ -92,9 +95,8 @@ export function Google3DMap({
 
     (async () => {
       try {
-        const { maps3d, marker: markerLib } = await loadGoogleMaps();
+        const { maps3d } = await loadGoogleMaps();
         if (cancelled) return;
-        const { PinElement } = markerLib;
 
         const camera =
           variant === 'single'
@@ -118,24 +120,25 @@ export function Google3DMap({
         container.replaceChildren(map);
 
         for (const pin of pins) {
-          const pinEl = new PinElement({
-            background: '#6D3BF5',
-            borderColor: '#4B21C6',
-            glyphColor: '#FFFFFF',
-            scale: 1.3,
-          });
-
           const marker = new maps3d.Marker3DInteractiveElement({
             position: { lat: pin.lat, lng: pin.lng, altitude: PIN_ALTITUDE },
             // RELATIVE_TO_GROUND + extruded — метка висит над домом и соединена
             // с землёй ножкой, иначе на наклонённой съёмке не понять, где она стоит.
             altitudeMode: maps3d.AltitudeMode?.RELATIVE_TO_GROUND ?? 'RELATIVE_TO_GROUND',
             extruded: true,
-            // Подписью идёт цена: ради неё карту и открывают.
-            label: variant === 'single' ? money(pin.price, locale) : pinLabel(pin.price, mode, locale),
+            // Без label: Google рисует его крупным белым текстом над меткой,
+            // а цена и так написана в самой метке.
           });
-          // В свежих версиях PinElement сам является элементом, в старых — лежит в .element.
-          marker.append((pinEl.element ?? pinEl) as HTMLElement);
+
+          // Свою графику Marker3DElement принимает только внутри <template>.
+          const template = document.createElement('template');
+          template.content.append(
+            pinGraphic({
+              label: variant === 'single' ? money(pin.price, locale) : pinLabel(pin.price, mode, locale),
+              favorite: favorites.includes(pin.id),
+            }),
+          );
+          marker.append(template);
           marker.addEventListener('gmp-click', () => {
             selectRef.current?.(pin.id);
             // В выдаче у метки нет попапа, как на векторной карте, поэтому клик
@@ -156,7 +159,7 @@ export function Google3DMap({
       cancelled = true;
       container.replaceChildren();
     };
-  }, [pins, mode, locale, variant]);
+  }, [pins, mode, locale, variant, favorites]);
 
   // Подсветка выбранного объекта пока не нужна в 3D: карточка и так открывается кликом.
   void selectedId;

@@ -122,6 +122,7 @@ export function PropertyMap(props: Props) {
         variant={props.variant}
         selectedId={props.selectedId}
         onSelect={props.onSelect}
+        favorites={props.favorites}
         height={props.height}
         onFail={() => setGoogleFailed(true)}
       />
