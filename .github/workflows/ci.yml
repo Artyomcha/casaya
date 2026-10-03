@@ -33,7 +33,11 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://casaya:casaya@localhost:5433/casaya
+      # Порт берётся из .env, которого в репозитории нет: без него API
+      # слушал 4000, а проверка стучалась в 4100 и не дожидалась.
+      PORT: '4100'
       API_URL: http://localhost:4100/api
+      WEB_ORIGIN: http://localhost:3100
       # Пропуск сквозных тестов на CI — это зелёный прогон ни о чём.
       REQUIRE_API: '1'
       AUTH_SECRET: ci-secret
@@ -69,22 +73,24 @@ jobs:
       - name: Сборка API
         run: npm run build --workspace apps/api
 
-      - name: Запуск API
+      # Запуск и тесты одним шагом: фоновый процесс из соседнего шага
+      # в Actions не переживает завершение его оболочки.
+      - name: Тесты со сквозными
         run: |
-          node apps/api/dist/main.js &
-          echo $! > /tmp/api.pid
+          node apps/api/dist/main.js > /tmp/api.log 2>&1 &
+          api=$!
           for i in $(seq 1 40); do
-            curl -sf "$API_URL/health" >/dev/null && exit 0
+            curl -sf "$API_URL/health" >/dev/null && break
             sleep 2
           done
-          echo "API не поднялся"; exit 1
-
-      - name: Тесты
-        run: npm test --workspace apps/api
+          if ! curl -sf "$API_URL/health" >/dev/null; then
+            echo "API не поднялся, его вывод:"; cat /tmp/api.log; kill $api; exit 1
+          fi
+          # Actions выполняет шаг с set -e: без || падение теста оборвало бы
+          # скрипт до остановки API, и код возврата потерялся бы.
+          npm test --workspace apps/api || code=$?
+          kill $api 2>/dev/null || true
+          exit ${code:-0}
 
       - name: Сборка портала
         run: npm run build --workspace apps/web
-
-      - name: Остановка API
-        if: always()
-        run: kill "$(cat /tmp/api.pid)" 2>/dev/null || true
