@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Close } from '@/components/ui/icons';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { CLIENT_BASE } from '@/lib/api';
+import { setToken } from '@/lib/session';
 import { c } from '@/lib/theme';
 
 const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -34,6 +35,9 @@ export function LoginModal({ dict, onClose }: { dict: Dictionary; onClose: () =>
   const [tab, setTab] = useState<'phone' | 'email'>('phone');
   const [identity, setIdentity] = useState('');
   const [sent, setSent] = useState(false);
+  const [code, setCode] = useState('');
+  // В dev-режиме API возвращает код: пройти вход без SMS-провайдера.
+  const [devCode, setDevCode] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,7 +52,31 @@ export function LoginModal({ dict, onClose }: { dict: Dictionary; onClose: () =>
         body: JSON.stringify({ channel: tab, identity }),
       });
       if (!res.ok) throw new Error(dict.errors.loadFailed);
+      const data = (await res.json()) as { devCode?: string };
+      setDevCode(data.devCode ?? null);
       setSent(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Второй шаг: код в обмен на токен. Без него вход обрывался на половине. */
+  const verify = async () => {
+    if (code.trim().length < 4) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`${CLIENT_BASE}/auth/verify`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ channel: tab, identity, code: code.trim() }),
+      });
+      if (!res.ok) throw new Error(dict.login.codeWrong);
+      const data = (await res.json()) as { token: string };
+      setToken(data.token);
+      onClose();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -115,15 +143,29 @@ export function LoginModal({ dict, onClose }: { dict: Dictionary; onClose: () =>
         />
 
         {sent && (
-          <div style={{ fontSize: 14, color: c.greenText, background: c.greenTint, borderRadius: 12, padding: '12px 14px' }}>
-            {dict.login.codeSent}
-          </div>
+          <>
+            <div style={{ fontSize: 14, color: c.greenText, background: c.greenTint, borderRadius: 12, padding: '12px 14px' }}>
+              {dict.login.codeSent}
+              {devCode && (
+                <span style={{ display: 'block', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+                  {dict.login.devHint}: <b>{devCode}</b>
+                </span>
+              )}
+            </div>
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder={dict.login.codePlaceholder}
+              inputMode="numeric"
+              style={{ ...inputStyle, letterSpacing: '0.3em', fontVariantNumeric: 'tabular-nums' }}
+            />
+          </>
         )}
         {error && <div style={{ fontSize: 14, color: c.coralDark }}>{error}</div>}
 
         <button
           type="button"
-          onClick={requestCode}
+          onClick={sent ? verify : requestCode}
           disabled={busy}
           className="h-violet"
           style={{
@@ -139,7 +181,7 @@ export function LoginModal({ dict, onClose }: { dict: Dictionary; onClose: () =>
             opacity: busy ? 0.7 : 1,
           }}
         >
-          {dict.login.getCode}
+          {sent ? dict.login.signIn : dict.login.getCode}
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: c.greyLight, fontSize: 13 }}>

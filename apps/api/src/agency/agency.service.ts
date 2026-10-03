@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { AuthService } from '../auth/auth.service';
 import { pricingProblem, savingsOf, suspiciousDiscount } from '../pricing/below-market';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterAgencyDto, UpdatePricingDto } from './dto';
@@ -16,13 +17,16 @@ const BRAND_COLORS = ['#6D3BF5', '#16A37A', '#FF5A3C', '#2F80ED', '#17112B'];
 
 @Injectable()
 export class AgencyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auth: AuthService,
+  ) {}
 
   /**
    * Регистрация агентства из формы «Подключить агентство».
    * Базовое размещение бесплатно 12 месяцев — срок пишем сразу.
    */
-  async register(dto: RegisterAgencyDto) {
+  async register(dto: RegisterAgencyDto, authorization?: string) {
     const existing = await this.prisma.agency.findUnique({ where: { name: dto.name } });
     if (existing) throw new BadRequestException('Агентство с таким названием уже зарегистрировано');
 
@@ -44,6 +48,15 @@ export class AgencyService {
       },
     });
 
+    // Регистрация открыта всем, но вошедший сразу становится владельцем:
+    // без членства кабинет потом никому не принадлежит.
+    const ownerId = this.userIdOf(authorization);
+    if (ownerId) {
+      await this.prisma.agencyMember.create({
+        data: { agencyId: agency.id, userId: ownerId, role: 'owner' },
+      });
+    }
+
     await this.prisma.lead.create({
       data: {
         kind: 'AGENCY',
@@ -55,6 +68,17 @@ export class AgencyService {
     });
 
     return agency;
+  }
+
+  /** Токен необязателен: разбираем, только если он пришёл. */
+  private userIdOf(authorization?: string): string | null {
+    const token = authorization?.replace(/^Bearer\s+/i, '').trim();
+    if (!token) return null;
+    try {
+      return this.auth.verifyToken(token);
+    } catch {
+      return null;
+    }
   }
 
   async byId(id: string) {

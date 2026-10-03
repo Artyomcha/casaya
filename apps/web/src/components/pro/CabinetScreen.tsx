@@ -7,6 +7,7 @@ import { PricingTable } from '@/components/pro/PricingTable';
 import type { Dictionary } from '@/i18n/getDictionary';
 import { LOCALE_TAGS, type Locale } from '@/i18n/locales';
 import { api } from '@/lib/api';
+import { token } from '@/lib/session';
 import type { AgencyDashboard, FeedStatus } from '@/lib/types';
 import { c } from '@/lib/theme';
 
@@ -46,17 +47,24 @@ export function CabinetScreen({ dict, locale }: { dict: Dictionary; locale: Loca
   };
 
   const [agencyId, setAgencyId] = useState<string | null>(null);
+  // Кабинет закрыт guard'ами на сервере: без входа запросы вернут 401,
+  // и показывать форму регистрации бессмысленно.
+  const [signedIn, setSignedIn] = useState(true);
   const [data, setData] = useState<AgencyDashboard | null>(null);
   const [form, setForm] = useState({ name: '', email: '', phone: '', crm: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    setSignedIn(Boolean(token()));
+    const onSession = () => setSignedIn(Boolean(token()));
+    window.addEventListener('casaya:session', onSession);
     try {
       setAgencyId(localStorage.getItem(AGENCY_KEY));
     } catch {
       /* приватный режим */
     }
+    return () => window.removeEventListener('casaya:session', onSession);
   }, []);
 
   const load = useCallback(async (id: string) => {
@@ -96,6 +104,17 @@ export function CabinetScreen({ dict, locale }: { dict: Dictionary; locale: Loca
       setBusy(false);
     }
   };
+
+  if (!signedIn) {
+    return (
+      <section style={{ maxWidth: 560, margin: '0 auto', padding: '64px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.035em', margin: 0 }}>
+          {dict.cabinet.signInFirst}
+        </h1>
+        <p style={{ fontSize: 16, color: c.grey, margin: 0, lineHeight: 1.5 }}>{dict.cabinet.signInLead}</p>
+      </section>
+    );
+  }
 
   if (!agencyId) {
     return (

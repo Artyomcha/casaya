@@ -17,6 +17,7 @@ import type {
   Project,
   ServiceOffer,
 } from './types';
+import { token } from './session';
 
 const SERVER_BASE = process.env.API_URL ?? 'http://localhost:4100/api';
 export const CLIENT_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4100/api';
@@ -36,9 +37,16 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // Токен подставляется сам: кабинет, CRM и избранное закрыты, а каждый
+  // вызов добавлять заголовок вручную — верный способ однажды забыть.
+  const auth = token();
   const res = await fetch(`${base()}${path}`, {
     ...init,
-    headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) },
+    headers: {
+      'content-type': 'application/json',
+      ...(auth ? { authorization: `Bearer ${auth}` } : null),
+      ...(init?.headers ?? {}),
+    },
     cache: init?.method && init.method !== 'GET' ? 'no-store' : 'no-store',
   });
 

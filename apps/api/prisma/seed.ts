@@ -37,6 +37,9 @@ const LISTINGS: Raw[] = [
 ];
 
 /** У домов и вилл свой набор удобств. */
+/** Под этим адресом открывается кабинет любого демо-агентства. */
+export const DEMO_OWNER_EMAIL = 'demo@casaya.es';
+
 const HOUSE_KINDS: PropertyKind[] = ['HOUSE', 'VILLA', 'TOWNHOUSE'];
 
 const HOUSE_FEATURES = ['Бассейн', 'Сад', 'Парковка на 2 авто', 'Кондиционер', 'Солнечные панели', 'Барбекю-зона'];
@@ -160,6 +163,15 @@ async function main() {
   await prisma.serviceOffer.createMany({ data: SERVICES });
   await prisma.city.createMany({ data: CITIES });
   await prisma.agency.createMany({ data: AGENCIES });
+
+  // --- Владелец агентств: кабинет и CRM закрыты членством, и без него
+  // демо-данные некому было бы открыть.
+  const owner = await prisma.user.create({
+    data: { email: DEMO_OWNER_EMAIL, name: 'Демо-владелец' },
+  });
+  await prisma.agencyMember.createMany({
+    data: AGENCIES.map((a) => ({ agencyId: a.id, userId: owner.id, role: 'owner' })),
+  });
 
   for (const p of PROJECTS) {
     await prisma.project.create({

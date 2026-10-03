@@ -6,8 +6,8 @@ import { beforeAll, describe, expect, it } from 'vitest';
  */
 const BASE = process.env.API_URL ?? 'http://localhost:4100/api';
 
-const get = async <T>(path: string): Promise<T> => {
-  const res = await fetch(`${BASE}${path}`);
+const get = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const res = await fetch(`${BASE}${path}`, init);
   if (!res.ok) throw new Error(`${path} → ${res.status}`);
   return res.json() as Promise<T>;
 };
@@ -249,12 +249,32 @@ describe('расчёты через API', () => {
 });
 
 describe('CRM', () => {
+  /** CRM закрыта членством в агентстве — входим демо-владельцем из сида. */
+  async function ownerToken(): Promise<string> {
+    const email = 'demo@casaya.es';
+    const requested = (await fetch(`${BASE}/auth/request-code`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ channel: 'email', identity: email }),
+    }).then((r) => r.json())) as { devCode?: string };
+
+    const verified = (await fetch(`${BASE}/auth/verify`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ channel: 'email', identity: email, code: requested.devCode }),
+    }).then((r) => r.json())) as { token: string };
+
+    return verified.token;
+  }
+
   it('воронка разложена по стадиям', async () => {
     if (!alive) return;
+    const auth = { authorization: `Bearer ${await ownerToken()}` };
     const agencies = await get<{ id: string; name: string }[]>('/agencies');
     const agency = agencies.find((a) => a.name === 'Marbella Prime') ?? agencies[0];
     const p = await get<{ columns: { status: string; leads: unknown[] }[]; total: number; conversion: number }>(
       `/crm/pipeline?agencyId=${agency.id}`,
+      { headers: auth },
     );
     expect(p.columns.map((c) => c.status)).toEqual(['NEW', 'CONTACTED', 'VIEWING', 'NEGOTIATION', 'WON', 'LOST']);
     expect(p.conversion).toBeGreaterThanOrEqual(0);
@@ -263,9 +283,11 @@ describe('CRM', () => {
 
   it('аналитика считает CTR', async () => {
     if (!alive) return;
+    const auth = { authorization: `Bearer ${await ownerToken()}` };
     const agencies = await get<{ id: string }[]>('/agencies');
     const a = await get<{ totals: { impressions: number; clicks: number; ctr: number }; rows: unknown[] }>(
       `/crm/analytics?agencyId=${agencies[0].id}`,
+      { headers: auth },
     );
     expect(a.totals.impressions).toBeGreaterThan(0);
     expect(a.totals.ctr).toBeCloseTo(a.totals.clicks / a.totals.impressions, 6);

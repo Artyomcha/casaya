@@ -1,13 +1,18 @@
 import {
   BadRequestException,
   Controller,
+  ForbiddenException,
   NotFoundException,
   Param,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AgencyGuard } from '../auth/agency.guard';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { UploadsService } from './uploads.service';
 
@@ -19,6 +24,7 @@ export class UploadsController {
   ) {}
 
   /** Логотип агентства — заменяет квадрат с инициалами в выдаче. */
+  @UseGuards(AgencyGuard)
   @Post('agencies/:id/logo')
   @UseInterceptors(FileInterceptor('file'))
   async agencyLogo(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
@@ -37,10 +43,16 @@ export class UploadsController {
     });
   }
 
-  /** Аватар частного продавца. */
+  /** Аватар частного продавца. Свой и только свой. */
+  @UseGuards(AuthGuard)
   @Post('users/:id/avatar')
   @UseInterceptors(FileInterceptor('file'))
-  async userAvatar(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+  async userAvatar(
+    @Param('id') id: string,
+    @CurrentUser() userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (id !== userId) throw new ForbiddenException('Можно менять только свой аватар');
     if (!file) throw new BadRequestException('Файл не пришёл');
 
     const user = await this.prisma.user.findUnique({ where: { id }, select: { avatarUrl: true } });
