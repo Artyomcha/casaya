@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Параллельные прогоны одной ветки не нужны: отменяем предыдущий.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Типы, сборка, тесты
+    runs-on: ubuntu-latest
+
+    # База нужна по-настоящему: сквозные тесты ходят в поднятый API,
+    # а не в заглушки, иначе проверка доступа ничего не доказывает.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: casaya
+          POSTGRES_PASSWORD: casaya
+          POSTGRES_DB: casaya
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U casaya"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://casaya:casaya@localhost:5433/casaya
+      API_URL: http://localhost:4100/api
+      # Пропуск сквозных тестов на CI — это зелёный прогон ни о чём.
+      REQUIRE_API: '1'
+      AUTH_SECRET: ci-secret
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Зависимости
+        run: npm ci
+
+      - name: Клиент Prisma
+        run: npm run prisma:generate --workspace apps/api
+
+      - name: Типы API
+        run: npx tsc --noEmit --project apps/api
+
+      - name: Типы портала
+        run: npx tsc --noEmit --project apps/web
+
+      - name: Типы приложения
+        run: npx tsc --noEmit --project apps/mobile
+
+      - name: Миграции и демо-данные
+        run: |
+          npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+          npm run prisma:seed --workspace apps/api
+
+      - name: Сборка API
+        run: npm run build --workspace apps/api
+
+      - name: Запуск API
+        run: |
+          node apps/api/dist/main.js &
+          echo $! > /tmp/api.pid
+          for i in $(seq 1 40); do
+            curl -sf "$API_URL/health" >/dev/null && exit 0
+            sleep 2
+          done
+          echo "API не поднялся"; exit 1
+
+      - name: Тесты
+        run: npm test --workspace apps/api
+
+      - name: Сборка портала
+        run: npm run build --workspace apps/web
+
+      - name: Остановка API
+        if: always()
+        run: kill "$(cat /tmp/api.pid)" 2>/dev/null || true

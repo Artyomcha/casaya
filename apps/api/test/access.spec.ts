@@ -1,22 +1,18 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { BASE, liveApi } from './live-api';
 
 /**
  * Проверка доступа на живом API. Кабинет агентства и CRM должны быть закрыты:
  * до этих guard'ов любой, кто знал идентификатор, мог переписать чужие цены.
  */
-const BASE = process.env.API_URL ?? 'http://localhost:4100/api';
 
 let alive = false;
 let agencyId = '';
 
 beforeAll(async () => {
-  alive = await fetch(`${BASE}/health`)
-    .then((r) => r.ok)
-    .catch(() => false);
-  if (!alive) {
-    console.warn(`API на ${BASE} не отвечает — тесты доступа пропущены`);
-    return;
-  }
+  alive = await liveApi();
+  if (!alive) return;
+
   const listings = (await fetch(`${BASE}/listings?take=1`).then((r) => r.json())) as {
     items: { agency: { id: string } }[];
   };

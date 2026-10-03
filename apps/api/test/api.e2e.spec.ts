@@ -1,10 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { BASE, liveApi } from './live-api';
 
 /**
  * Сквозные проверки по работающему API. Запускаются, если он поднят:
  * это проверка склейки всех слоёв, а не логики по отдельности.
  */
-const BASE = process.env.API_URL ?? 'http://localhost:4100/api';
 
 const get = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const res = await fetch(`${BASE}${path}`, init);
@@ -15,8 +15,7 @@ const get = async <T>(path: string, init?: RequestInit): Promise<T> => {
 let alive = false;
 
 beforeAll(async () => {
-  alive = await fetch(`${BASE}/health`).then((r) => r.ok).catch(() => false);
-  if (!alive) console.warn(`API на ${BASE} не отвечает — сквозные тесты пропущены`);
+  alive = await liveApi();
 });
 
 describe.skipIf(!process.env.CI && false)('каталог', () => {

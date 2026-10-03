@@ -14,6 +14,13 @@ import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// SDK нужен только для сборки под iOS. На Linux (CI) и Windows качать 49 МБ
+// незачем — там этот модуль всё равно не собирается.
+if (process.platform !== 'darwin') {
+  console.log('maps3d: не macOS, пропускаю загрузку');
+  process.exit(0);
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const iosDir = join(here, '..', 'ios');
 const frameworks = join(iosDir, 'Frameworks');
