@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { BASE, liveApi } from './live-api';
+import { signIn } from './sign-in';
 
 /**
  * Сквозные проверки по работающему API. Запускаются, если он поднят:
@@ -248,27 +249,9 @@ describe('расчёты через API', () => {
 });
 
 describe('CRM', () => {
-  /** CRM закрыта членством в агентстве — входим демо-владельцем из сида. */
-  async function ownerToken(): Promise<string> {
-    const email = 'demo@casaya.es';
-    const requested = (await fetch(`${BASE}/auth/request-code`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ channel: 'email', identity: email }),
-    }).then((r) => r.json())) as { devCode?: string };
-
-    const verified = (await fetch(`${BASE}/auth/verify`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ channel: 'email', identity: email, code: requested.devCode }),
-    }).then((r) => r.json())) as { token: string };
-
-    return verified.token;
-  }
-
   it('воронка разложена по стадиям', async () => {
     if (!alive) return;
-    const auth = { authorization: `Bearer ${await ownerToken()}` };
+    const auth = { authorization: `Bearer ${await signIn('demo@casaya.es')}` };
     const agencies = await get<{ id: string; name: string }[]>('/agencies');
     const agency = agencies.find((a) => a.name === 'Marbella Prime') ?? agencies[0];
     const p = await get<{ columns: { status: string; leads: unknown[] }[]; total: number; conversion: number }>(
@@ -282,7 +265,7 @@ describe('CRM', () => {
 
   it('аналитика считает CTR', async () => {
     if (!alive) return;
-    const auth = { authorization: `Bearer ${await ownerToken()}` };
+    const auth = { authorization: `Bearer ${await signIn('demo@casaya.es')}` };
     const agencies = await get<{ id: string }[]>('/agencies');
     const a = await get<{ totals: { impressions: number; clicks: number; ctr: number }; rows: unknown[] }>(
       `/crm/analytics?agencyId=${agencies[0].id}`,

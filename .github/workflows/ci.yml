@@ -40,7 +40,8 @@ jobs:
       WEB_ORIGIN: http://localhost:3100
       # Пропуск сквозных тестов на CI — это зелёный прогон ни о чём.
       REQUIRE_API: '1'
-      AUTH_SECRET: ci-secret
+      # Короче 16 символов API в проде не примет, в CI держим ту же планку.
+      AUTH_SECRET: ci-secret-at-least-16-chars
 
     steps:
       - uses: actions/checkout@v4

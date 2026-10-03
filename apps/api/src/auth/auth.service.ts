@@ -5,10 +5,19 @@ import { PrismaService } from '../prisma/prisma.service';
 interface PendingCode {
   code: string;
   expiresAt: number;
+  attempts: number;
+  sentAt: number;
 }
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * Код из шести цифр — это миллион вариантов. Без ограничения попыток его
+ * перебирают за минуты, поэтому после пяти промахов код сгорает и нужен новый.
+ */
+const MAX_ATTEMPTS = 5;
+/** Новый код не чаще раза в полминуты: иначе рассылка превращается в оружие. */
+const RESEND_COOLDOWN_MS = 30 * 1000;
 
 /**
  * Вход по одноразовому коду на телефон или email — как в модальном окне портала.
@@ -17,14 +26,25 @@ const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 @Injectable()
 export class AuthService {
   private readonly codes = new Map<string, PendingCode>();
-  private readonly secret = process.env.AUTH_SECRET ?? 'casaya-dev-secret';
+  private readonly secret = resolveSecret();
 
   constructor(private readonly prisma: PrismaService) {}
 
   requestCode(channel: 'phone' | 'email', identity: string) {
     const key = `${channel}:${identity.trim().toLowerCase()}`;
+
+    const previous = this.codes.get(key);
+    if (previous && Date.now() - previous.sentAt < RESEND_COOLDOWN_MS) {
+      throw new BadRequestException('Код уже отправлен, попробуйте через полминуты');
+    }
+
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
-    this.codes.set(key, { code, expiresAt: Date.now() + CODE_TTL_MS });
+    this.codes.set(key, {
+      code,
+      expiresAt: Date.now() + CODE_TTL_MS,
+      attempts: 0,
+      sentAt: Date.now(),
+    });
 
     return {
       sent: true,
@@ -43,6 +63,12 @@ export class AuthService {
       this.codes.delete(key);
       throw new BadRequestException('Срок действия кода истёк');
     }
+    pending.attempts += 1;
+    if (pending.attempts > MAX_ATTEMPTS) {
+      this.codes.delete(key);
+      throw new UnauthorizedException('Слишком много попыток, запросите новый код');
+    }
+
     const a = Buffer.from(pending.code);
     const b = Buffer.from(code.padEnd(a.length).slice(0, a.length));
     if (!timingSafeEqual(a, b)) throw new UnauthorizedException('Неверный код');
@@ -75,4 +101,18 @@ export class AuthService {
     if (Number(exp) < Date.now()) throw new UnauthorizedException('Токен истёк');
     return userId;
   }
+}
+
+/**
+ * Секрет подписи токенов. В проде его отсутствие — это возможность
+ * подделать любой токен, поэтому лучше не подняться вовсе, чем подняться
+ * с предсказуемым ключом.
+ */
+function resolveSecret(): string {
+  const value = process.env.AUTH_SECRET;
+  if (value && value.length >= 16) return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('AUTH_SECRET не задан или короче 16 символов — токены подделываются');
+  }
+  return 'casaya-dev-secret';
 }

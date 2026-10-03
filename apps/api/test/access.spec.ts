@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { BASE, liveApi } from './live-api';
+import { signIn } from './sign-in';
 
 /**
  * Проверка доступа на живом API. Кабинет агентства и CRM должны быть закрыты:
@@ -19,22 +20,6 @@ beforeAll(async () => {
   agencyId = listings.items[0]!.agency.id;
 });
 
-/** Вход по одноразовому коду: в dev-режиме код возвращается самим API. */
-async function signIn(email: string): Promise<string> {
-  const requested = (await fetch(`${BASE}/auth/request-code`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ channel: 'email', identity: email }),
-  }).then((r) => r.json())) as { devCode?: string };
-
-  const verified = (await fetch(`${BASE}/auth/verify`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ channel: 'email', identity: email, code: requested.devCode }),
-  }).then((r) => r.json())) as { token: string };
-
-  return verified.token;
-}
 
 const status = (path: string, init?: RequestInit) =>
   fetch(`${BASE}${path}`, init).then((r) => r.status);
@@ -48,7 +33,7 @@ describe('кабинет агентства закрыт', () => {
 
   it('цены чужого агентства не поменять даже с токеном — 403', async () => {
     if (!alive) return;
-    const token = await signIn(`postoronniy-${Date.now()}@example.com`);
+    const token = await signIn('postoronniy@casaya.test');
 
     expect(
       await status(`/agencies/${agencyId}/listings`, {
@@ -84,7 +69,7 @@ describe('CRM закрыта', () => {
 
   it('чужой кабинет собственника недоступен', async () => {
     if (!alive) return;
-    const token = await signIn(`owner-${Date.now()}@example.com`);
+    const token = await signIn('chuzhoy-owner@casaya.test');
     expect(
       await status('/crm/owner/someone-else', {
         headers: { authorization: `Bearer ${token}` },

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Headers, Post, UnauthorizedException } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { IsEnum, IsString, Length, MaxLength } from 'class-validator';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -23,11 +24,15 @@ export class AuthController {
     private readonly prisma: PrismaService,
   ) {}
 
+  // Вход — самая лакомая точка: отдельный, куда более жёсткий лимит.
+  // Пять запросов кода в минуту с адреса, перебирать бессмысленно.
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('request-code')
   requestCode(@Body() dto: RequestCodeDto) {
     return this.auth.requestCode(dto.channel, dto.identity);
   }
 
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Post('verify')
   verify(@Body() dto: VerifyCodeDto) {
     return this.auth.verify(dto.channel, dto.identity, dto.code);

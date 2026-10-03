@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { LeadsModule } from './leads/leads.module';
@@ -20,6 +22,9 @@ import { UploadsModule } from './uploads/uploads.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Ограничение частоты на весь API. Витрину 120 запросов в минуту не
+    // стесняют, а перебор кода входа и накрутку показов останавливают.
+    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 120 }]),
     ScheduleModule.forRoot(),
     PrismaModule,
     PropertiesModule,
@@ -37,5 +42,6 @@ import { UploadsModule } from './uploads/uploads.module';
     AuthModule,
     HealthModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -10,6 +10,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import { AgencyGuard } from '../auth/agency.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -24,6 +25,7 @@ export class UploadsController {
   ) {}
 
   /** Логотип агентства — заменяет квадрат с инициалами в выдаче. */
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @UseGuards(AgencyGuard)
   @Post('agencies/:id/logo')
   @UseInterceptors(FileInterceptor('file'))
@@ -44,6 +46,7 @@ export class UploadsController {
   }
 
   /** Аватар частного продавца. Свой и только свой. */
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @UseGuards(AuthGuard)
   @Post('users/:id/avatar')
   @UseInterceptors(FileInterceptor('file'))

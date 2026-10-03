@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AgencyGuard } from '../auth/agency.guard';
 import { AuthGuard } from '../auth/auth.guard';
 import { FeedGuard } from '../auth/feed.guard';
@@ -18,6 +19,7 @@ export class FeedsController {
    * Предпросмотр до подключения — ничего не сохраняет, но ходит по ссылке
    * от нашего имени, поэтому открыт только вошедшим.
    */
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @UseGuards(AuthGuard)
   @Post('preview')
   preview(@Body() dto: PreviewFeedDto) {
