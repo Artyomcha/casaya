@@ -400,11 +400,20 @@ model ServiceOffer {
   sort        Int          @default(0)
 }
 
+/// Кто пришёл в Casaya: покупатель смотрит и отмечает, продавец размещает.
+/// Роль не ограничивает доступ — её задают guard'ы и членство, — а определяет,
+/// какие экраны показывать.
+enum UserRole {
+  BUYER
+  SELLER
+}
+
 model User {
   id        String     @id @default(cuid())
   phone     String?    @unique
   email     String?    @unique
   name      String?
+  role      UserRole   @default(BUYER)
   /// Аватар частного продавца.
   avatarUrl String?
   locale    String     @default("ru")

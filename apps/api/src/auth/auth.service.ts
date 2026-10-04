@@ -55,7 +55,12 @@ export class AuthService {
     };
   }
 
-  async verify(channel: 'phone' | 'email', identity: string, code: string) {
+  async verify(
+    channel: 'phone' | 'email',
+    identity: string,
+    code: string,
+    role?: 'BUYER' | 'SELLER',
+  ) {
     const key = `${channel}:${identity.trim().toLowerCase()}`;
     const pending = this.codes.get(key);
     if (!pending) throw new BadRequestException('Код не запрашивался или устарел');
@@ -75,10 +80,12 @@ export class AuthService {
 
     this.codes.delete(key);
     const where = channel === 'phone' ? { phone: identity } : { email: identity };
+    // Роль ставится только при первом входе: вошедший покупатель не должен
+    // превращаться в продавца оттого, что приложение прислало другое значение.
     const user = await this.prisma.user.upsert({
       where: where as any,
       update: {},
-      create: where,
+      create: { ...where, role: role ?? 'BUYER' },
     });
 
     return { token: this.sign(user.id), user };

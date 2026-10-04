@@ -1,4 +1,5 @@
-import type { Bank, Listing } from './types';
+import { token } from './session';
+import type { Bank, Listing, OwnerDashboard, User, UserRole } from './types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4100/api';
 const ASSETS_URL = process.env.EXPO_PUBLIC_ASSETS_URL ?? 'http://localhost:4100';
@@ -13,9 +14,16 @@ export const imageUrl = (src: string): string =>
 export class ApiError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  // Токен подставляется сам: избранное и кабинет продавца закрыты, а
+  // добавлять заголовок вручную в каждый вызов — верный способ забыть.
+  const auth = token();
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) },
+    headers: {
+      'content-type': 'application/json',
+      ...(auth ? { authorization: `Bearer ${auth}` } : null),
+      ...(init?.headers ?? {}),
+    },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}) as { message?: string | string[] });
@@ -37,6 +45,39 @@ export const api = {
   banks: () => request<Bank[]>('/banks'),
   createLead: (body: Record<string, unknown>) =>
     request<{ id: string }>('/leads', { method: 'POST', body: JSON.stringify(body) }),
+
+  // --- Вход по одноразовому коду
+  requestCode: (channel: 'phone' | 'email', identity: string) =>
+    request<{ sent: boolean; expiresInSec: number; devCode?: string }>('/auth/request-code', {
+      method: 'POST',
+      body: JSON.stringify({ channel, identity }),
+    }),
+  verifyCode: (
+    channel: 'phone' | 'email',
+    identity: string,
+    code: string,
+    role: UserRole,
+  ) =>
+    request<{ token: string; user: User }>('/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify({ channel, identity, code, role }),
+    }),
+  me: () => request<User>('/auth/me'),
+
+  // --- Избранное покупателя. Хранится на сервере: отметки должны пережить
+  // смену телефона, а не остаться в памяти одного устройства.
+  favorites: () => request<{ listing: Listing }[]>('/favorites'),
+  toggleFavorite: (listingId: string) =>
+    request<{ active: boolean }>(`/favorites/${listingId}/toggle`, { method: 'POST' }),
+  mergeFavorites: (listingIds: string[]) =>
+    request<{ merged: number }>('/favorites/merge', {
+      method: 'POST',
+      body: JSON.stringify({ listingIds }),
+    }),
+
+  /** Кабинет продавца: его объекты и отклики по ним. */
+  ownerDashboard: (userId: string) =>
+    request<OwnerDashboard>(`/crm/owner/${userId}`),
 };
 
 export { API_URL };

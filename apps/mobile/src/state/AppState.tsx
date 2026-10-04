@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useI18n } from '@/i18n/I18nProvider';
+import { useSession } from '@/state/SessionState';
 import { api } from '@/api';
 import { DEFAULT_FILTERS, type Filters, type Listing, type Mode } from '@/types';
 
@@ -52,6 +53,7 @@ const Ctx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const { dict } = useI18n();
+  const { user } = useSession();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,13 +100,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      void AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(next)).catch(() => undefined);
-      return next;
-    });
-  }, []);
+  /**
+   * После входа отметки уезжают на сервер. Сначала переносим то, что человек
+   * отметил гостем, и только потом читаем общий список: иначе вход на новом
+   * телефоне стирал бы всё, что он успел отметить до него.
+   */
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const local = JSON.parse((await AsyncStorage.getItem(FAVORITES_KEY)) ?? '[]') as string[];
+        if (local.length) await api.mergeFavorites(local);
+        const saved = await api.favorites();
+        const ids = saved.map((f) => f.listing.id);
+        setFavorites(ids);
+        await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
+      } catch {
+        /* сервер недоступен — остаёмся на локальных отметках */
+      }
+    })();
+  }, [user]);
+
+  const toggleFavorite = useCallback(
+    (id: string) => {
+      setFavorites((prev) => {
+        const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+        void AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(next)).catch(() => undefined);
+        return next;
+      });
+      // Серверу сообщаем только за вошедшего: у гостя отметки локальные.
+      if (user) void api.toggleFavorite(id).catch(() => undefined);
+    },
+    [user],
+  );
 
   const setDealStep = useCallback((n: number) => {
     setDealStepState(n);

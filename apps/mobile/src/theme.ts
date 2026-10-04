@@ -42,6 +42,7 @@ export const ICON = {
   sliders: 'M4 6h16M7 12h10M10 18h4',
   chevronRight: 'm9 6 6 6-6 6',
   chevronLeft: 'm15 6-6 6 6 6',
+  close: 'M6 6 18 18M18 6 6 18',
   check: 'm5 12 5 5 9-10',
   bell: 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a2 2 0 0 0 3.4 0',
   send: 'M5 12h14M13 6l6 6-6 6',

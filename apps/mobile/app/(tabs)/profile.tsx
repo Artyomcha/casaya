@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
+import { SellerListings } from '@/components/SellerListings';
 import { Sheet } from '@/components/Sheet';
 import { useI18n } from '@/i18n/I18nProvider';
 import { LOCALE_NAMES, LOCALES } from '@/i18n/locales';
 import { useApp } from '@/state/AppState';
+import { useSession } from '@/state/SessionState';
 import { c, ICON } from '@/theme';
 
 
@@ -14,6 +16,7 @@ import { c, ICON } from '@/theme';
 export default function ProfileScreen() {
   const router = useRouter();
   const { locale, dict, setLocale } = useI18n();
+  const { user, signOut } = useSession();
   const [languageOpen, setLanguageOpen] = useState(false);
   const { favorites, dealStep, plus, togglePlus, notifications, toggleNotifications } =
     useApp();
@@ -32,13 +35,34 @@ export default function ProfileScreen() {
     <Screen background={c.screenSoft} contentStyle={styles.content}>
       <View style={styles.header}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>А</Text>
+          <Text style={styles.avatarText}>
+            {(user?.name ?? user?.email ?? user?.phone ?? 'C').slice(0, 1).toUpperCase()}
+          </Text>
         </View>
         <View style={styles.headerBody}>
-          <Text style={styles.name}>{dict.profile.name}</Text>
-          <Text style={styles.verified}>{dict.profile.verified}</Text>
+          <Text style={styles.name}>
+            {user ? (user.name ?? user.email ?? user.phone) : dict.auth.guestTitle}
+          </Text>
+          <Text style={styles.verified}>
+            {user
+              ? user.role === 'SELLER'
+                ? dict.auth.roleSeller
+                : dict.auth.roleBuyer
+              : dict.auth.guestText}
+          </Text>
         </View>
       </View>
+
+      {/* Гостю показываем вход, вошедшему — выход. Регистрация и вход у нас
+          одно действие: пароля нет, приходит код. */}
+      <Pressable
+        onPress={() => (user ? void signOut() : router.push('/sign-in'))}
+        style={[styles.authBtn, user && styles.authBtnOut]}
+      >
+        <Text style={[styles.authBtnText, user && styles.authBtnTextOut]}>
+          {user ? dict.auth.signOut : dict.auth.signInCta}
+        </Text>
+      </Pressable>
 
       <View style={styles.plus}>
         <View style={styles.plusHead}>
@@ -54,6 +78,8 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <SellerListings />
 
       <View style={styles.menu}>
         {items.map((item, i) => (
@@ -100,6 +126,10 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  authBtn: { backgroundColor: c.violet, borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
+  authBtnOut: { backgroundColor: c.surfaceAlt },
+  authBtnText: { fontSize: 16, fontWeight: '700', color: c.white },
+  authBtnTextOut: { color: c.grey },
   sheetTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.7, color: c.ink },
   languageRow: {
     flexDirection: 'row',

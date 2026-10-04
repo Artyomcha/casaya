@@ -62,3 +62,33 @@ export interface Filters {
 
 export const DEFAULT_FILTERS: Filters = { kind: 'all', maxPrice: 1_500_000, bedrooms: 0 };
 export const NO_PRICE_LIMIT = 1_500_000;
+
+/** Кто пришёл: покупатель смотрит и отмечает, продавец размещает. */
+export type UserRole = 'BUYER' | 'SELLER';
+
+export interface User {
+  id: string;
+  phone: string | null;
+  email: string | null;
+  name: string | null;
+  role: UserRole;
+  avatarUrl?: string | null;
+}
+
+/** Кабинет продавца: его объекты и отклики по ним. */
+export interface OwnerDashboard {
+  listings: {
+    id: string;
+    slug: string;
+    title: string;
+    address: string;
+    price: number;
+    status: string;
+    verified: boolean;
+    coverImage: string;
+    impressions: number;
+    clicks: number;
+    _count: { leads: number; favorites: number };
+  }[];
+  leads: { id: string; name: string; status: string; createdAt: string }[];
+}
