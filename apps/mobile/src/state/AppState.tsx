@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 import { api } from '@/api';
 import { DEFAULT_FILTERS, type Filters, type Listing, type Mode } from '@/types';
 
@@ -47,12 +48,10 @@ interface AppState {
 
 const Ctx = createContext<AppState | null>(null);
 
-const INITIAL_MESSAGES: Message[] = [
-  { id: 'm1', mine: false, text: 'Здравствуйте, Анна! Вилла свободна для просмотра на этой неделе.' },
-  { id: 'm2', mine: false, text: 'Могу провести видео-показ в четверг в 18:00.' },
-];
+
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { dict } = useI18n();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +60,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [filters, setFiltersState] = useState<Filters>(DEFAULT_FILTERS);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [dealStep, setDealStepState] = useState(3);
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { id: 'm1', mine: false, text: dict.chat.greeting1 },
+    { id: 'm2', mine: false, text: dict.chat.greeting2 },
+  ]);
   const [plus, setPlus] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [language, setLanguage] = useState(0);
@@ -126,12 +128,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           {
             id: `m${Date.now()}`,
             mine: false,
-            text: 'Спасибо! Подтверждаю, пришлю ссылку на видео-показ за час до начала.',
+            text: dict.chat.reply,
           },
         ]),
       1200,
     );
-  }, []);
+  }, [dict]);
 
   const filtered = useMemo(
     () =>

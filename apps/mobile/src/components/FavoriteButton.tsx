@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useApp } from '@/state/AppState';
+import { useI18n } from '@/i18n/I18nProvider';
 import { c, ICON } from '@/theme';
 
 interface Props {
@@ -12,12 +13,13 @@ interface Props {
 
 export function FavoriteButton({ listingId, variant = 'floating', size = 18 }: Props) {
   const { isFavorite, toggleFavorite } = useApp();
+  const { dict } = useI18n();
   const active = isFavorite(listingId);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={active ? 'Убрать из избранного' : 'В избранное'}
+      accessibilityLabel={active ? dict.common.favoriteRemove : dict.common.favoriteAdd}
       hitSlop={8}
       onPress={() => toggleFavorite(listingId)}
       style={variant === 'floating' ? [styles.floating, { width: size + 16, height: size + 16 }] : undefined}

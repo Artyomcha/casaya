@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useI18n } from '@/i18n/I18nProvider';
 import { c, TAB_BAR_SPACE } from '@/theme';
 
 /** Прокручиваемый экран с отступом под статус-бар и плавающую панель вкладок. */
@@ -35,6 +36,7 @@ export function Screen({
 
 /** Состояние загрузки и ошибки — одинаковое на всех экранах. */
 export function LoadState({ loading, error, onRetry }: { loading: boolean; error: string | null; onRetry: () => void }) {
+  const { dict } = useI18n();
   if (loading) {
     return (
       <View style={styles.center}>
@@ -47,10 +49,10 @@ export function LoadState({ loading, error, onRetry }: { loading: boolean; error
 
   return (
     <View style={styles.errorBox}>
-      <Text style={styles.errorTitle}>Не удалось загрузить объекты</Text>
+      <Text style={styles.errorTitle}>{dict.common.loadFailed}</Text>
       <Text style={styles.errorText}>{error}</Text>
       <Pressable onPress={onRetry} style={styles.retry}>
-        <Text style={styles.retryText}>Повторить</Text>
+        <Text style={styles.retryText}>{dict.common.retry}</Text>
       </Pressable>
     </View>
   );

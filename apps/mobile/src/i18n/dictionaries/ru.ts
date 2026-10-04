@@ -36,6 +36,8 @@ const ru = {
     nearby: 'Похожие рядом',
     distanceAway: 'в {d} м',
     promoted: 'Продвигается',
+    favoriteAdd: 'В избранное',
+    favoriteRemove: 'Убрать из избранного',
   },
 
   home: {
@@ -48,7 +50,7 @@ const ru = {
     catHouses: 'Дома',
     catVillas: 'Виллы',
     catStudios: 'Студии',
-    freshTitle: 'Свежие проверенные',
+    freshTitle: 'Дешевле рынка',
     seeAll: 'Все',
     mortgageTitle: 'Ипотека от 3,2%',
     mortgageText: 'Рассчитать платёж за минуту',

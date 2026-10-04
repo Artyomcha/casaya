@@ -1,26 +1,41 @@
+import type { Dictionary } from './i18n/dictionaries/ru';
+import { decimalMark, groupDigits, money, type Locale } from './i18n/locales';
 import type { Listing, Mode, Savings } from './types';
 
 export const RENT_RATIO = 0.0045;
 
-/** Разряды неразрывным пробелом, как в ru-RU. */
-export const groupDigits = (value: number): string =>
-  String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-
-export const fmt = (value: number): string => `${groupDigits(value)} €`;
-
 export const rentOf = (price: number): number => Math.round((price * RENT_RATIO) / 10) * 10;
 
-const plural = (n: number, one: string, few: string) => (n === 1 ? one : few);
+/**
+ * Склонение множественного числа. Русский — единственный из восьми языков,
+ * где форма зависит не от «один или не один», а от остатка: «1 объект,
+ * 2 объекта, 5 объектов». Остальные обходятся парой форм.
+ */
+export function plural(n: number, locale: Locale, one: string, few: string, many: string): string {
+  if (locale !== 'ru') return n === 1 ? one : many;
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return few;
+  return many;
+}
 
-export const specsOf = (l: Pick<Listing, 'bedrooms' | 'area' | 'bathrooms'>): string =>
-  `${l.bedrooms} ${plural(l.bedrooms, 'спальня', 'спальни')} · ${l.area} м² · ` +
-  `${l.bathrooms} ${plural(l.bathrooms, 'ванная', 'ванные')}`;
+export const specsOf = (
+  l: Pick<Listing, 'bedrooms' | 'area' | 'bathrooms'>,
+  locale: Locale,
+  dict: Dictionary,
+): string =>
+  `${l.bedrooms} ${plural(l.bedrooms, locale, dict.common.bedroomOne, dict.common.bedroomMany, dict.common.bedroomMany)} · ` +
+  `${l.area} ${dict.common.sqm} · ` +
+  `${l.bathrooms} ${plural(l.bathrooms, locale, dict.common.bathroomOne, dict.common.bathroomMany, dict.common.bathroomMany)}`;
 
-export const priceLabel = (price: number, mode: Mode): string =>
-  mode === 'rent' ? `${fmt(rentOf(price))} / мес` : fmt(price);
+export const priceLabel = (price: number, mode: Mode, locale: Locale, dict: Dictionary): string =>
+  mode === 'rent' ? `${money(rentOf(price), locale)} ${dict.common.perMonth}` : money(price, locale);
 
-export const perM2Label = (l: Listing, mode: Mode): string =>
-  mode === 'rent' ? 'без комиссии' : `${groupDigits(l.price / l.area)} €/м²`;
+export const perM2Label = (l: Listing, mode: Mode, locale: Locale, dict: Dictionary): string =>
+  mode === 'rent'
+    ? dict.common.noCommission
+    : `${groupDigits(l.price / l.area, locale)} ${dict.common.perSqm}`;
 
 /**
  * «−11%» — короткая метка выгоды. Процент округляется до целого: десятые
@@ -29,23 +44,20 @@ export const perM2Label = (l: Listing, mode: Mode): string =>
  */
 export const discountLabel = (savings: Savings): string => `−${Math.round(savings.percent)}%`;
 
-/** Короткая подпись на пине карты: «485 тыс» / «1,25 млн». */
-export const pinLabel = (price: number, mode: Mode): string => {
-  if (mode === 'rent') return `${groupDigits(rentOf(price))} €`;
-  if (price >= 1e6) return `${(price / 1e6).toFixed(2).replace('.', ',')} млн`;
-  return `${Math.round(price / 1000)} тыс`;
+/**
+ * Короткая подпись на пине карты. Сокращения «тыс» и «млн» переводить
+ * не стали: на карте важнее, чтобы подпись была узкой, а цифры читаются
+ * одинаково на всех языках.
+ */
+export const pinLabel = (price: number, mode: Mode, locale: Locale): string => {
+  if (mode === 'rent') return money(rentOf(price), locale);
+  if (price >= 1e6) return `${(price / 1e6).toFixed(2).replace('.', decimalMark(locale))} M €`;
+  return `${Math.round(price / 1000)}K €`;
 };
 
-/** Склонение счётчика результатов. */
-export const countLabel = (n: number): string => {
-  const word =
-    n % 10 === 1 && n % 100 !== 11
-      ? 'объект'
-      : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)
-        ? 'объекта'
-        : 'объектов';
-  return `${n} ${word}`;
-};
+/** Счётчик результатов со склонением. */
+export const countLabel = (n: number, locale: Locale, dict: Dictionary): string =>
+  `${n} ${plural(n, locale, dict.common.objectOne, dict.common.objectFew, dict.common.objectMany)}`;
 
 export const initialsOf = (name: string): string =>
   name
@@ -62,3 +74,5 @@ export function monthlyPayment(price: number, downPercent: number, termYears: nu
   const n = termYears * 12;
   return { loan, monthly: (loan * r) / (1 - Math.pow(1 + r, -n)) };
 }
+
+export { groupDigits, money };

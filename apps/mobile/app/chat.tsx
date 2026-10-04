@@ -13,11 +13,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { useApp } from '@/state/AppState';
+import { useI18n } from '@/i18n/I18nProvider';
 import { c, ICON } from '@/theme';
 
-const QUICK_REPLIES = ['Подходит, четверг 18:00', 'Можно видео-тур?', 'Какие расходы на содержание?'];
+
 
 export default function ChatScreen() {
+  const { dict } = useI18n();
+  const quickReplies = [dict.chat.quick1, dict.chat.quick2, dict.chat.quick3];
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { messages, sendMessage } = useApp();
@@ -49,8 +52,8 @@ export default function ChatScreen() {
           <Text style={styles.avatarText}>CL</Text>
         </View>
         <View style={styles.headerBody}>
-          <Text style={styles.headerName}>Costa Living</Text>
-          <Text style={styles.headerStatus}>онлайн</Text>
+          <Text style={styles.headerName}>{dict.chat.agency}</Text>
+          <Text style={styles.headerStatus}>{dict.chat.online}</Text>
         </View>
       </View>
 
@@ -61,7 +64,7 @@ export default function ChatScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.day}>Сегодня</Text>
+        <Text style={styles.day}>{dict.chat.today}</Text>
         {messages.map((m) => (
           <View key={m.id} style={[styles.bubbleRow, m.mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}>
             <View style={[styles.bubble, m.mine ? styles.bubbleMine : styles.bubbleTheirs]}>
@@ -73,7 +76,7 @@ export default function ChatScreen() {
 
       <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 12) + 10 }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quick}>
-          {QUICK_REPLIES.map((q) => (
+          {quickReplies.map((q) => (
             <Pressable key={q} onPress={() => submit(q)} style={styles.quickChip}>
               <Text style={styles.quickText}>{q}</Text>
             </Pressable>
@@ -85,7 +88,7 @@ export default function ChatScreen() {
             value={draft}
             onChangeText={setDraft}
             onSubmitEditing={() => submit(draft)}
-            placeholder="Сообщение"
+            placeholder={dict.chat.placeholder}
             placeholderTextColor={c.greyLight}
             returnKeyType="send"
             style={styles.input}

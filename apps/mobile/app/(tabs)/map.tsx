@@ -8,7 +8,8 @@ import { PropertyMap, type Pinned, type PropertyMapHandle } from '@/components/P
 import { PriceWithMarket, SavingsBadge } from '@/components/SavingsBadge';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { imageUrl } from '@/api';
-import { countLabel, fmt, perM2Label, priceLabel, specsOf } from '@/format';
+import { countLabel, money, perM2Label, priceLabel, specsOf } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useApp } from '@/state/AppState';
 import { c, ICON, TAB_BAR_SPACE } from '@/theme';
 import type { Listing } from '@/types';
@@ -21,6 +22,7 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const map = useRef<PropertyMapHandle>(null);
   const { filtered, mode } = useApp();
+  const { locale, dict } = useI18n();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -51,7 +53,12 @@ export default function MapScreen() {
       <View style={[styles.topBar, { top: insets.top + 6 }]}>
         <Pressable onPress={() => router.push('/results')} style={styles.searchBar}>
           <Icon d={ICON.search} size={18} color={c.muted} width={2} />
-          <Text style={styles.searchText}>Марбелья · {mode === 'rent' ? 'снять' : 'купить'}</Text>
+          <Text style={styles.searchText}>
+            {dict.results.searchLabel.replace(
+              '{mode}',
+              mode === 'rent' ? dict.results.modeRent : dict.results.modeBuy,
+            )}
+          </Text>
         </Pressable>
         <Pressable onPress={() => setFiltersOpen(true)} style={styles.filterBtn}>
           <Icon d={ICON.sliders} size={20} width={2} />
@@ -59,7 +66,7 @@ export default function MapScreen() {
       </View>
 
       <View style={[styles.counter, { top: insets.top + 68 }]}>
-        <Text style={styles.counterText}>{countLabel(pins.length)}</Text>
+        <Text style={styles.counterText}>{countLabel(pins.length, locale, dict)}</Text>
       </View>
 
       {selected && (
@@ -74,13 +81,13 @@ export default function MapScreen() {
               {selected.verified && <VerifiedBadge size="sm" tinted />}
             </View>
             <PriceWithMarket
-              price={priceLabel(selected.price, mode)}
-              marketPrice={mode === 'buy' && selected.marketPrice ? fmt(selected.marketPrice) : null}
+              price={priceLabel(selected.price, mode, locale, dict)}
+              marketPrice={mode === 'buy' && selected.marketPrice ? money(selected.marketPrice, locale) : null}
               priceStyle={styles.cardPrice}
             />
-            <Text style={styles.cardSpecs}>{specsOf(selected)}</Text>
+            <Text style={styles.cardSpecs}>{specsOf(selected, locale, dict)}</Text>
             <Text style={styles.cardAddress}>
-              {selected.address} · {perM2Label(selected, mode)}
+              {selected.address} · {perM2Label(selected, mode, locale, dict)}
             </Text>
           </View>
         </Pressable>

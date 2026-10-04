@@ -6,20 +6,24 @@ import { Icon } from '@/components/Icon';
 import { ListingTile } from '@/components/ListingCards';
 import { LoadState, Screen } from '@/components/Screen';
 import { Segmented } from '@/components/Segmented';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dictionary } from '@/i18n/dictionaries/ru';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 import type { Filters } from '@/types';
 
-const CATEGORIES: { label: string; kind: Filters['kind']; bg: string; fg: string; icon: string }[] = [
-  { label: 'Квартиры', kind: 'FLAT', bg: c.violetTint, fg: c.violet, icon: ICON.flat },
-  { label: 'Дома', kind: 'HOUSE', bg: c.coralTint, fg: c.coralDark, icon: ICON.house },
-  { label: 'Виллы', kind: 'VILLA', bg: c.cyanTint, fg: c.cyan, icon: ICON.villa },
-  { label: 'Студии', kind: 'STUDIO', bg: c.greenTint, fg: c.greenText, icon: ICON.studio },
+/** Категории: иконки и цвета постоянные, подписи из словаря. */
+const categories = (dict: Dictionary) => [
+  { label: dict.home.catFlats, kind: 'FLAT' as const, bg: c.violetTint, fg: c.violet, icon: ICON.flat },
+  { label: dict.home.catHouses, kind: 'HOUSE' as const, bg: c.coralTint, fg: c.coralDark, icon: ICON.house },
+  { label: dict.home.catVillas, kind: 'VILLA' as const, bg: c.cyanTint, fg: c.cyan, icon: ICON.villa },
+  { label: dict.home.catStudios, kind: 'STUDIO' as const, bg: c.greenTint, fg: c.greenText, icon: ICON.studio },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
   const { listings, loading, error, reload, mode, setMode, setFilters, dealStep } = useApp();
+  const { dict } = useI18n();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const openCategory = (kind: Filters['kind']) => {
@@ -32,8 +36,8 @@ export default function HomeScreen() {
       <Screen>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Добрый день, Анна</Text>
-            <Text style={styles.title}>Найдём ваш дом</Text>
+            <Text style={styles.greeting}>{dict.home.greeting}</Text>
+            <Text style={styles.title}>{dict.home.title}</Text>
           </View>
           <Pressable onPress={() => router.push('/chat')} style={styles.bell}>
             <Icon d={ICON.bell} size={20} width={1.8} />
@@ -44,7 +48,7 @@ export default function HomeScreen() {
         <View style={styles.searchBlock}>
           <Pressable onPress={() => router.push('/results')} style={styles.searchBar}>
             <Icon d={ICON.search} size={20} color={c.muted} width={2} />
-            <Text style={styles.searchPlaceholder}>Город, район или улица</Text>
+            <Text style={styles.searchPlaceholder}>{dict.home.searchPlaceholder}</Text>
             <Pressable onPress={() => setFiltersOpen(true)} hitSlop={6} style={styles.searchFilterBtn}>
               <Icon d={ICON.sliders} size={18} width={2} />
             </Pressable>
@@ -53,8 +57,8 @@ export default function HomeScreen() {
           <Segmented
             dark
             options={[
-              { key: 'buy' as const, label: 'Купить' },
-              { key: 'rent' as const, label: 'Снять' },
+              { key: 'buy' as const, label: dict.home.modeBuy },
+              { key: 'rent' as const, label: dict.home.modeRent },
             ]}
             value={mode}
             onChange={setMode}
@@ -62,7 +66,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.categories}>
-          {CATEGORIES.map((cat) => (
+          {categories(dict).map((cat) => (
             <Pressable key={cat.label} onPress={() => openCategory(cat.kind)} style={styles.category}>
               <View style={[styles.categoryIcon, { backgroundColor: cat.bg }]}>
                 <Icon d={cat.icon} size={26} color={cat.fg} width={1.8} />
@@ -73,9 +77,9 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.sectionHead}>
-          <Text style={styles.sectionTitle}>Дешевле рынка</Text>
+          <Text style={styles.sectionTitle}>{dict.home.freshTitle}</Text>
           <Pressable onPress={() => router.push('/results')} hitSlop={8}>
-            <Text style={styles.sectionLink}>Все</Text>
+            <Text style={styles.sectionLink}>{dict.home.seeAll}</Text>
           </Pressable>
         </View>
 
@@ -95,8 +99,8 @@ export default function HomeScreen() {
               <Icon d={ICON.mortgage} size={20} color={c.white} width={1.8} />
             </View>
             <View style={styles.mortgageBody}>
-              <Text style={styles.mortgageTitle}>Ипотека от 3,2%</Text>
-              <Text style={styles.mortgageText}>Рассчитать платёж за минуту</Text>
+              <Text style={styles.mortgageTitle}>{dict.home.mortgageTitle}</Text>
+              <Text style={styles.mortgageText}>{dict.home.mortgageText}</Text>
             </View>
             <Icon d={ICON.chevronRight} size={18} color={c.white} width={2} />
           </Pressable>
@@ -105,16 +109,18 @@ export default function HomeScreen() {
             <Pressable onPress={() => router.push('/deal')} style={[styles.promo, { backgroundColor: c.greenTint }]}>
               <Icon d={ICON.lock} size={22} color={c.greenText} width={1.9} />
               <View>
-                <Text style={[styles.promoTitle, { color: c.greenDark }]}>Моя сделка</Text>
-                <Text style={[styles.promoText, { color: c.greenMid }]}>{dealStep} из 6 шагов</Text>
+                <Text style={[styles.promoTitle, { color: c.greenDark }]}>{dict.home.dealTitle}</Text>
+                <Text style={[styles.promoText, { color: c.greenMid }]}>
+                  {dict.home.dealSteps.replace('{n}', String(dealStep))}
+                </Text>
               </View>
             </Pressable>
 
             <Pressable onPress={() => router.push('/chat')} style={[styles.promo, { backgroundColor: c.coralTint }]}>
               <Icon d={ICON.video} size={22} color={c.coralDark} width={1.9} />
               <View>
-                <Text style={styles.promoTitle}>Видео-осмотр</Text>
-                <Text style={[styles.promoText, { color: '#6B4A40' }]}>49 €, за 48 часов</Text>
+                <Text style={styles.promoTitle}>{dict.home.viewingTitle}</Text>
+                <Text style={[styles.promoText, { color: '#6B4A40' }]}>{dict.home.viewingText}</Text>
               </View>
             </Pressable>
           </View>

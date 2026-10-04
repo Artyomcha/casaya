@@ -3,15 +3,17 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 
-const TABS: Record<string, { label: string; icon: string }> = {
-  index: { label: 'Главная', icon: ICON.home },
-  map: { label: 'Карта', icon: ICON.pin },
-  favorites: { label: 'Избранное', icon: ICON.heart },
-  deal: { label: 'Сделка', icon: ICON.deal },
-  profile: { label: 'Профиль', icon: ICON.user },
+/** Иконки у вкладок постоянные, подписи приходят из словаря. */
+const ICONS: Record<string, string> = {
+  index: ICON.home,
+  map: ICON.pin,
+  favorites: ICON.heart,
+  deal: ICON.deal,
+  profile: ICON.user,
 };
 
 /**
@@ -21,12 +23,21 @@ const TABS: Record<string, { label: string; icon: string }> = {
 export function TabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { favorites } = useApp();
+  const { dict } = useI18n();
+  const labels: Record<string, string> = {
+    index: dict.tabs.home,
+    map: dict.tabs.map,
+    favorites: dict.tabs.favorites,
+    deal: dict.tabs.deal,
+    profile: dict.tabs.profile,
+  };
 
   return (
     <View style={[styles.bar, { bottom: Math.max(insets.bottom, 12) + 14 }]}>
       {state.routes.map((route, index) => {
-        const meta = TABS[route.name];
-        if (!meta) return null;
+        const icon = ICONS[route.name];
+        const label = labels[route.name];
+        if (!icon || !label) return null;
 
         const active = state.index === index;
         const badge = !active && route.name === 'favorites' ? favorites.length : 0;
@@ -36,15 +47,15 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             <Pressable
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
-              accessibilityLabel={meta.label}
+              accessibilityLabel={label}
               onPress={() => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
                 if (!active && !event.defaultPrevented) navigation.navigate(route.name);
               }}
               style={[styles.tab, active && styles.tabActive]}
             >
-              <Icon d={meta.icon} size={22} color={active ? c.white : c.greyLight} />
-              {active && <Text style={styles.label}>{meta.label}</Text>}
+              <Icon d={icon} size={22} color={active ? c.white : c.greyLight} />
+              {active && <Text style={styles.label}>{label}</Text>}
               {badge > 0 && (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>{badge}</Text>

@@ -3,23 +3,28 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
 import { imageUrl } from '@/api';
-import { fmt } from '@/format';
+import { money } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
+import type { Dictionary } from '@/i18n/dictionaries/ru';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 
-/** Шаги сделки из макета — путь покупателя-иностранца до ключей. */
-const STEPS: { title: string; detail: string }[] = [
-  { title: 'Подбор объекта', detail: 'Видео-осмотр 12 сентября' },
-  { title: 'NIE и банковский счёт', detail: 'Получен 20 сентября' },
-  { title: 'Задаток через Escrow', detail: '48 500 € внесено' },
-  { title: 'Ипотека и проверка юристом', detail: 'Одобрение ожидается до 5 октября' },
-  { title: 'Подписание у нотариуса', detail: '14 октября, Марбелья' },
-  { title: 'Ключи и регистрация', detail: 'Передача после нотариуса' },
+/** Шаги сделки — путь покупателя-иностранца до ключей. Из словаря: порядок
+ * один, язык разный. */
+const steps = (dict: Dictionary): { title: string; detail: string }[] => [
+  { title: dict.deal.step1, detail: dict.deal.step1d },
+  { title: dict.deal.step2, detail: dict.deal.step2d },
+  { title: dict.deal.step3, detail: dict.deal.step3d },
+  { title: dict.deal.step4, detail: dict.deal.step4d },
+  { title: dict.deal.step5, detail: dict.deal.step5d },
+  { title: dict.deal.step6, detail: dict.deal.step6d },
 ];
 
 export default function DealScreen() {
   const router = useRouter();
   const { dealStep, setDealStep, listings } = useApp();
+  const { locale, dict } = useI18n();
+  const STEPS = steps(dict);
 
   // Сделка привязана к самому дорогому объекту в подборке — это демо-объект макета.
   const property = listings.find((l) => l.kind === 'VILLA') ?? listings[0];
@@ -27,7 +32,7 @@ export default function DealScreen() {
 
   return (
     <Screen background={c.screenSoft} contentStyle={styles.content}>
-      <Text style={styles.title}>Моя сделка</Text>
+      <Text style={styles.title}>{dict.deal.title}</Text>
 
       {property && (
         <Pressable onPress={() => router.push(`/listing/${property.slug}`)} style={styles.property}>
@@ -35,7 +40,7 @@ export default function DealScreen() {
           <View style={styles.propertyBody}>
             <Text style={styles.propertyTitle}>{property.title}</Text>
             <Text style={styles.propertyMeta}>
-              {property.address} · {fmt(property.price)}
+              {property.address} · {money(property.price, locale)}
             </Text>
           </View>
           <Icon d={ICON.chevronRight} size={18} color={c.grey} width={2} />
@@ -45,14 +50,16 @@ export default function DealScreen() {
       <View style={styles.progress}>
         <View style={styles.progressHead}>
           <Text style={styles.progressLabel}>
-            Готово {dealStep} из {STEPS.length} шагов
+            {dict.deal.progress
+              .replace('{done}', String(dealStep))
+              .replace('{total}', String(STEPS.length))}
           </Text>
           <Text style={styles.progressPercent}>{percent}%</Text>
         </View>
         <View style={styles.track}>
           <View style={[styles.fill, { width: `${percent}%` }]} />
         </View>
-        <Text style={styles.progressHint}>Нажмите на шаг, чтобы отметить его выполненным</Text>
+        <Text style={styles.progressHint}>{dict.deal.hint}</Text>
       </View>
 
       <View style={styles.steps}>
@@ -90,13 +97,13 @@ export default function DealScreen() {
       <View style={styles.escrow}>
         <Icon d={ICON.lock} size={22} color={c.greenText} width={1.9} />
         <View style={styles.escrowBody}>
-          <Text style={styles.escrowTitle}>Задаток 48 500 € защищён</Text>
-          <Text style={styles.escrowText}>Casaya Escrow до подписания у нотариуса</Text>
+          <Text style={styles.escrowTitle}>{dict.deal.escrowTitle}</Text>
+          <Text style={styles.escrowText}>{dict.deal.escrowText}</Text>
         </View>
       </View>
 
       <Pressable onPress={() => router.push('/chat')} style={styles.cta}>
-        <Text style={styles.ctaText}>Написать менеджеру</Text>
+        <Text style={styles.ctaText}>{dict.deal.cta}</Text>
       </Pressable>
     </Screen>
   );

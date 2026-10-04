@@ -9,23 +9,19 @@ import { Sheet } from '@/components/Sheet';
 import { SavingsBadge } from '@/components/SavingsBadge';
 import { VerifiedBadge } from '@/components/VerifiedBadge';
 import { api, imageUrl } from '@/api';
-import { discountLabel, fmt, initialsOf, monthlyPayment, perM2Label, priceLabel } from '@/format';
+import { discountLabel, initialsOf, money, monthlyPayment, perM2Label, priceLabel } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 import type { Listing } from '@/types';
 
-const VERIFY = [
-  'Видео-тур снят по чек-листу',
-  'Nota simple: собственник совпадает',
-  'Обременений нет',
-  'Личность агента подтверждена',
-];
 
 export default function ListingScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { mode, isFavorite, toggleFavorite, listings } = useApp();
+  const { locale, dict } = useI18n();
 
   // Пока грузится карточка, показываем то, что уже есть в списке — без пустого экрана.
   const cached = listings.find((l) => l.slug === slug);
@@ -55,14 +51,20 @@ export default function ListingScreen() {
   }
 
   const fav = isFavorite(listing.id);
+  const verifyPoints = [
+    dict.listing.verify1,
+    dict.listing.verify2,
+    dict.listing.verify3,
+    dict.listing.verify4,
+  ];
   const { monthly } = monthlyPayment(listing.price, 30, 25);
   // В аренде экономия не показывается: рыночная цена задана для продажи.
   const savings = mode === 'buy' ? (listing.savings ?? null) : null;
   const facts = [
-    { value: String(listing.area), label: 'м²' },
-    { value: String(listing.bedrooms), label: 'спальни' },
-    { value: String(listing.bathrooms), label: 'ванные' },
-    { value: listing.seaDistance ?? '—', label: 'до моря' },
+    { value: String(listing.area), label: dict.listing.factArea },
+    { value: String(listing.bedrooms), label: dict.listing.factBedrooms },
+    { value: String(listing.bathrooms), label: dict.listing.factBathrooms },
+    { value: listing.seaDistance ?? '—', label: dict.listing.factSea },
   ];
 
   return (
@@ -106,7 +108,7 @@ export default function ListingScreen() {
           {listing.videoTour && (
             <View style={styles.heroTagLeft}>
               <PlayIcon size={11} />
-              <Text style={styles.heroTagText}>Видео-тур</Text>
+              <Text style={styles.heroTagText}>{dict.common.videoTour}</Text>
             </View>
           )}
           <View style={styles.heroTagRight}>
@@ -120,10 +122,10 @@ export default function ListingScreen() {
           <View style={styles.priceRow}>
             <View>
               <View style={styles.priceLine}>
-                <Text style={styles.price}>{priceLabel(listing.price, mode)}</Text>
+                <Text style={styles.price}>{priceLabel(listing.price, mode, locale, dict)}</Text>
                 {savings && <SavingsBadge savings={savings} size="md" />}
               </View>
-              <Text style={styles.perM2}>{perM2Label(listing, mode)}</Text>
+              <Text style={styles.perM2}>{perM2Label(listing, mode, locale, dict)}</Text>
             </View>
             {listing.verified && <VerifiedBadge size="lg" tinted />}
           </View>
@@ -134,17 +136,17 @@ export default function ListingScreen() {
             <View style={styles.savings}>
               <View style={styles.savingsRow}>
                 <Text style={styles.savingsLabel}>На Casaya</Text>
-                <Text style={styles.savingsStrong}>{fmt(listing.price)}</Text>
+                <Text style={styles.savingsStrong}>{money(listing.price, locale)}</Text>
               </View>
               <View style={styles.savingsRow}>
                 <Text style={styles.savingsLabel}>Рыночная цена</Text>
-                <Text style={styles.savingsMarket}>{fmt(listing.marketPrice)}</Text>
+                <Text style={styles.savingsMarket}>{money(listing.marketPrice, locale)}</Text>
               </View>
               <View style={styles.savingsLine} />
               <View style={styles.savingsRow}>
                 <Text style={styles.savingsAccentLabel}>Экономия</Text>
                 <Text style={styles.savingsAccent}>
-                  {fmt(savings.amount)} · {discountLabel(savings)}
+                  {money(savings.amount, locale)} · {discountLabel(savings)}
                 </Text>
               </View>
               <Text style={styles.savingsNote}>
@@ -170,22 +172,22 @@ export default function ListingScreen() {
           </View>
 
           <Pressable onPress={() => router.push('/mortgage')} style={styles.mortgage}>
-            <Text style={styles.mortgageLabel}>Ипотека от</Text>
+            <Text style={styles.mortgageLabel}>{dict.listing.mortgageFrom}</Text>
             <View style={styles.mortgageValueRow}>
-              <Text style={styles.mortgageValue}>{fmt(monthly)} / мес</Text>
+              <Text style={styles.mortgageValue}>{money(monthly, locale)} {dict.common.perMonth}</Text>
               <Icon d={ICON.chevronRight} size={16} color={c.greenDark} width={2.2} />
             </View>
           </Pressable>
 
           <View style={styles.block}>
-            <Text style={styles.blockTitle}>Описание</Text>
+            <Text style={styles.blockTitle}>{dict.listing.description}</Text>
             <Text style={styles.description}>{listing.description}</Text>
           </View>
 
           {listing.verified && (
             <View style={styles.verify}>
-              <Text style={styles.verifyTitle}>Проверено Casaya Verify</Text>
-              {VERIFY.map((v) => (
+              <Text style={styles.verifyTitle}>{dict.listing.verifyTitle}</Text>
+              {verifyPoints.map((v) => (
                 <View key={v} style={styles.verifyRow}>
                   <Icon d={ICON.check} size={15} color={c.green} width={3} />
                   <Text style={styles.verifyText}>{v}</Text>
@@ -196,7 +198,7 @@ export default function ListingScreen() {
 
           {listing.features.length > 0 && (
             <View style={styles.block}>
-              <Text style={styles.blockTitle}>Удобства</Text>
+              <Text style={styles.blockTitle}>{dict.listing.features}</Text>
               <View style={styles.features}>
                 {listing.features.map((f) => (
                   <View key={f} style={styles.feature}>
@@ -209,7 +211,7 @@ export default function ListingScreen() {
 
           {listing.lat != null && listing.lng != null && (
             <View style={styles.block}>
-              <Text style={styles.blockTitle}>На карте</Text>
+              <Text style={styles.blockTitle}>{dict.listing.onMap}</Text>
               <View style={styles.mapBox}>
                 <PropertyMap compact mode={mode} pins={[listing as Pinned]} />
               </View>
@@ -225,7 +227,8 @@ export default function ListingScreen() {
             <View style={styles.agentBody}>
               <Text style={styles.agentName}>{listing.agency.name}</Text>
               <Text style={styles.agentMeta}>
-                {listing.agency.verified ? 'Агентство проверено · ' : ''}отвечает за {listing.agency.replyTime} мин
+                {listing.agency.verified ? `${dict.listing.agencyVerified} · ` : ''}
+                {dict.listing.repliesIn} {listing.agency.replyTime} {dict.listing.minutes}
               </Text>
             </View>
           </View>
@@ -234,10 +237,10 @@ export default function ListingScreen() {
 
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 12) + 12 }]}>
         <Pressable onPress={() => router.push('/chat')} style={styles.actionSecondary}>
-          <Text style={styles.actionSecondaryText}>Написать</Text>
+          <Text style={styles.actionSecondaryText}>{dict.listing.write}</Text>
         </Pressable>
         <Pressable onPress={() => setCallOpen(true)} style={styles.actionPrimary}>
-          <Text style={styles.actionPrimaryText}>Позвонить</Text>
+          <Text style={styles.actionPrimaryText}>{dict.listing.call}</Text>
         </Pressable>
       </View>
 
@@ -250,15 +253,15 @@ export default function ListingScreen() {
           </View>
           <View>
             <Text style={styles.callName}>{listing.agency.name}</Text>
-            <Text style={styles.callLangs}>Говорит на RU, EN, ES</Text>
+            <Text style={styles.callLangs}>{dict.listing.speaks}</Text>
           </View>
         </View>
         <Text style={styles.phone}>+34 965 12 48 30</Text>
         <Pressable onPress={() => setCallOpen(false)} style={styles.callBtn}>
-          <Text style={styles.callBtnText}>Позвонить</Text>
+          <Text style={styles.callBtnText}>{dict.listing.call}</Text>
         </Pressable>
         <Pressable onPress={() => setCallOpen(false)} style={styles.cancelBtn}>
-          <Text style={styles.cancelBtnText}>Отмена</Text>
+          <Text style={styles.cancelBtnText}>{dict.listing.cancel}</Text>
         </Pressable>
       </Sheet>
     </View>

@@ -1,25 +1,31 @@
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Screen } from '@/components/Screen';
+import { Sheet } from '@/components/Sheet';
+import { useI18n } from '@/i18n/I18nProvider';
+import { LOCALE_NAMES, LOCALES } from '@/i18n/locales';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 
-const LANGUAGES = ['Русский', 'English', 'Nederlands', 'Deutsch'];
+
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { favorites, dealStep, plus, togglePlus, notifications, toggleNotifications, language, cycleLanguage } =
+  const { locale, dict, setLocale } = useI18n();
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const { favorites, dealStep, plus, togglePlus, notifications, toggleNotifications } =
     useApp();
 
   const items = [
-    { title: 'Избранное', value: String(favorites.length), icon: ICON.heart, onPress: () => router.push('/favorites') },
-    { title: 'Сохранённые поиски', value: '3', icon: ICON.search, onPress: () => router.push('/results') },
-    { title: 'Моя сделка', value: `${dealStep} из 6`, icon: ICON.deal, onPress: () => router.push('/deal') },
-    { title: 'Ипотека', value: '', icon: ICON.mortgage, onPress: () => router.push('/mortgage') },
-    { title: 'Уведомления', value: '', icon: ICON.bell, toggle: true, onPress: toggleNotifications },
-    { title: 'Язык', value: LANGUAGES[language], icon: ICON.globe, onPress: cycleLanguage },
-    { title: 'Поддержка', value: '', icon: ICON.support, onPress: () => router.push('/chat') },
+    { title: dict.profile.menuFavorites, value: String(favorites.length), icon: ICON.heart, onPress: () => router.push('/favorites') },
+    { title: dict.profile.menuSearches, value: '3', icon: ICON.search, onPress: () => router.push('/results') },
+    { title: dict.profile.menuDeal, value: dict.home.dealSteps.replace('{n}', String(dealStep)), icon: ICON.deal, onPress: () => router.push('/deal') },
+    { title: dict.profile.menuMortgage, value: '', icon: ICON.mortgage, onPress: () => router.push('/mortgage') },
+    { title: dict.profile.menuNotifications, value: '', icon: ICON.bell, toggle: true, onPress: toggleNotifications },
+    { title: dict.profile.menuLanguage, value: LOCALE_NAMES[locale], icon: ICON.globe, onPress: () => setLanguageOpen(true) },
+    { title: dict.profile.menuSupport, value: '', icon: ICON.support, onPress: () => router.push('/chat') },
   ];
 
   return (
@@ -29,8 +35,8 @@ export default function ProfileScreen() {
           <Text style={styles.avatarText}>А</Text>
         </View>
         <View style={styles.headerBody}>
-          <Text style={styles.name}>Анна Смирнова</Text>
-          <Text style={styles.verified}>Профиль верифицирован</Text>
+          <Text style={styles.name}>{dict.profile.name}</Text>
+          <Text style={styles.verified}>{dict.profile.verified}</Text>
         </View>
       </View>
 
@@ -39,12 +45,12 @@ export default function ProfileScreen() {
           <View style={styles.plusTag}>
             <Text style={styles.plusTagText}>Casaya+</Text>
           </View>
-          <Text style={styles.plusState}>{plus ? 'активна' : '9,90 € / мес'}</Text>
+          <Text style={styles.plusState}>{plus ? dict.profile.plusState : dict.profile.plusPrice}</Text>
         </View>
-        <Text style={styles.plusTitle}>Новые объекты на 24 часа раньше всех</Text>
+        <Text style={styles.plusTitle}>{dict.profile.plusTitle}</Text>
         <Pressable onPress={togglePlus} style={[styles.plusBtn, { backgroundColor: plus ? c.green : c.white }]}>
           <Text style={[styles.plusBtnText, { color: plus ? c.white : c.ink }]}>
-            {plus ? 'Подписка активна' : 'Подключить за 9,90 €'}
+            {plus ? dict.profile.plusActive : dict.profile.plusCta}
           </Text>
         </Pressable>
       </View>
@@ -70,11 +76,39 @@ export default function ProfileScreen() {
           </Pressable>
         ))}
       </View>
+
+      <Sheet open={languageOpen} onClose={() => setLanguageOpen(false)}>
+        <Text style={styles.sheetTitle}>{dict.profile.languageTitle}</Text>
+        {LOCALES.map((code) => (
+          <Pressable
+            key={code}
+            onPress={() => {
+              setLocale(code);
+              setLanguageOpen(false);
+            }}
+            style={styles.languageRow}
+          >
+            <Text style={[styles.languageName, code === locale && styles.languageActive]}>
+              {LOCALE_NAMES[code]}
+            </Text>
+            {code === locale && <Icon d={ICON.check} size={16} color={c.violet} width={2.6} />}
+          </Pressable>
+        ))}
+      </Sheet>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  sheetTitle: { fontSize: 22, fontWeight: '700', letterSpacing: -0.7, color: c.ink },
+  languageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  languageName: { fontSize: 17, color: c.ink },
+  languageActive: { fontWeight: '700', color: c.violet },
   content: { paddingHorizontal: 20, gap: 14 },
 
   header: { flexDirection: 'row', alignItems: 'center', gap: 14 },

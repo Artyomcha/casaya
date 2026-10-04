@@ -4,6 +4,7 @@ import { CasayaMaps3dView } from '../../modules/casaya-maps3d';
 import { cameraFor } from './cameraFit';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import type { Mode } from '@/types';
 
 /**
@@ -28,6 +29,7 @@ export const Google3DMap = forwardRef<PropertyMapHandle, Props>(function Google3
   ref,
 ) {
   const [variant] = useState<'search' | 'single'>(compact ? 'single' : 'search');
+  const { locale } = useI18n();
   // Пропорции нужны для охвата выдачи: на узком экране по горизонтали
   // помещается меньше, чем по вертикали.
   const [aspect, setAspect] = useState(1);
@@ -51,12 +53,12 @@ export const Google3DMap = forwardRef<PropertyMapHandle, Props>(function Google3
       JSON.stringify(
         pins.map((p) => ({
           id: p.id,
-          label: pinLabel(p.price, mode),
+          label: pinLabel(p.price, mode, locale),
           lat: p.lat,
           lng: p.lng,
         })),
       ),
-    [pins, mode],
+    [pins, mode, locale],
   );
 
   return (

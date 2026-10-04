@@ -6,7 +6,8 @@ import { PlayIcon } from './Icon';
 import { PriceWithMarket, SavingsBadge } from './SavingsBadge';
 import { VerifiedBadge } from './VerifiedBadge';
 import { imageUrl } from '@/api';
-import { fmt, perM2Label, priceLabel, specsOf } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
+import { money, perM2Label, priceLabel, specsOf } from '@/format';
 import { c } from '@/theme';
 import type { Listing, Mode } from '@/types';
 
@@ -18,6 +19,7 @@ const useOpen = (slug: string) => {
 /** Узкая карточка для горизонтальной ленты на главной. */
 export function ListingTile({ item, mode }: { item: Listing; mode: Mode }) {
   const open = useOpen(item.slug);
+  const { locale, dict } = useI18n();
 
   return (
     <Pressable onPress={open} style={styles.tile}>
@@ -30,8 +32,8 @@ export function ListingTile({ item, mode }: { item: Listing; mode: Mode }) {
         <FavoriteButton listingId={item.id} size={17} />
       </View>
       <View>
-        <Text style={styles.tilePrice}>{priceLabel(item.price, mode)}</Text>
-        <Text style={styles.specs}>{specsOf(item)}</Text>
+        <Text style={styles.tilePrice}>{priceLabel(item.price, mode, locale, dict)}</Text>
+        <Text style={styles.specs}>{specsOf(item, locale, dict)}</Text>
         <Text style={styles.address}>{item.address}</Text>
       </View>
     </Pressable>
@@ -41,6 +43,7 @@ export function ListingTile({ item, mode }: { item: Listing; mode: Mode }) {
 /** Большая карточка выдачи. */
 export function ListingCard({ item, mode }: { item: Listing; mode: Mode }) {
   const open = useOpen(item.slug);
+  const { locale, dict } = useI18n();
 
   return (
     <Pressable onPress={open} style={styles.card}>
@@ -54,21 +57,21 @@ export function ListingCard({ item, mode }: { item: Listing; mode: Mode }) {
         {item.videoTour && (
           <View style={styles.videoTag}>
             <PlayIcon size={10} />
-            <Text style={styles.videoTagText}>Видео-тур</Text>
+            <Text style={styles.videoTagText}>{dict.common.videoTour}</Text>
           </View>
         )}
       </View>
       <View style={styles.cardFooter}>
         <View style={styles.cardFooterMain}>
           <PriceWithMarket
-            price={priceLabel(item.price, mode)}
-            marketPrice={mode === 'buy' && item.marketPrice ? fmt(item.marketPrice) : null}
+            price={priceLabel(item.price, mode, locale, dict)}
+            marketPrice={mode === 'buy' && item.marketPrice ? money(item.marketPrice, locale) : null}
             priceStyle={styles.cardPrice}
           />
-          <Text style={styles.specsLarge}>{specsOf(item)}</Text>
+          <Text style={styles.specsLarge}>{specsOf(item, locale, dict)}</Text>
           <Text style={styles.addressLarge}>{item.address}</Text>
         </View>
-        <Text style={styles.perM2}>{perM2Label(item, mode)}</Text>
+        <Text style={styles.perM2}>{perM2Label(item, mode, locale, dict)}</Text>
       </View>
     </Pressable>
   );
@@ -77,6 +80,7 @@ export function ListingCard({ item, mode }: { item: Listing; mode: Mode }) {
 /** Горизонтальная строка — избранное. */
 export function ListingRow({ item, mode }: { item: Listing; mode: Mode }) {
   const open = useOpen(item.slug);
+  const { locale, dict } = useI18n();
 
   return (
     <Pressable onPress={open} style={styles.row}>
@@ -84,13 +88,13 @@ export function ListingRow({ item, mode }: { item: Listing; mode: Mode }) {
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
           <PriceWithMarket
-            price={priceLabel(item.price, mode)}
-            marketPrice={mode === 'buy' && item.marketPrice ? fmt(item.marketPrice) : null}
+            price={priceLabel(item.price, mode, locale, dict)}
+            marketPrice={mode === 'buy' && item.marketPrice ? money(item.marketPrice, locale) : null}
             priceStyle={styles.rowPrice}
           />
           <FavoriteButton listingId={item.id} variant="plain" size={20} />
         </View>
-        <Text style={styles.specs}>{specsOf(item)}</Text>
+        <Text style={styles.specs}>{specsOf(item, locale, dict)}</Text>
         <Text style={styles.address}>{item.address}</Text>
         {item.badge && (
           <View style={styles.rowBadge}>

@@ -6,13 +6,16 @@ import { RangeRow } from '@/components/RangeRow';
 import { Screen } from '@/components/Screen';
 import { Segmented } from '@/components/Segmented';
 import { api } from '@/api';
-import { fmt, monthlyPayment } from '@/format';
+import { money, monthlyPayment } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import { c, ICON } from '@/theme';
 import type { Bank } from '@/types';
 
-const TERMS = [10, 15, 20, 25].map((t) => ({ key: t, label: `${t} лет` }));
+/** Сроки кредита. Подпись «лет» — из словаря, сами сроки от языка не зависят. */
+const terms = (years: string) => [10, 15, 20, 25].map((t) => ({ key: t, label: `${t} ${years}` }));
 
 export default function MortgageScreen() {
+  const { locale, dict } = useI18n();
   const router = useRouter();
   const [price, setPrice] = useState(485_000);
   const [down, setDown] = useState(30);
@@ -42,20 +45,20 @@ export default function MortgageScreen() {
         <Pressable onPress={() => router.back()} style={styles.backBtn}>
           <Icon d={ICON.chevronLeft} size={20} width={2.2} />
         </Pressable>
-        <Text style={styles.title}>Ипотека</Text>
+        <Text style={styles.title}>{dict.mortgage.title}</Text>
       </View>
 
       <View style={styles.summary}>
-        <Text style={styles.summaryLabel}>Платёж в месяц</Text>
-        <Text style={styles.summaryValue}>{fmt(monthly)}</Text>
+        <Text style={styles.summaryLabel}>{dict.mortgage.monthly}</Text>
+        <Text style={styles.summaryValue}>{money(monthly, locale)}</Text>
         <Text style={styles.summaryLabel}>
-          Кредит {fmt(loan)} · ставка от 3,2%
+          {dict.mortgage.summary.replace('{loan}', money(loan, locale))}
         </Text>
       </View>
 
       <RangeRow
-        label="Стоимость"
-        value={fmt(price)}
+        label={dict.mortgage.price}
+        value={money(price, locale)}
         min={80_000}
         max={1_500_000}
         step={5_000}
@@ -67,8 +70,8 @@ export default function MortgageScreen() {
       />
 
       <RangeRow
-        label="Первый взнос"
-        value={`${down}% · ${fmt((price * down) / 100)}`}
+        label={dict.mortgage.downPayment}
+        value={`${down}% · ${money((price * down) / 100, locale)}`}
         min={30}
         max={70}
         step={5}
@@ -80,7 +83,7 @@ export default function MortgageScreen() {
       />
 
       <Segmented
-        options={TERMS}
+        options={terms(dict.mortgage.years)}
         value={term}
         onChange={(v) => {
           setTerm(v);
@@ -89,7 +92,7 @@ export default function MortgageScreen() {
       />
 
       <View style={styles.banks}>
-        <Text style={styles.banksTitle}>Банки-партнёры</Text>
+        <Text style={styles.banksTitle}>{dict.mortgage.banks}</Text>
         {banks.map((bank) => (
           <View key={bank.id} style={styles.bank}>
             <View style={[styles.bankLogo, { backgroundColor: bank.brandColor }]}>
@@ -102,7 +105,7 @@ export default function MortgageScreen() {
       </View>
 
       <Pressable onPress={submit} disabled={sent} style={[styles.cta, { backgroundColor: sent ? c.green : c.violet }]}>
-        <Text style={styles.ctaText}>{sent ? 'Заявка отправлена брокеру' : 'Получить одобрение'}</Text>
+        <Text style={styles.ctaText}>{sent ? dict.mortgage.sent : dict.mortgage.submit}</Text>
       </Pressable>
     </Screen>
   );

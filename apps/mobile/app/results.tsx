@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chip } from '@/components/Chip';
-import { FiltersSheet, KIND_CHIPS } from '@/components/FiltersSheet';
+import { FiltersSheet, kindChips } from '@/components/FiltersSheet';
 import { Icon } from '@/components/Icon';
 import { ListingCard } from '@/components/ListingCards';
 import { LoadState, Screen } from '@/components/Screen';
 import { countLabel } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 
@@ -15,6 +16,7 @@ export default function ResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { filtered, loading, error, reload, mode, filters, setFilters, resetFilters } = useApp();
+  const { locale, dict } = useI18n();
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   return (
@@ -26,23 +28,28 @@ export default function ResultsScreen() {
           </Pressable>
           <View style={styles.searchBar}>
             <Icon d={ICON.search} size={18} color={c.muted} width={2} />
-            <Text style={styles.searchText}>Марбелья · {mode === 'rent' ? 'снять' : 'купить'}</Text>
+            <Text style={styles.searchText}>
+              {dict.results.searchLabel.replace(
+                '{mode}',
+                mode === 'rent' ? dict.results.modeRent : dict.results.modeBuy,
+              )}
+            </Text>
           </View>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           <Pressable onPress={() => setFiltersOpen(true)} style={styles.filtersBtn}>
             <Icon d={ICON.sliders} size={14} color={c.white} width={2.2} />
-            <Text style={styles.filtersBtnText}>Фильтры</Text>
+            <Text style={styles.filtersBtnText}>{dict.results.filters}</Text>
           </Pressable>
-          {KIND_CHIPS.map((k) => (
+          {kindChips(dict).map((k) => (
             <Chip key={k.key} label={k.label} active={filters.kind === k.key} onPress={() => setFilters({ kind: k.key })} />
           ))}
         </ScrollView>
 
         <View style={styles.countRow}>
-          <Text style={styles.count}>{countLabel(filtered.length)}</Text>
-          <Text style={styles.sort}>Сначала новые</Text>
+          <Text style={styles.count}>{countLabel(filtered.length, locale, dict)}</Text>
+          <Text style={styles.sort}>{dict.results.sort}</Text>
         </View>
 
         <LoadState loading={loading} error={error} onRetry={reload} />
@@ -54,10 +61,10 @@ export default function ResultsScreen() {
 
           {!loading && !error && filtered.length === 0 && (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Ничего не найдено</Text>
-              <Text style={styles.emptyText}>Попробуйте расширить фильтры</Text>
+              <Text style={styles.emptyTitle}>{dict.results.emptyTitle}</Text>
+              <Text style={styles.emptyText}>{dict.results.emptyText}</Text>
               <Pressable onPress={resetFilters} style={styles.emptyBtn}>
-                <Text style={styles.emptyBtnText}>Сбросить фильтры</Text>
+                <Text style={styles.emptyBtnText}>{dict.results.reset}</Text>
               </Pressable>
             </View>
           )}
@@ -69,7 +76,7 @@ export default function ResultsScreen() {
         style={[styles.mapFab, { bottom: Math.max(insets.bottom, 12) + 96 }]}
       >
         <Icon d={ICON.layers} size={18} color={c.white} width={1.9} />
-        <Text style={styles.mapFabText}>На карте</Text>
+        <Text style={styles.mapFabText}>{dict.results.onMap}</Text>
       </Pressable>
 
       <FiltersSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} />

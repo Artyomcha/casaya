@@ -5,6 +5,7 @@ import { GOOGLE_KEY, Google3DMap } from './Google3DMap';
 import { BASEMAP_STYLE, BUILDINGS_3D, CAMERA, COSTA_DEL_SOL } from './mapStyle';
 import type { Pinned, PropertyMapHandle } from './mapTypes';
 import { pinLabel } from '@/format';
+import { useI18n } from '@/i18n/I18nProvider';
 import { c } from '@/theme';
 import type { Mode } from '@/types';
 
@@ -51,6 +52,7 @@ const VectorMap = forwardRef<PropertyMapHandle, Props>(function VectorMap(
   ref,
 ) {
   const camera = useRef<CameraRef>(null);
+  const { locale } = useI18n();
 
   // Границы в порядке GeoJSON: запад, юг, восток, север.
   const bounds = useMemo(() => {
@@ -126,7 +128,7 @@ const VectorMap = forwardRef<PropertyMapHandle, Props>(function VectorMap(
           >
             <View style={[styles.pin, active && styles.pinActive]}>
               <Text style={[styles.pinText, active && styles.pinTextActive]}>
-                {pinLabel(pin.price, mode)}
+                {pinLabel(pin.price, mode, locale)}
               </Text>
               <View style={[styles.tail, active && styles.tailActive]} />
             </View>

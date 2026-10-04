@@ -4,18 +4,20 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ListingRow } from '@/components/ListingCards';
 import { LoadState, Screen } from '@/components/Screen';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useApp } from '@/state/AppState';
 import { c, ICON } from '@/theme';
 
 export default function FavoritesScreen() {
   const router = useRouter();
   const { listings, favorites, mode, loading, error, reload } = useApp();
+  const { dict } = useI18n();
 
   const saved = useMemo(() => listings.filter((l) => favorites.includes(l.id)), [listings, favorites]);
 
   return (
     <Screen contentStyle={styles.content}>
-      <Text style={styles.title}>Избранное</Text>
+      <Text style={styles.title}>{dict.favorites.title}</Text>
 
       <LoadState loading={loading} error={error} onRetry={reload} />
 
@@ -26,10 +28,10 @@ export default function FavoritesScreen() {
               <Path d={ICON.heart} fill="none" stroke={c.coral} strokeWidth={1.9} strokeLinejoin="round" />
             </Svg>
           </View>
-          <Text style={styles.emptyTitle}>Здесь пока пусто</Text>
-          <Text style={styles.emptyText}>Нажмите на сердце на карточке, чтобы сохранить объект</Text>
+          <Text style={styles.emptyTitle}>{dict.favorites.emptyTitle}</Text>
+          <Text style={styles.emptyText}>{dict.favorites.emptyText}</Text>
           <Pressable onPress={() => router.push('/results')} style={styles.emptyBtn}>
-            <Text style={styles.emptyBtnText}>Найти объекты</Text>
+            <Text style={styles.emptyBtnText}>{dict.favorites.emptyCta}</Text>
           </Pressable>
         </View>
       )}
